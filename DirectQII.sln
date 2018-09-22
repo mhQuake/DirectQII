@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual C++ Express 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quake2", "DirectQII\DirectQII.vcproj", "{D7A72414-8DA1-44BC-9425-7EDE32C1CFAC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Renderer", "Renderer\Renderer.vcproj", "{F2EB7945-2837-4393-9134-9B6C9DEFBE19}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7A72414-8DA1-44BC-9425-7EDE32C1CFAC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D7A72414-8DA1-44BC-9425-7EDE32C1CFAC}.Debug|Win32.Build.0 = Debug|Win32
+		{D7A72414-8DA1-44BC-9425-7EDE32C1CFAC}.Release|Win32.ActiveCfg = Release|Win32
+		{D7A72414-8DA1-44BC-9425-7EDE32C1CFAC}.Release|Win32.Build.0 = Release|Win32
+		{F2EB7945-2837-4393-9134-9B6C9DEFBE19}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F2EB7945-2837-4393-9134-9B6C9DEFBE19}.Debug|Win32.Build.0 = Debug|Win32
+		{F2EB7945-2837-4393-9134-9B6C9DEFBE19}.Release|Win32.ActiveCfg = Release|Win32
+		{F2EB7945-2837-4393-9134-9B6C9DEFBE19}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
