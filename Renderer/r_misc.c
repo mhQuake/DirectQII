@@ -82,7 +82,7 @@ void R_CreateSpecialTextures (void)
 		}
 	}
 
-	r_blacktexture = GL_LoadPic ("***r_blacktexture***", (byte *) data, 8, 8, it_wall, 32, NULL);
+	r_whitetexture = GL_LoadPic ("***r_whitetexture***", (byte *) data, 8, 8, it_wall, 32, NULL);
 
 	// also use this for bad textures, but without alpha
 	for (x = 0; x < 8; x++)

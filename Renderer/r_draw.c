@@ -92,7 +92,7 @@ void D_UpdateDrawConstants (int width, int height, float gammaval, float contras
 
 void Draw_TexturedColouredQuad (image_t *image, int x, int y, int w, int h, unsigned color, int sl, int sh, int tl, int th, int shader)
 {
-	GL_BindTexture (image->SRV);
+	R_BindTexture (image->SRV);
 
 	D_BindShaderBundle (shader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
@@ -110,7 +110,7 @@ void Draw_TexturedColouredQuad (image_t *image, int x, int y, int w, int h, unsi
 
 void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, int sl, int sh, int tl, int th, int shader)
 {
-	GL_BindTexture (image->SRV);
+	R_BindTexture (image->SRV);
 
 	D_BindShaderBundle (shader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);

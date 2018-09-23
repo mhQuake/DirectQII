@@ -149,5 +149,10 @@ float4 SurfDrawSkyPS (PS_DRAWSKY ps_in) : SV_TARGET0
 	// reuses the lightmap sampler because it has the same sampler state as is required here
 	return GetGamma (sboxTexture.Sample (lmapSampler, ps_in.TexCoord));
 }
+
+float4 SkyNoSkyPS (PS_BASIC ps_in) : SV_TARGET0
+{
+	return float4 (1, 1, 1, 1);
+}
 #endif
 

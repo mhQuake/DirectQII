@@ -39,10 +39,10 @@ int d3d_FirstSurfIndex = 0;
 ID3D11Buffer *d3d_SurfVertexes = NULL;
 ID3D11Buffer *d3d_SurfIndexes = NULL;
 
-int d3d_SurfBasicShader;
-int d3d_SurfLightmapShader;
-int d3d_SurfDynamicShader;
-int d3d_SurfDrawTurbShader;
+static int d3d_SurfBasicShader;
+static int d3d_SurfLightmapShader;
+static int d3d_SurfDynamicShader;
+static int d3d_SurfDrawTurbShader;
 
 typedef struct brushpolyvert_s {
 	float xyz[3];
@@ -188,6 +188,23 @@ void R_EndSurfaceBatch (void)
 }
 
 
+image_t *R_SelectSurfaceTexture (mtexinfo_t *ti, int frame)
+{
+	if (r_lightmap->value)
+	{
+		if (ti->flags & SURF_WARP)
+			return r_whitetexture;
+		else return r_greytexture;
+	}
+	else
+	{
+		if (ti->flags & SURF_WARP)
+			return ti->image;
+		else return R_TextureAnimation (ti, frame);
+	}
+}
+
+
 void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float alphaval)
 {
 	int	i;
@@ -219,7 +236,8 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 			D_BindShaderBundle (d3d_SurfBasicShader);
 		else D_BindShaderBundle (d3d_SurfLightmapShader);
 
-		GL_BindTexture (R_TextureAnimation (ti, e->currframe)->SRV);
+		// select the correct texture
+		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
 
 		for (; surf; surf = surf->texturechain)
 		{
@@ -263,7 +281,9 @@ void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix)
 		if ((surf = ti->texturechain) == NULL) continue;
 
 		D_BindShaderBundle (d3d_SurfDynamicShader);
-		GL_BindTexture (R_TextureAnimation (ti, e->currframe)->SRV);
+
+		// select the correct texture
+		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
 
 		for (; surf; surf = surf->texturechain)
 			R_AddSurfaceToBatch (surf);
@@ -318,7 +338,7 @@ void R_DrawAlphaSurfaces (void)
 		{
 			R_EndSurfaceBatch ();
 
-			GL_BindTexture (s->texinfo->image->SRV);
+			R_BindTexture (s->texinfo->image->SRV);
 
 			if (s->texinfo->flags & SURF_WARP)
 				D_BindShaderBundle (d3d_SurfDrawTurbShader);

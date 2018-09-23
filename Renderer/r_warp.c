@@ -40,7 +40,7 @@ D3D11_TEXTURE2D_DESC r_NoiseDesc;
 
 static int d3d_SurfDrawSkyShader;
 static int d3d_WaterWarpShader;
-
+static int d3d_SkyNoSkyShader;
 
 void D_CreateNoiseTexture (void)
 {
@@ -111,6 +111,7 @@ void R_InitWarp (void)
 
 	d3d_SurfDrawSkyShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawSkyVS", NULL, "SurfDrawSkyPS", DEFINE_LAYOUT (layout));
 	d3d_WaterWarpShader = D_CreateShaderBundleForQuadBatch (IDR_WATERWARP, "WaterWarpVS", "WaterWarpPS", batch_standard);
+	d3d_SkyNoSkyShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawSkyVS", NULL, "SkyNoSkyPS", DEFINE_LAYOUT (layout));
 
 	D_CreateRenderTargetAtBackbufferSize ();
 	D_CreateNoiseTexture ();
@@ -158,7 +159,10 @@ void R_SetupSky (QMATRIX *SkyMatrix)
 void R_DrawSkyChain (msurface_t *surf)
 {
 	D_SetRenderStates (d3d_BSNone, d3d_DSDepthNoWrite, d3d_RSFullCull);
-	D_BindShaderBundle (d3d_SurfDrawSkyShader);
+
+	if (r_lightmap->value)
+		D_BindShaderBundle (d3d_SkyNoSkyShader);
+	else D_BindShaderBundle (d3d_SurfDrawSkyShader);
 
 	for (; surf; surf = surf->texturechain)
 		R_AddSurfaceToBatch (surf);
@@ -286,7 +290,7 @@ void D_DoWaterWarp (void)
 	D_SetRenderStates (d3d_BSNone, d3d_DSNoDepth, d3d_RSNoCull);
 
 	// this can't be bound once at the start of the frame because setting it as an RT will unbind it
-	GL_BindTexture (r_WaterWarpSRV);
+	R_BindTexture (r_WaterWarpSRV);
 
 	D_CheckQuadBatch ();
 

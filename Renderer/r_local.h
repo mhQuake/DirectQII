@@ -183,6 +183,7 @@ extern	vec3_t	r_origin;
 extern	refdef_t	r_newrefdef;
 extern	int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
+extern	cvar_t	*r_lightmap;
 extern	cvar_t	*r_fullbright;
 extern	cvar_t	*r_beamdetail;
 extern	cvar_t	*r_lefthand;
@@ -201,9 +202,8 @@ extern  cvar_t  *gl_lockpvs;
 extern	cvar_t	*vid_fullscreen;
 extern	cvar_t	*vid_gamma;
 
-extern	cvar_t		*intensity;
-
-extern	float	r_world_matrix[16];
+extern	cvar_t	*intensity;
+extern	cvar_t	*r_fov;
 
 void R_TranslatePlayerSkin (int playernum);
 void GL_TexEnv (int value);
@@ -405,7 +405,7 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 // textures marked disposable may be flushed on map changes
 #define TEX_DISPOSABLE		(1 << 30)
 
-void GL_BindTexture (ID3D11ShaderResourceView *SRV);
+void R_BindTexture (ID3D11ShaderResourceView *SRV);
 void GL_BindTexArray (ID3D11ShaderResourceView *SRV);
 void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int arraysize, int flags);
 image_t *GL_LoadTexArray (char *base);

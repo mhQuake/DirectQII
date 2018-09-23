@@ -19,7 +19,5 @@ implement ri.Set2D/ri.End2D and bring on framework for vid.conwidth/vid.conheigh
 
 gun at fov > 90
 
-check screenshots at 1366x768 mode
-
 upscale pics/charset/numbers (but NOT conback) so that they'll look good at zoomed ortho views
 negative dlights

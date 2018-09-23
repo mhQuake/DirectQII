@@ -392,7 +392,9 @@ image_t *R_GetAliasSkin (entity_t *e, model_t *mod)
 	image_t	*skin = NULL;
 
 	// select skin
-	if (e->skin)
+	if (r_lightmap->value)
+		skin = r_greytexture;
+	else if (e->skin)
 		skin = e->skin;	// custom player skin
 	else
 	{
@@ -421,7 +423,7 @@ void GL_DrawAliasPolySet (model_t *mod)
 
 void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
-	GL_BindTexture (R_GetAliasSkin (e, mod)->SRV);
+	R_BindTexture (R_GetAliasSkin (e, mod)->SRV);
 
 	// figure the correct shaders to use
 	if (e->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))

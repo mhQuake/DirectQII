@@ -33,7 +33,7 @@ void D_DrawSpriteModel (float positions[4][3], int alpha, ID3D11ShaderResourceVi
 {
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSDepthNoWrite, d3d_RSFullCull);
 	D_BindShaderBundle (d3d_SpriteShader);
-	GL_BindTexture (SRV);
+	R_BindTexture (SRV);
 
 	D_CheckQuadBatch ();
 

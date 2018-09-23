@@ -27,6 +27,7 @@ extern cvar_t *vid_ref;
 
 void R_Register (void)
 {
+	r_lightmap = ri.Cvar_Get ("r_lightmap", "0", CVAR_CHEAT);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_CHEAT);
 	r_beamdetail = ri.Cvar_Get ("r_beamdetail", "24", CVAR_ARCHIVE);
 	r_lefthand = ri.Cvar_Get ("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -45,6 +46,8 @@ void R_Register (void)
 	vid_fullscreen = ri.Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get ("vid_gamma", "1.0", CVAR_ARCHIVE);
 	vid_ref = ri.Cvar_Get ("vid_ref", "gl", CVAR_ARCHIVE);
+
+	r_fov = ri.Cvar_Get ("fov", "90", CVAR_USERINFO | CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand ("screenshot", GL_ScreenShot_f);
 	ri.Cmd_AddCommand ("modellist", Mod_Modellist_f);

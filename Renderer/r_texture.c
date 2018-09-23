@@ -180,7 +180,7 @@ void GL_TexEnv (int mode)
 {
 }
 
-void GL_BindTexture (ID3D11ShaderResourceView *SRV)
+void R_BindTexture (ID3D11ShaderResourceView *SRV)
 {
 	// only PS slot 0 is filtered; everything else is bound once-only at the start of each frame
 	static ID3D11ShaderResourceView *OldSRV;
@@ -418,8 +418,11 @@ void GL_FreeUnusedImages (void)
 	int		i;
 	image_t	*image;
 
-	// never free r_notexture or particle texture
+	// never free special textures
 	r_notexture->registration_sequence = r_registration_sequence;
+	r_blacktexture->registration_sequence = r_registration_sequence;
+	r_greytexture->registration_sequence = r_registration_sequence;
+	r_whitetexture->registration_sequence = r_registration_sequence;
 
 	for (i = 0, image = gltextures; i < MAX_GLTEXTURES; i++, image++)
 	{

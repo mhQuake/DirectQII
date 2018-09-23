@@ -117,14 +117,12 @@ vec3_t	vpn;
 vec3_t	vright;
 vec3_t	r_origin;
 
-float	r_world_matrix[16];
-float	r_base_world_matrix[16];
-
 // screen size info
 refdef_t	r_newrefdef;
 
 int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
+cvar_t	*r_lightmap;
 cvar_t	*r_fullbright;
 cvar_t	*r_beamdetail;
 cvar_t	*r_drawentities;
@@ -143,6 +141,8 @@ cvar_t	*gl_lockpvs;
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
 cvar_t	*vid_ref;
+
+cvar_t	*r_fov;
 
 
 void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, float alphaval, int rflags)
@@ -163,7 +163,12 @@ void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, float alphaval
 		if (rflags & RF_DEPTHHACK) R_MatrixScale (&flipmatrix, 1.0f, 1.0f, 0.3f);
 
 		// multiply by MVP for the final matrix
-		R_MatrixMultiply (&flipmatrix, &r_mvp_matrix, &flipmatrix);
+		if (r_fov->value > 90)
+		{
+			// to do - using a separate FOV for the gun if > 90
+		}
+		else R_MatrixMultiply (&flipmatrix, &r_mvp_matrix, &flipmatrix);
+
 		R_MatrixMultiply (&consts.localMatrix, localMatrix, &flipmatrix);
 	}
 	else R_MatrixMultiply (&consts.localMatrix, localMatrix, &r_mvp_matrix);
