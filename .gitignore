@@ -1,0 +1,4 @@
+*.ncb
+*.user
+**/Debug
+**/Release
