@@ -90,11 +90,6 @@ void R_InitNull (void);
 #define	REF_VERSION	"GL 0.01"
 
 
-typedef struct viddef_s
-{
-	unsigned		width, height;			// coordinates from main game
-} viddef_t;
-
 extern	viddef_t	vid;
 
 
@@ -116,7 +111,7 @@ typedef enum _imagetype_t {
 	it_sprite,
 	it_wall,
 	it_pic,
-	it_sky
+	it_charset
 } imagetype_t;
 
 typedef struct image_s {
@@ -162,6 +157,10 @@ extern	image_t		gltextures[MAX_GLTEXTURES];
 
 
 extern	image_t		*r_notexture;
+extern	image_t		*r_blacktexture;
+extern	image_t		*r_greytexture;
+extern	image_t		*r_whitetexture;
+
 extern	int			r_visframecount;
 extern	int			r_framecount;
 extern	cplane_t	frustum[4];
@@ -184,6 +183,7 @@ extern	vec3_t	r_origin;
 extern	refdef_t	r_newrefdef;
 extern	int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
+extern	cvar_t	*r_fullbright;
 extern	cvar_t	*r_beamdetail;
 extern	cvar_t	*r_lefthand;
 extern	cvar_t	*r_drawentities;
@@ -232,7 +232,7 @@ void R_DrawSpriteModel (entity_t *e);
 void R_DrawBeam (entity_t *e);
 void R_DrawWorld (void);
 void R_DrawAlphaSurfaces (void);
-void R_InitParticleTexture (void);
+void R_CreateSpecialTextures (void);
 void Draw_InitLocal (void);
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 qboolean R_CullBoxClipflags (vec3_t mins, vec3_t maxs, int clipflags);
@@ -244,14 +244,13 @@ void COM_StripExtension (char *in, char *out);
 void Draw_GetPicSize (int *w, int *h, char *name);
 void Draw_Pic (int x, int y, char *name);
 void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha);
-void Draw_TileClear (int x, int y, int w, int h, char *name);
 void Draw_Fill (int x, int y, int w, int h, int c);
 void Draw_FadeScreen (void);
 void Draw_StretchRaw (int cols, int rows, byte *data, int frame);
 void Draw_ShutdownRawImage (void);
 
 void Draw_Char (int x, int y, int num);
-void Draw_String (void);
+void Draw_Field (int x, int y, int color, int width, int value);
 
 void R_BeginFrame (void);
 void R_SetCinematicPalette (const unsigned char *palette);
@@ -325,6 +324,12 @@ void D_UpdateDrawConstants (int width, int height, float gammaval, float contras
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // quadbatch
+typedef enum _batchtype_t {
+	batch_standard,
+	batch_texarray
+} batchtype_t;
+
+
 void D_CheckQuadBatch (void);
 void D_QuadVertexPosition3fvColorAlphaTexCoord2f (float *xyz, DWORD color, int alpha, float s, float t);
 void D_QuadVertexPosition3fvColorTexCoord2f (float *xyz, DWORD color, float s, float t);
@@ -332,8 +337,9 @@ void D_QuadVertexPosition2fColorTexCoord2f (float x, float y, DWORD color, float
 void D_QuadVertexPosition2fTexCoord2f (float x, float y, float s, float t);
 void D_QuadVertexPosition2fColor (float x, float y, DWORD color);
 void D_QuadVertexPosition2f (float x, float y);
+void D_QuadVertexPosition2fTexCoord3f (float x, float y, float s, float t, float slice);
 void D_EndQuadBatch (void);
-int D_CreateShaderBundleForQuadBatch (int resourceID, const char *vsentry, const char *psentry);
+int D_CreateShaderBundleForQuadBatch (int resourceID, const char *vsentry, const char *psentry, batchtype_t type);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -391,6 +397,7 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 #define TEX_NOISE			(1 << 10) // 2-channel 16-bit per channel signed-normalized format for use with noise
 #define TEX_PLAYERTEXTURE	(1 << 11) // used for player colour translations
 #define TEX_UPSCALE			(1 << 12) // texture was upscaled
+#define TEX_CHARSET			(1 << 13) // charset uses a 16x16 texture array
 
 // if any of these are set the texture may be processed for having an alpha channel
 #define TEX_ANYALPHA		(TEX_ALPHA | TEX_TRANSPARENT | TEX_HOLEY | TEX_SPECIAL_TRANS)
@@ -399,12 +406,15 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 #define TEX_DISPOSABLE		(1 << 30)
 
 void GL_BindTexture (ID3D11ShaderResourceView *SRV);
+void GL_BindTexArray (ID3D11ShaderResourceView *SRV);
 void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int arraysize, int flags);
+image_t *GL_LoadTexArray (char *base);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // images
 
+#pragma pack(push, 1)
 typedef struct _TargaHeader
 {
 	unsigned char 	id_length, colormap_type, image_type;
@@ -413,6 +423,7 @@ typedef struct _TargaHeader
 	unsigned short	x_origin, y_origin, width, height;
 	unsigned char	pixel_size, attributes;
 } TargaHeader;
+#pragma pack(pop)
 
 void LoadTGA (char *name, byte **pic, int *width, int *height);
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
@@ -445,8 +456,10 @@ void Image_ApplyTranslationRGB (byte *rgb, int size, byte *table);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // light
-#define	LIGHTMAP_SIZE		128
-#define	MAX_LIGHTMAPS		128
+#define	LIGHTMAP_SIZE		256
+
+// using a texture array and with needing to support feature levels as low as d3d10 we must constrain MAX_LIGHTMAPS to this value
+#define	MAX_LIGHTMAPS	D3D10_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION
 
 void R_BindLightmaps (void);
 void D_SetupDynamicLight (dlight_t *dl);

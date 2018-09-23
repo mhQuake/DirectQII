@@ -24,9 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern	struct model_s	*cl_mod_powerscreen;
 
-//PGM
-int	vidref_val;
-//PGM
 
 /*
 =========================================================================
@@ -337,16 +334,10 @@ void CL_DeltaEntity (frame_t *frame, int newnum, entity_state_t *old, int bits)
 	CL_ParseDelta (old, state, newnum, bits);
 
 	// some data changes will force no lerping
-	if (state->modelindex != ent->current.modelindex
-		|| state->modelindex2 != ent->current.modelindex2
-		|| state->modelindex3 != ent->current.modelindex3
-		|| state->modelindex4 != ent->current.modelindex4
-		|| abs (state->origin[0] - ent->current.origin[0]) > 512
-		|| abs (state->origin[1] - ent->current.origin[1]) > 512
-		|| abs (state->origin[2] - ent->current.origin[2]) > 512
-		|| state->event == EV_PLAYER_TELEPORT
-		|| state->event == EV_OTHER_TELEPORT
-		)
+	if (state->modelindex != ent->current.modelindex || state->modelindex2 != ent->current.modelindex2 ||
+		state->modelindex3 != ent->current.modelindex3 || state->modelindex4 != ent->current.modelindex4 ||
+		abs (state->origin[0] - ent->current.origin[0]) > 512 || abs (state->origin[1] - ent->current.origin[1]) > 512 || abs (state->origin[2] - ent->current.origin[2]) > 512 ||
+		state->event == EV_PLAYER_TELEPORT || state->event == EV_OTHER_TELEPORT)
 	{
 		ent->serverframe = -99;
 	}
@@ -355,8 +346,10 @@ void CL_DeltaEntity (frame_t *frame, int newnum, entity_state_t *old, int bits)
 	{
 		// wasn't in last update, so initialize some things
 		ent->trailcount = 1024;		// for diminishing rocket / grenade trails
+
 		// duplicate the current state so lerping doesn't hurt anything
 		ent->prev = *state;
+
 		if (state->event == EV_OTHER_TELEPORT)
 		{
 			VectorCopy (state->origin, ent->prev.origin);
@@ -762,10 +755,10 @@ void CL_ParseFrame (void)
 			cl.predicted_origin[1] = cl.frame.playerstate.pmove.origin[1] * 0.125;
 			cl.predicted_origin[2] = cl.frame.playerstate.pmove.origin[2] * 0.125;
 			VectorCopy (cl.frame.playerstate.viewangles, cl.predicted_angles);
-			if (cls.disable_servercount != cl.servercount
-				&& cl.refresh_prepped)
+			if (cls.disable_servercount != cl.servercount && cl.refresh_prepped)
 				SCR_EndLoadingPlaque ();	// get rid of loading plaque
 		}
+
 		cl.sound_prepped = true;	// can start mixing ambient sounds
 
 		// fire entity events
@@ -1240,14 +1233,8 @@ void CL_AddPacketEntities (frame_t *frame)
 			{
 				if (effects & EF_TRACKER)
 				{
-					float intensity;
-
-					intensity = 50 + (500 * (sin (cl.time / 500.0) + 1.0));
-					// FIXME - check out this effect in rendition
-					if (vidref_val == VIDREF_GL)
-						V_AddLight (ent.currorigin, intensity, -1.0, -1.0, -1.0);
-					else
-						V_AddLight (ent.currorigin, -1.0 * intensity, 1.0, 1.0, 1.0);
+					float intensity = 50 + (500 * (sin (cl.time / 500.0) + 1.0));
+					V_AddLight (ent.currorigin, intensity, -1.0, -1.0, -1.0);
 				}
 				else
 				{
@@ -1258,11 +1245,7 @@ void CL_AddPacketEntities (frame_t *frame)
 			else if (effects & EF_TRACKER)
 			{
 				CL_TrackerTrail (cent->lerp_origin, ent.currorigin, 0);
-				// FIXME - check out this effect in rendition
-				if (vidref_val == VIDREF_GL)
-					V_AddLight (ent.currorigin, 200, -1, -1, -1);
-				else
-					V_AddLight (ent.currorigin, -200, 1, 1, 1);
+				V_AddLight (ent.currorigin, 200, -1, -1, -1);
 			}
 			//ROGUE
 			//======
@@ -1378,9 +1361,7 @@ void CL_CalcViewValues (void)
 	ops = &oldframe->playerstate;
 
 	// see if the player entity was teleported this frame
-	if (fabs (ops->pmove.origin[0] - ps->pmove.origin[0]) > 256 * 8
-		|| abs (ops->pmove.origin[1] - ps->pmove.origin[1]) > 256 * 8
-		|| abs (ops->pmove.origin[2] - ps->pmove.origin[2]) > 256 * 8)
+	if (fabs (ops->pmove.origin[0] - ps->pmove.origin[0]) > 256 * 8 || abs (ops->pmove.origin[1] - ps->pmove.origin[1]) > 256 * 8 || abs (ops->pmove.origin[2] - ps->pmove.origin[2]) > 256 * 8)
 		ops = ps;		// don't interpolate
 
 	ent = &cl_entities[cl.playernum + 1];
@@ -1395,9 +1376,7 @@ void CL_CalcViewValues (void)
 		backlerp = 1.0 - lerp;
 		for (i = 0; i < 3; i++)
 		{
-			cl.refdef.vieworg[i] = cl.predicted_origin[i] + ops->viewoffset[i]
-				+ cl.lerpfrac * (ps->viewoffset[i] - ops->viewoffset[i])
-				- backlerp * cl.prediction_error[i];
+			cl.refdef.vieworg[i] = cl.predicted_origin[i] + ops->viewoffset[i] + cl.lerpfrac * (ps->viewoffset[i] - ops->viewoffset[i]) - backlerp * cl.prediction_error[i];
 		}
 
 		// smooth out stair climbing
@@ -1409,9 +1388,7 @@ void CL_CalcViewValues (void)
 	{
 		// just use interpolated values
 		for (i = 0; i < 3; i++)
-			cl.refdef.vieworg[i] = ops->pmove.origin[i] * 0.125 + ops->viewoffset[i]
-			+ lerp * (ps->pmove.origin[i] * 0.125 + ps->viewoffset[i]
-			- (ops->pmove.origin[i] * 0.125 + ops->viewoffset[i]));
+			cl.refdef.vieworg[i] = ops->pmove.origin[i] * 0.125 + ops->viewoffset[i] + lerp * (ps->pmove.origin[i] * 0.125 + ps->viewoffset[i] - (ops->pmove.origin[i] * 0.125 + ops->viewoffset[i]));
 	}
 
 	// if not running a demo or on a locked frame, add the local angle movement

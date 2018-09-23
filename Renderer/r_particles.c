@@ -27,8 +27,8 @@ static int d3d_ParticleShader = 0;
 
 void R_InitParticles (void)
 {
-	d3d_ParticleCircleShader = D_CreateShaderBundleForQuadBatch (IDR_MISCSHADER, "ParticleCircleVS", "ParticleCirclePS");
-	d3d_ParticleSquareShader = D_CreateShaderBundleForQuadBatch (IDR_MISCSHADER, "ParticleSquareVS", "ParticleSquarePS");
+	d3d_ParticleCircleShader = D_CreateShaderBundleForQuadBatch (IDR_MISCSHADER, "ParticleCircleVS", "ParticleCirclePS", batch_standard);
+	d3d_ParticleSquareShader = D_CreateShaderBundleForQuadBatch (IDR_MISCSHADER, "ParticleSquareVS", "ParticleSquarePS", batch_standard);
 	d3d_ParticleShader = d3d_ParticleCircleShader;
 }
 

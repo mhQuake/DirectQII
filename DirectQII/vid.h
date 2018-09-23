@@ -20,12 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // vid.h -- video driver defs
 
-typedef struct viddef_s
-{
-	int		width;
-	int		height;
-} viddef_t;
-
 extern	viddef_t	viddef;				// global video state
 
 // Video module initialisation etc

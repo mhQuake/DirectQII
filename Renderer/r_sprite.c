@@ -25,7 +25,7 @@ int d3d_SpriteShader;
 
 void R_InitSprites (void)
 {
-	d3d_SpriteShader = D_CreateShaderBundleForQuadBatch (IDR_MISCSHADER, "SpriteVS", "SpritePS");
+	d3d_SpriteShader = D_CreateShaderBundleForQuadBatch (IDR_MISCSHADER, "SpriteVS", "SpritePS", batch_standard);
 }
 
 

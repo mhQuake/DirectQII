@@ -87,44 +87,69 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
 {
 	D3D11_TEXTURE2D_DESC Desc;
 
-	// this is good for a 4-billion X 4-billion texture; we assume it will never be needed that large
-	D3D11_SUBRESOURCE_DATA srd[32];
-
-	// copy these off so that they can be changed during miplevel reduction
-	int width = image->width;
-	int height = image->height;
-
-	// the first one just has the data
-	srd[0].pSysMem = data;
-	srd[0].SysMemPitch = width << 2;
-	srd[0].SysMemSlicePitch = 0;
-
-	// create further miplevels for the texture type
-	if (image->flags & TEX_MIPMAP)
+	if (image->flags & TEX_CHARSET)
 	{
-		int mipnum;
+		int i;
+		D3D11_SUBRESOURCE_DATA srd[256];
 
-		for (mipnum = 1; width > 1 || height > 1; mipnum++)
+		for (i = 0; i < 256; i++)
 		{
-			// choose the appropriate filter
-			if ((width & 1) || (height & 1))
-				data = Image_MipReduceLinearFilter (data, width, height);
-			else data = Image_MipReduceBoxFilter (data, width, height);
+			int row = (i >> 4);
+			int col = (i & 15);
 
-			if ((width = width >> 1) < 1) width = 1;
-			if ((height = height >> 1) < 1) height = 1;
-
-			srd[mipnum].pSysMem = data;
-			srd[mipnum].SysMemPitch = width << 2;
-			srd[mipnum].SysMemSlicePitch = 0;
+			srd[i].pSysMem = &data[((row * (image->width >> 4)) * image->width) + col * (image->width >> 4)];
+			srd[i].SysMemPitch = image->width << 2;
+			srd[i].SysMemSlicePitch = 0;
 		}
+
+		// describe the texture
+		R_DescribeTexture (&Desc, image->width >> 4, image->height >> 4, 256, image->flags);
+
+		// failure is not an option...
+		if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
+	}
+	else
+	{
+		// this is good for a 4-billion X 4-billion texture; we assume it will never be needed that large
+		D3D11_SUBRESOURCE_DATA srd[32];
+
+		// copy these off so that they can be changed during miplevel reduction
+		int width = image->width;
+		int height = image->height;
+
+		// the first one just has the data
+		srd[0].pSysMem = data;
+		srd[0].SysMemPitch = width << 2;
+		srd[0].SysMemSlicePitch = 0;
+
+		// create further miplevels for the texture type
+		if (image->flags & TEX_MIPMAP)
+		{
+			int mipnum;
+
+			for (mipnum = 1; width > 1 || height > 1; mipnum++)
+			{
+				// choose the appropriate filter
+				if ((width & 1) || (height & 1))
+					data = Image_MipReduceLinearFilter (data, width, height);
+				else data = Image_MipReduceBoxFilter (data, width, height);
+
+				if ((width = width >> 1) < 1) width = 1;
+				if ((height = height >> 1) < 1) height = 1;
+
+				srd[mipnum].pSysMem = data;
+				srd[mipnum].SysMemPitch = width << 2;
+				srd[mipnum].SysMemSlicePitch = 0;
+			}
+		}
+
+		R_DescribeTexture (&Desc, image->width, image->height, 1, image->flags);
+
+		// failure is not an option...
+		if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
 	}
 
-	// describe the texture
-	R_DescribeTexture (&Desc, image->width, image->height, 1, image->flags);
-
 	// failure is not an option...
-	if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
 	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) image->Texture, NULL, &image->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
 }
 
@@ -168,14 +193,20 @@ void GL_BindTexture (ID3D11ShaderResourceView *SRV)
 }
 
 
-/*
-================
-GL_LoadPic
+void GL_BindTexArray (ID3D11ShaderResourceView *SRV)
+{
+	// PS slot 6 holds a texture array that's used for the charset and little sbar numbers
+	static ID3D11ShaderResourceView *OldSRV;
 
-This is also used as an entry point for the generated r_notexture
-================
-*/
-image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, unsigned *palette)
+	if (OldSRV != SRV)
+	{
+		d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 6, 1, &SRV);
+		OldSRV = SRV;
+	}
+}
+
+
+image_t *GL_FindFreeImage (char *name, int width, int height, imagetype_t type)
 {
 	image_t		*image;
 	int			i;
@@ -207,10 +238,28 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	image->flags = TEX_RGBA8;
 
 	// additional flags - these image types are mipmapped
-	if (type != it_pic && type != it_sky) image->flags |= TEX_MIPMAP;
+	if (type != it_pic && type != it_charset) image->flags |= TEX_MIPMAP;
 
 	// these image types may be thrown away
-	if (type != it_pic) image->flags |= TEX_DISPOSABLE;
+	if (type != it_pic && type != it_charset) image->flags |= TEX_DISPOSABLE;
+
+	// drawn as a 256-slice texture array
+	if (type == it_charset) image->flags |= TEX_CHARSET;
+
+	return image;
+}
+
+
+/*
+================
+GL_LoadPic
+
+This is also used as an entry point for the generated r_notexture
+================
+*/
+image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, unsigned *palette)
+{
+	image_t *image = GL_FindFreeImage (name, width, height, type);
 
 	// floodfill 8-bit alias skins (32-bit are assumed to be already filled)
 	if (type == it_skin && bits == 8)
@@ -431,5 +480,49 @@ void GL_ShutdownImages (void)
 	}
 
 	Draw_ShutdownRawImage ();
+}
+
+
+image_t *GL_LoadTexArray (char *base)
+{
+	int i;
+	image_t *image = NULL;
+	char *sb_nums[11] = {"_0", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_minus"};
+
+	byte	*sb_pic[11];
+	byte	*sb_palette[11];
+	int		sb_width[11];
+	int		sb_height[11];
+
+	D3D11_SUBRESOURCE_DATA srd[11];
+	D3D11_TEXTURE2D_DESC Desc;
+
+	for (i = 0; i < 11; i++)
+	{
+		LoadPCX (va ("pics/%s%s.pcx", base, sb_nums[i]), &sb_pic[i], &sb_palette[i], &sb_width[i], &sb_height[i]);
+
+		if (!sb_pic[i]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
+		if (sb_width[i] != sb_width[0]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
+		if (sb_height[i] != sb_height[0]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
+
+		srd[i].pSysMem = GL_Image8To32 (sb_pic[i], sb_width[i], sb_height[i], d_8to24table);
+		srd[i].SysMemPitch = sb_width[i] << 2;
+		srd[i].SysMemSlicePitch = 0;
+	}
+
+	// find an image_t for it
+	image = GL_FindFreeImage (va ("sb_%ss_texarray", base), sb_width[0], sb_height[0], it_pic);
+
+	// describe the texture
+	R_DescribeTexture (&Desc, sb_width[0], sb_height[0], 11, image->flags);
+
+	// failure is not an option...
+	if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
+	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) image->Texture, NULL, &image->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
+
+	// free memory used for loading the image
+	ri.Load_FreeMemory ();
+
+	return image;
 }
 

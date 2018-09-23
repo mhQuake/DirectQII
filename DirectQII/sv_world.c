@@ -377,12 +377,9 @@ void SV_AreaEdicts_r (areanode_t *node)
 
 		if (check->solid == SOLID_NOT)
 			continue;		// deactivated
-		if (check->absmin[0] > area_maxs[0]
-			|| check->absmin[1] > area_maxs[1]
-			|| check->absmin[2] > area_maxs[2]
-			|| check->absmax[0] < area_mins[0]
-			|| check->absmax[1] < area_mins[1]
-			|| check->absmax[2] < area_mins[2])
+
+		if (check->absmin[0] > area_maxs[0] || check->absmin[1] > area_maxs[1] || check->absmin[2] > area_maxs[2] ||
+			check->absmax[0] < area_mins[0] || check->absmax[1] < area_mins[1] || check->absmax[2] < area_mins[2])
 			continue;		// not touching
 
 		if (area_count == area_maxcount)
@@ -399,19 +396,17 @@ void SV_AreaEdicts_r (areanode_t *node)
 		return;		// terminal node
 
 	// recurse down both sides
-	if (area_maxs[node->axis] > node->dist)
-		SV_AreaEdicts_r (node->children[0]);
-	if (area_mins[node->axis] < node->dist)
-		SV_AreaEdicts_r (node->children[1]);
+	if (area_maxs[node->axis] > node->dist) SV_AreaEdicts_r (node->children[0]);
+	if (area_mins[node->axis] < node->dist) SV_AreaEdicts_r (node->children[1]);
 }
+
 
 /*
 ================
 SV_AreaEdicts
 ================
 */
-int SV_AreaEdicts (vec3_t mins, vec3_t maxs, edict_t **list,
-	int maxcount, int areatype)
+int SV_AreaEdicts (vec3_t mins, vec3_t maxs, edict_t **list, int maxcount, int areatype)
 {
 	area_mins = mins;
 	area_maxs = maxs;
@@ -548,27 +543,22 @@ void SV_ClipMoveToEntities (moveclip_t *clip)
 				continue;	// don't clip against owner
 		}
 
-		if (!(clip->contentmask & CONTENTS_DEADMONSTER)
-			&& (touch->svflags & SVF_DEADMONSTER))
+		if (!(clip->contentmask & CONTENTS_DEADMONSTER) && (touch->svflags & SVF_DEADMONSTER))
 			continue;
 
 		// might intersect, so do an exact clip
 		headnode = SV_HullForEntity (touch);
 		angles = touch->s.angles;
+
 		if (touch->solid != SOLID_BSP)
 			angles = vec3_origin;	// boxes don't rotate
 
 		if (touch->svflags & SVF_MONSTER)
-			trace = CM_TransformedBoxTrace (clip->start, clip->end,
-			clip->mins2, clip->maxs2, headnode, clip->contentmask,
-			touch->s.origin, angles);
+			trace = CM_TransformedBoxTrace (clip->start, clip->end, clip->mins2, clip->maxs2, headnode, clip->contentmask, touch->s.origin, angles);
 		else
-			trace = CM_TransformedBoxTrace (clip->start, clip->end,
-			clip->mins, clip->maxs, headnode, clip->contentmask,
-			touch->s.origin, angles);
+			trace = CM_TransformedBoxTrace (clip->start, clip->end, clip->mins, clip->maxs, headnode, clip->contentmask, touch->s.origin, angles);
 
-		if (trace.allsolid || trace.startsolid ||
-			trace.fraction < clip->trace.fraction)
+		if (trace.allsolid || trace.startsolid || trace.fraction < clip->trace.fraction)
 		{
 			trace.ent = touch;
 			if (clip->trace.startsolid)

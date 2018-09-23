@@ -213,12 +213,11 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		// select the correct shader
 		if (ti->flags & SURF_WARP)
 			D_BindShaderBundle (d3d_SurfDrawTurbShader);
-		else
-		{
-			if (e->flags & RF_TRANSLUCENT)
-				D_BindShaderBundle (d3d_SurfBasicShader);
-			else D_BindShaderBundle (d3d_SurfLightmapShader);
-		}
+		else if (!r_worldmodel->lightdata || r_fullbright->value)
+			D_BindShaderBundle (d3d_SurfBasicShader);
+		else if (e->flags & RF_TRANSLUCENT)
+			D_BindShaderBundle (d3d_SurfBasicShader);
+		else D_BindShaderBundle (d3d_SurfLightmapShader);
 
 		GL_BindTexture (R_TextureAnimation (ti, e->currframe)->SRV);
 
@@ -238,9 +237,14 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		r_sky_surfaces = NULL;
 	}
 
-	if (e->flags & RF_TRANSLUCENT)
-		return;
-	else if (mod == r_worldmodel)
+	// no dlights in fullbright mode
+	if (!r_worldmodel->lightdata || r_fullbright->value) return;
+
+	// no dlights on translucent entities
+	if (e->flags & RF_TRANSLUCENT) return;
+
+	// add dynamic lighting to the entity
+	if (mod == r_worldmodel)
 		R_PushDlights (mod->nodes, e, mod, localmatrix, r_visframecount);
 	else R_PushDlights (mod->nodes + mod->firstnode, e, mod, localmatrix, 0);
 }

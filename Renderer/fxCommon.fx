@@ -64,6 +64,11 @@ struct VS_QUADBATCH {
 	float2 TexCoord : TEXCOORD;
 };
 
+struct VS_QUADBATCH_TEXARRAY {
+	float4 Position : POSITION;
+	float3 TexCoord : TEXCOORD;
+};
+
 Buffer<float> LightStyles : register(t0);
 Buffer<float4> LightNormals : register(t1);
 #endif
@@ -89,7 +94,7 @@ PS_DYNAMICLIGHT GenericDynamicVS (float4 Position, float3 Normal, float2 TexCoor
 sampler mainSampler : register(s0);		// main sampler used for most objects, wrap mode, linear filter, max anisotropy
 sampler lmapSampler : register(s1);		// lightmap sampler, always linear, clamp mode, no mips, no anisotropy; also reused for the skybox
 sampler warpSampler : register(s2);		// underwater and other warps, always linear, wrap mode, no mips, no anisotropy
-sampler drawSampler : register(s3);		// used for the 2d render; point sampled, wrap mode, no mips, no anisotropy
+sampler drawSampler : register(s3);		// used for the 2d render; point sampled, clamp mode, no mips, no anisotropy
 
 // texture slots
 Texture2D<float4> mainTexture : register(t0);	// main diffuse texture on most objects
@@ -98,6 +103,7 @@ Texture2DArray<float4> lmap1Texture : register(t2);	// lightmap styles 0/1/2/3
 Texture2DArray<float4> lmap2Texture : register(t3);	// lightmap styles 0/1/2/3
 TextureCube<float4> sboxTexture : register(t4);	// sky box texture
 Texture2D<float4> warpTexture : register(t5);	// underwater warp noise texture
+Texture2DArray<float4> charTexture : register(t6);	// characters and numbers
 
 
 // faster than a full-screen gamma pass over the scene as a post-process, and more flexible than texture gamma

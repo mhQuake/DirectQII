@@ -95,14 +95,6 @@ void CL_ColorFlash (vec3_t pos, int ent, int intensity, float r, float g, float 
 {
 	cdlight_t	*dl = CL_AllocDlight (ent);
 
-	if ((vidref_val == VIDREF_SOFT) && ((r < 0) || (g < 0) || (b < 0)))
-	{
-		intensity = -intensity;
-		r = -r;
-		g = -g;
-		b = -b;
-	}
-
 	VectorCopy (pos, dl->origin);
 	dl->radius = intensity;
 	dl->minlight = 250;
@@ -549,12 +541,9 @@ void CL_Heatbeam (vec3_t start, vec3_t forward)
 	//	MakeNormalVectors (vec, right, up);
 	VectorCopy (cl.v_right, right);
 	VectorCopy (cl.v_up, up);
-	if (vidref_val == VIDREF_GL)
-	{ // GL mode
-		VectorMA (move, -0.5, right, move);
-		VectorMA (move, -0.5, up, move);
-	}
-	// otherwise assume SOFT
+
+	VectorMA (move, -0.5, right, move);
+	VectorMA (move, -0.5, up, move);
 
 	ltime = (float) cl.time / 1000.0;
 	start_pt = fmod (ltime*96.0, step);
@@ -564,6 +553,7 @@ void CL_Heatbeam (vec3_t start, vec3_t forward)
 
 	//	Com_Printf ("%f\n", ltime);
 	rstep = M_PI / 10.0;
+
 	for (i = start_pt; i < len; i += step)
 	{
 		if (i > step * 5) // don't bother after the 5th ring
@@ -571,7 +561,6 @@ void CL_Heatbeam (vec3_t start, vec3_t forward)
 
 		for (rot = 0; rot < M_PI * 2; rot += rstep)
 		{
-
 			if (!free_particles)
 				return;
 
@@ -607,6 +596,7 @@ void CL_Heatbeam (vec3_t start, vec3_t forward)
 			p->alphavel = -1000.0;
 			//		p->color = 0x74 + (rand()&7);
 			p->color = 223 - (rand () & 7);
+
 			for (j = 0; j < 3; j++)
 			{
 				p->org[j] = move[j] + dir[j] * 3;

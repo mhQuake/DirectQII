@@ -38,7 +38,6 @@ extern HWND			cl_hwnd;
 extern qboolean		ActiveApp, Minimized;
 
 void IN_Activate (qboolean active);
-void IN_MouseEvent (int mstate);
 
 extern int		window_center_x, window_center_y;
 extern RECT		window_rect;

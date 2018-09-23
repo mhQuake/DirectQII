@@ -269,9 +269,9 @@ CVARS (console variables)
 #define	CVAR_ARCHIVE	1	// set to cause it to be saved to vars.rc
 #define	CVAR_USERINFO	2	// added to userinfo  when changed
 #define	CVAR_SERVERINFO	4	// added to serverinfo when changed
-#define	CVAR_NOSET		8	// don't allow change from console at all,
-// but can be set from the command line
+#define	CVAR_NOSET		8	// don't allow change from console at all, but can be set from the command line
 #define	CVAR_LATCH		16	// save changes until server restart
+#define CVAR_CHEAT		32	// cheating cvar, disallow sets in MP games
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s
@@ -1159,13 +1159,3 @@ typedef struct player_state_s
 	short		stats[MAX_STATS];		// fast status bar updates
 } player_state_t;
 
-
-// ==================
-// PGM 
-#define VIDREF_GL		1
-#define VIDREF_SOFT		2
-#define VIDREF_OTHER	3
-
-extern int vidref_val;
-// PGM
-// ==================

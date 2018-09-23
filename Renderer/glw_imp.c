@@ -133,6 +133,32 @@ static qboolean VerifyDriver (void)
 	return true;
 }
 
+void VID_ScaleVidDef (viddef_t *vd, int w, int h)
+{
+	vd->width = w;
+	vd->height = h;
+
+#if 1
+	vd->conwidth = w;
+	vd->conheight = h;
+#else
+#define VIRTUAL_HEIGHT 600
+	if (h > VIRTUAL_HEIGHT)
+	{
+		vd->conwidth = (VIRTUAL_HEIGHT * w) / h;
+		vd->conheight = VIRTUAL_HEIGHT;
+	}
+	else
+	{
+		vd->conwidth = w;
+		vd->conheight = h;
+	}
+#endif
+
+	ri.Vid_NewWindow (vd);
+}
+
+
 /*
 ** VID_CreateWindow
 */
@@ -224,7 +250,7 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 	SetFocus (glw_state.hWnd);
 
 	// let the sound and input subsystems know about the new window
-	ri.Vid_NewWindow (width, height);
+	VID_ScaleVidDef (&vid, width, height);
 
 	return true;
 }
@@ -516,7 +542,7 @@ void GLimp_BeginFrame (void)
 	R_Set2DMode ();
 
 	// set up the 2D ortho view, brightness and contrast
-	D_UpdateDrawConstants (vid.width, vid.height, vid_gamma->value, 1.0f);
+	D_UpdateDrawConstants (vid.conwidth, vid.conheight, vid_gamma->value, 1.0f);
 
 	// everything in all draws is drawn as an indexed triangle list, even if it's ultimately a strip or a single tri, so this can be set-and-forget once per frame
 	d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

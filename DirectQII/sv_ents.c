@@ -243,14 +243,10 @@ void SV_WritePlayerstateToClient (client_frame_t *from, client_frame_t *to, size
 	if (ps->pmove.pm_type != ops->pmove.pm_type)
 		pflags |= PS_M_TYPE;
 
-	if (ps->pmove.origin[0] != ops->pmove.origin[0]
-		|| ps->pmove.origin[1] != ops->pmove.origin[1]
-		|| ps->pmove.origin[2] != ops->pmove.origin[2])
+	if (ps->pmove.origin[0] != ops->pmove.origin[0] || ps->pmove.origin[1] != ops->pmove.origin[1] || ps->pmove.origin[2] != ops->pmove.origin[2])
 		pflags |= PS_M_ORIGIN;
 
-	if (ps->pmove.velocity[0] != ops->pmove.velocity[0]
-		|| ps->pmove.velocity[1] != ops->pmove.velocity[1]
-		|| ps->pmove.velocity[2] != ops->pmove.velocity[2])
+	if (ps->pmove.velocity[0] != ops->pmove.velocity[0] || ps->pmove.velocity[1] != ops->pmove.velocity[1] || ps->pmove.velocity[2] != ops->pmove.velocity[2])
 		pflags |= PS_M_VELOCITY;
 
 	if (ps->pmove.pm_time != ops->pmove.pm_time)
@@ -262,31 +258,20 @@ void SV_WritePlayerstateToClient (client_frame_t *from, client_frame_t *to, size
 	if (ps->pmove.gravity != ops->pmove.gravity)
 		pflags |= PS_M_GRAVITY;
 
-	if (ps->pmove.delta_angles[0] != ops->pmove.delta_angles[0]
-		|| ps->pmove.delta_angles[1] != ops->pmove.delta_angles[1]
-		|| ps->pmove.delta_angles[2] != ops->pmove.delta_angles[2])
+	if (ps->pmove.delta_angles[0] != ops->pmove.delta_angles[0] || ps->pmove.delta_angles[1] != ops->pmove.delta_angles[1] || ps->pmove.delta_angles[2] != ops->pmove.delta_angles[2])
 		pflags |= PS_M_DELTA_ANGLES;
 
 
-	if (ps->viewoffset[0] != ops->viewoffset[0]
-		|| ps->viewoffset[1] != ops->viewoffset[1]
-		|| ps->viewoffset[2] != ops->viewoffset[2])
+	if (ps->viewoffset[0] != ops->viewoffset[0] || ps->viewoffset[1] != ops->viewoffset[1] || ps->viewoffset[2] != ops->viewoffset[2])
 		pflags |= PS_VIEWOFFSET;
 
-	if (ps->viewangles[0] != ops->viewangles[0]
-		|| ps->viewangles[1] != ops->viewangles[1]
-		|| ps->viewangles[2] != ops->viewangles[2])
+	if (ps->viewangles[0] != ops->viewangles[0] || ps->viewangles[1] != ops->viewangles[1] || ps->viewangles[2] != ops->viewangles[2])
 		pflags |= PS_VIEWANGLES;
 
-	if (ps->kick_angles[0] != ops->kick_angles[0]
-		|| ps->kick_angles[1] != ops->kick_angles[1]
-		|| ps->kick_angles[2] != ops->kick_angles[2])
+	if (ps->kick_angles[0] != ops->kick_angles[0] || ps->kick_angles[1] != ops->kick_angles[1] || ps->kick_angles[2] != ops->kick_angles[2])
 		pflags |= PS_KICKANGLES;
 
-	if (ps->blend[0] != ops->blend[0]
-		|| ps->blend[1] != ops->blend[1]
-		|| ps->blend[2] != ops->blend[2]
-		|| ps->blend[3] != ops->blend[3])
+	if (ps->blend[0] != ops->blend[0] || ps->blend[1] != ops->blend[1] || ps->blend[2] != ops->blend[2] || ps->blend[3] != ops->blend[3])
 		pflags |= PS_BLEND;
 
 	if (ps->fov != ops->fov)
@@ -578,8 +563,7 @@ void SV_BuildClientFrame (client_t *client)
 			continue;
 
 		// ignore ents without visible models unless they have an effect
-		if (!ent->s.modelindex && !ent->s.effects && !ent->s.sound
-			&& !ent->s.event)
+		if (!ent->s.modelindex && !ent->s.effects && !ent->s.sound && !ent->s.event)
 			continue;
 
 		// ignore if not touching a PV leaf
@@ -590,8 +574,7 @@ void SV_BuildClientFrame (client_t *client)
 			{
 				// doors can legally straddle two areas, so
 				// we may need to check another one
-				if (!ent->areanum2
-					|| !CM_AreasConnected (clientarea, ent->areanum2))
+				if (!ent->areanum2 || !CM_AreasConnected (clientarea, ent->areanum2))
 					continue;		// blocked by a door
 			}
 

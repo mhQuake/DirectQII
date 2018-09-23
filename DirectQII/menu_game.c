@@ -84,7 +84,7 @@ static void CreditsFunc (void *unused)
 
 void Game_MenuInit (void)
 {
-	s_game_menu.x = viddef.width * 0.50;
+	s_game_menu.x = viddef.conwidth * 0.50;
 	s_game_menu.nitems = 0;
 
 	s_easy_game_action.generic.type = MTYPE_ACTION;

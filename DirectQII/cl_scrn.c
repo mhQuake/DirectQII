@@ -138,9 +138,9 @@ void SCR_DrawDebugGraph (void)
 	int		color;
 
 	// draw the graph
-	w = viddef.width;
+	w = viddef.conwidth;
 	x = 0;
-	y = viddef.height;
+	y = viddef.conheight;
 
 	re.DrawFill (x, y - scr_graphheight->value, w, scr_graphheight->value, 8);
 
@@ -251,11 +251,7 @@ void SCR_DrawCenterString (void)
 
 	scr_erase_center = 0;
 	start = scr_centerstring;
-
-	if (scr_center_lines <= 4)
-		y = viddef.height * 0.35;
-	else
-		y = 48;
+	y = viddef.conheight * 0.35 - (scr_center_lines * 4);
 
 	do
 	{
@@ -264,7 +260,7 @@ void SCR_DrawCenterString (void)
 			if (start[l] == '\n' || !start[l])
 				break;
 
-		x = (viddef.width - l * 8) / 2;
+		x = (viddef.conwidth - l * 8) / 2;
 
 		for (j = 0; j < l; j++, x += 8)
 		{
@@ -427,7 +423,7 @@ void SCR_DrawPause (void)
 		return;
 
 	re.DrawGetPicSize (&w, &h, "pause");
-	re.DrawPic ((viddef.width - w) / 2, viddef.height / 2 + 8, "pause");
+	re.DrawPic ((viddef.conwidth - w) / 2, viddef.conheight / 2 + 8, "pause");
 }
 
 /*
@@ -444,7 +440,7 @@ void SCR_DrawLoading (void)
 
 	scr_draw_loading = false;
 	re.DrawGetPicSize (&w, &h, "loading");
-	re.DrawPic ((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
+	re.DrawPic ((viddef.conwidth - w) / 2, (viddef.conheight - h) / 2, "loading");
 }
 
 //=============================================================================
@@ -510,7 +506,7 @@ void SCR_DrawConsole (void)
 	{
 		// connected, but can't render
 		Con_DrawConsole (0.5f, 255);
-		re.DrawFill (0, viddef.height / 2, viddef.width, viddef.height / 2, 0);
+		re.DrawFill (0, viddef.conheight / 2, viddef.conwidth, viddef.conheight / 2, 0);
 		return;
 	}
 
@@ -599,57 +595,35 @@ void SCR_TimeRefresh_f (void)
 {
 	int		i;
 	int		start, stop;
-	float	time;
+	float	startangle, time;
+	int		timeRefreshTime = 1800;
 
 	if (cls.state != ca_active)
 		return;
 
+	startangle = cl.refdef.viewangles[1];
 	start = Sys_Milliseconds ();
 
-	for (i = 0; i < 128; i++)
+	// do a 360 in 1.8 seconds
+	for (i = 0; ; i++)
 	{
-		cl.refdef.viewangles[1] = i / 128.0*360.0;
+		cl.refdef.viewangles[1] = startangle + (float) (Sys_Milliseconds () - start) * (360.0f / timeRefreshTime);
 
 		re.BeginFrame ();
 		re.RenderFrame (&cl.refdef);
 		re.EndFrame (0);
+
+		if ((time = Sys_Milliseconds () - start) >= timeRefreshTime) break;
 	}
 
 	stop = Sys_Milliseconds ();
+	cl.refdef.viewangles[1] = startangle;
 	time = (stop - start) / 1000.0;
-	Com_Printf ("%f seconds (%f fps)\n", time, 128 / time);
-}
-
-
-/*
-==============
-SCR_TileClear
-
-Clear any parts of the tiled background that were drawn on last frame
-==============
-*/
-void SCR_TileClear (void)
-{
+	Com_Printf ("%i frames, %f seconds (%f fps)\n", i, time, (float) i / time);
 }
 
 
 //===============================================================
-
-
-#define STAT_MINUS		10	// num frame for '-' stats digit
-char		*sb_nums[2][11] =
-{
-	{"num_0", "num_1", "num_2", "num_3", "num_4", "num_5",
-	"num_6", "num_7", "num_8", "num_9", "num_minus"},
-	{"anum_0", "anum_1", "anum_2", "anum_3", "anum_4", "anum_5",
-	"anum_6", "anum_7", "anum_8", "anum_9", "anum_minus"}
-};
-
-#define	ICON_WIDTH	24
-#define	ICON_HEIGHT	24
-#define	CHAR_WIDTH	16
-#define	ICON_SPACE	8
-
 
 
 /*
@@ -728,48 +702,6 @@ void DrawHUDString (char *string, int x, int y, int centerwidth, int xor)
 
 
 /*
-==============
-SCR_DrawField
-==============
-*/
-void SCR_DrawField (int x, int y, int color, int width, int value)
-{
-	char	num[16], *ptr;
-	int		l;
-	int		frame;
-
-	if (width < 1)
-		return;
-
-	// draw number string
-	if (width > 5)
-		width = 5;
-
-	Com_sprintf (num, sizeof (num), "%i", value);
-	l = strlen (num);
-
-	if (l > width)
-		l = width;
-
-	x += 2 + CHAR_WIDTH*(width - l);
-	ptr = num;
-
-	while (*ptr && l)
-	{
-		if (*ptr == '-')
-			frame = STAT_MINUS;
-		else
-			frame = *ptr - '0';
-
-		re.DrawPic (x, y, sb_nums[color][frame]);
-		x += CHAR_WIDTH;
-		ptr++;
-		l--;
-	}
-}
-
-
-/*
 ===============
 SCR_TouchPics
 
@@ -778,12 +710,6 @@ Allows rendering code to cache all needed sbar graphics
 */
 void SCR_TouchPics (void)
 {
-	int		i, j;
-
-	for (i = 0; i < 2; i++)
-		for (j = 0; j < 11; j++)
-			re.RegisterPic (sb_nums[i][j]);
-
 	if (crosshair->value)
 	{
 		if (crosshair->value > 3 || crosshair->value < 0)
@@ -833,13 +759,13 @@ void SCR_ExecuteLayoutString (char *s)
 		if (!strcmp (token, "xr"))
 		{
 			token = COM_Parse (&s);
-			x = viddef.width + atoi (token);
+			x = viddef.conwidth + atoi (token);
 			continue;
 		}
 		if (!strcmp (token, "xv"))
 		{
 			token = COM_Parse (&s);
-			x = viddef.width / 2 - 160 + atoi (token);
+			x = viddef.conwidth / 2 - 160 + atoi (token);
 			continue;
 		}
 
@@ -852,13 +778,13 @@ void SCR_ExecuteLayoutString (char *s)
 		if (!strcmp (token, "yb"))
 		{
 			token = COM_Parse (&s);
-			y = viddef.height + atoi (token);
+			y = viddef.conheight + atoi (token);
 			continue;
 		}
 		if (!strcmp (token, "yv"))
 		{
 			token = COM_Parse (&s);
-			y = viddef.height / 2 - 120 + atoi (token);
+			y = viddef.conheight / 2 - 120 + atoi (token);
 			continue;
 		}
 
@@ -883,9 +809,9 @@ void SCR_ExecuteLayoutString (char *s)
 			int		score, ping, time;
 
 			token = COM_Parse (&s);
-			x = viddef.width / 2 - 160 + atoi (token);
+			x = viddef.conwidth / 2 - 160 + atoi (token);
 			token = COM_Parse (&s);
-			y = viddef.height / 2 - 120 + atoi (token);
+			y = viddef.conheight / 2 - 120 + atoi (token);
 
 			token = COM_Parse (&s);
 			value = atoi (token);
@@ -923,9 +849,9 @@ void SCR_ExecuteLayoutString (char *s)
 			char	block[80];
 
 			token = COM_Parse (&s);
-			x = viddef.width / 2 - 160 + atoi (token);
+			x = viddef.conwidth / 2 - 160 + atoi (token);
 			token = COM_Parse (&s);
-			y = viddef.height / 2 - 120 + atoi (token);
+			y = viddef.conheight / 2 - 120 + atoi (token);
 
 			token = COM_Parse (&s);
 			value = atoi (token);
@@ -968,7 +894,7 @@ void SCR_ExecuteLayoutString (char *s)
 			width = atoi (token);
 			token = COM_Parse (&s);
 			value = cl.frame.playerstate.stats[atoi (token)];
-			SCR_DrawField (x, y, 0, width, value);
+			re.DrawField (x, y, 0, width, value);
 			continue;
 		}
 
@@ -989,7 +915,7 @@ void SCR_ExecuteLayoutString (char *s)
 			if (cl.frame.playerstate.stats[STAT_FLASHES] & 1)
 				re.DrawPic (x, y, "field_3");
 
-			SCR_DrawField (x, y, color, width, value);
+			re.DrawField (x, y, color, width, value);
 			continue;
 		}
 
@@ -1010,7 +936,7 @@ void SCR_ExecuteLayoutString (char *s)
 			if (cl.frame.playerstate.stats[STAT_FLASHES] & 4)
 				re.DrawPic (x, y, "field_3");
 
-			SCR_DrawField (x, y, color, width, value);
+			re.DrawField (x, y, color, width, value);
 			continue;
 		}
 
@@ -1029,7 +955,7 @@ void SCR_ExecuteLayoutString (char *s)
 			if (cl.frame.playerstate.stats[STAT_FLASHES] & 2)
 				re.DrawPic (x, y, "field_3");
 
-			SCR_DrawField (x, y, color, width, value);
+			re.DrawField (x, y, color, width, value);
 			continue;
 		}
 
@@ -1163,7 +1089,7 @@ void SCR_UpdateScreen (void)
 		re.CinematicSetPalette (NULL);
 		scr_draw_loading = false;
 		re.DrawGetPicSize (&w, &h, "loading");
-		re.DrawPic ((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
+		re.DrawPic ((viddef.conwidth - w) / 2, (viddef.conheight - h) / 2, "loading");
 		//			re.EndFrame();
 		//			return;
 	}

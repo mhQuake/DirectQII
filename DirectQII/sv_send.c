@@ -312,9 +312,7 @@ void SV_StartSound (vec3_t origin, edict_t *entity, int channel,
 
 	// the client doesn't know that bmodels have weird origins
 	// the origin can also be explicitly set
-	if ((entity->svflags & SVF_NOCLIENT)
-		|| (entity->solid == SOLID_BSP)
-		|| origin)
+	if ((entity->svflags & SVF_NOCLIENT) || (entity->solid == SOLID_BSP) || origin)
 		flags |= SND_POS;
 
 	// always send the entity number for channel overrides
@@ -544,10 +542,7 @@ void SV_SendClientMessages (void)
 			SV_DropClient (c);
 		}
 
-		if (sv.state == ss_cinematic
-			|| sv.state == ss_demo
-			|| sv.state == ss_pic
-			)
+		if (sv.state == ss_cinematic || sv.state == ss_demo || sv.state == ss_pic)
 			Netchan_Transmit (&c->netchan, msglen, msgbuf);
 		else if (c->state == cs_spawned)
 		{

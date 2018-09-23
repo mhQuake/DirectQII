@@ -111,8 +111,8 @@ void CL_DrawInventory (void)
 	if (top < 0)
 		top = 0;
 
-	x = (viddef.width - 256) / 2;
-	y = (viddef.height - 240) / 2;
+	x = (viddef.conwidth - 256) / 2;
+	y = (viddef.conheight - 240) / 2;
 
 	re.DrawPic (x, y + 8, "inventory");
 

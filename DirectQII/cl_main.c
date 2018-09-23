@@ -1623,9 +1623,6 @@ void CL_SendCommand (void)
 	// get new key events
 	Sys_SendKeyEvents ();
 
-	// allow mice or other external controllers to add commands
-	IN_Commands ();
-
 	// process console commands
 	Cbuf_Execute ();
 
@@ -1659,10 +1656,7 @@ void CL_Frame (int msec)
 
 	extratime += msec;
 
-	// let the mouse activate or deactivate
-	IN_Frame ();
-
-	if (cls.key_dest != key_game)
+	if (cls.key_dest != key_game || cls.state != ca_connected)
 		targettime = (1000 / cl_maxfps->value);
 
 	if (!cl_timedemo->value)
@@ -1685,6 +1679,9 @@ void CL_Frame (int msec)
 		else targettime = (1000 / cl_maxfps->value);
 	}
 	else targettime = (1000 / cl_maxfps->value);
+
+	// let the mouse activate or deactivate
+	IN_Frame ();
 
 	// decide the simulation time
 	cls.frametime = extratime / 1000.0;
@@ -1842,7 +1839,7 @@ void CL_DrawFPS (void)
 		sprintf (str, "%0.2f fps", fps);
 		len = (strlen (str) + 1) * 8;
 
-		DrawString (viddef.width - len, 8, str);
+		DrawString (viddef.conwidth - len, 8, str);
 	}
 }
 

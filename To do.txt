@@ -1,5 +1,4 @@
 Video menu stuff
-Switch mouse to DirectInput
 Timer catch up from debug break
 Big map support
 Widescreen FOV
@@ -16,6 +15,11 @@ Find out where they're coming from and either fix it or put in a workaround.
 these are stored in the model skins and can't be removed without editing the model; content bug.
 
 dropped frames in cinematics (it's 2018, this shouldn't happen)
-lightmap size/max lightmaps
 implement ri.Set2D/ri.End2D and bring on framework for vid.conwidth/vid.conheight
 
+gun at fov > 90
+
+check screenshots at 1366x768 mode
+
+upscale pics/charset/numbers (but NOT conback) so that they'll look good at zoomed ortho views
+negative dlights

@@ -375,22 +375,53 @@ void CL_PrepRefresh (void)
 CalcFov
 ====================
 */
-float CalcFov (float fov_x, float width, float height)
+float SCR_CalcFovX (float fov_y, float width, float height)
 {
-	float	a;
-	float	x;
+	// bound, don't crash
+	if (fov_y < 1) fov_y = 1;
+	if (fov_y > 179) fov_y = 179;
 
-	if (fov_x < 1 || fov_x > 179)
-		Com_Error (ERR_DROP, "Bad fov: %f", fov_x);
-
-	x = width / tan (fov_x / 360 * M_PI);
-
-	a = atan (height / x);
-
-	a = a * 360 / M_PI;
-
-	return a;
+	return (atan (width / (height / tan ((fov_y * M_PI) / 360.0f))) * 360.0f) / M_PI;
 }
+
+
+float SCR_CalcFovY (float fov_x, float width, float height)
+{
+	// bound, don't crash
+	if (fov_x < 1) fov_x = 1;
+	if (fov_x > 179) fov_x = 179;
+
+	return (atan (height / (width / tan ((fov_x * M_PI) / 360.0f))) * 360.0f) / M_PI;
+}
+
+
+void SCR_SetFOV (refdef_t *rd, float fovvar, int width, int height)
+{
+	float aspect = (float) height / (float) width;
+
+	// set up relative to a baseline aspect of 640x480
+#define BASELINE_W	640.0f
+#define BASELINE_H	480.0f
+
+	// http://www.gamedev.net/topic/431111-perspective-math-calculating-horisontal-fov-from-vertical/
+	// horizontalFov = atan (tan (verticalFov) * aspectratio)
+	// verticalFov = atan (tan (horizontalFov) / aspectratio)
+	if (aspect > (BASELINE_H / BASELINE_W))
+	{
+		// use the same calculation as GLQuake did (horizontal is constant, vertical varies)
+		rd->fov_x = fovvar;
+		rd->fov_y = SCR_CalcFovY (rd->fov_x, width, height);
+	}
+	else
+	{
+		// alternate calculation (vertical is constant, horizontal varies)
+		// consistent with http://www.emsai.net/projects/widescreen/fovcalc/
+		// note that the gun always uses this calculation irrespective of the aspect)
+		rd->fov_y = SCR_CalcFovY (fovvar, BASELINE_W, BASELINE_H);
+		rd->fov_x = SCR_CalcFovX (rd->fov_y, width, height);
+	}
+}
+
 
 //============================================================================
 
@@ -444,7 +475,7 @@ void SCR_DrawCrosshair (void)
 	if (!crosshair_pic[0])
 		return;
 
-	re.DrawPic ((viddef.width - crosshair_width) >> 1, (viddef.height - crosshair_height) >> 1, crosshair_pic);
+	re.DrawPic ((viddef.conwidth - crosshair_width) >> 1, (viddef.conheight - crosshair_height) >> 1, crosshair_pic);
 }
 
 
@@ -484,12 +515,10 @@ void V_RenderView (void)
 		// v_forward, etc.
 		CL_AddEntities ();
 
-		if (cl_testparticles->value)
-			V_TestParticles ();
-		if (cl_testentities->value)
-			V_TestEntities ();
-		if (cl_testlights->value)
-			V_TestLights ();
+		if (cl_testparticles->value) V_TestParticles ();
+		if (cl_testentities->value) V_TestEntities ();
+		if (cl_testlights->value) V_TestLights ();
+
 		if (cl_testblend->value)
 		{
 			cl.refdef.blend[0] = 1;
@@ -510,17 +539,15 @@ void V_RenderView (void)
 		cl.refdef.width = viddef.width;
 		cl.refdef.height = viddef.height;
 
-		cl.refdef.fov_y = CalcFov (cl.refdef.fov_x, cl.refdef.width, cl.refdef.height);
-		cl.refdef.time = cl.time * 0.001;
+		SCR_SetFOV (&cl.refdef, cl.refdef.fov_x, cl.refdef.width, cl.refdef.height);
 
+		cl.refdef.time = cl.time * 0.001;
 		cl.refdef.areabits = cl.frame.areabits;
 
-		if (!cl_add_entities->value)
-			r_numentities = 0;
-		if (!cl_add_particles->value)
-			r_numparticles = 0;
-		if (!cl_add_lights->value)
-			r_numdlights = 0;
+		if (!cl_add_entities->value) r_numentities = 0;
+		if (!cl_add_particles->value) r_numparticles = 0;
+		if (!cl_add_lights->value) r_numdlights = 0;
+
 		if (!cl_add_blend->value)
 		{
 			VectorClear (cl.refdef.blend);
@@ -537,7 +564,7 @@ void V_RenderView (void)
 		cl.refdef.rdflags = cl.frame.playerstate.rdflags;
 
 		// sort entities for better cache locality
-		qsort (cl.refdef.entities, cl.refdef.num_entities, sizeof (cl.refdef.entities[0]), (int (*)(const void *, const void *))entitycmpfnc);
+		qsort (cl.refdef.entities, cl.refdef.num_entities, sizeof (cl.refdef.entities[0]), (int (*) (const void *, const void *)) entitycmpfnc);
 	}
 
 	re.RenderFrame (&cl.refdef);

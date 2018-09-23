@@ -64,8 +64,8 @@ void M_Main_Draw (void)
 		totalheight += (h + 12);
 	}
 
-	ystart = (viddef.height / 2 - 110);
-	xoffset = (viddef.width - widest + 70) / 2;
+	ystart = (viddef.conheight / 2 - 110);
+	xoffset = (viddef.conwidth - widest + 70) / 2;
 
 	for (i = 0; names[i] != 0; i++)
 	{

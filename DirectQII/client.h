@@ -196,6 +196,7 @@ typedef struct client_static_s
 	connstate_t	state;
 	keydest_t	key_dest;
 
+	qboolean	bind_grab;			// the mouse needs to activate if grabbing keys for binding in the menus
 	int			framecount;
 	int			realtime;			// always increasing, no clamping, etc
 	int			targettime;			// ms elapsed before the next frame can run

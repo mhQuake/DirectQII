@@ -389,7 +389,7 @@ void M_Credits_MenuDraw (void)
 	/*
 	** draw the credits
 	*/
-	for (i = 0, y = viddef.height - ((cls.realtime - credits_start_time) / 40.0F); credits[i] && y < viddef.height; y += 10, i++)
+	for (i = 0, y = viddef.conheight - ((cls.realtime - credits_start_time) / 40.0F); credits[i] && y < viddef.conheight; y += 10, i++)
 	{
 		int j, stringoffset = 0;
 		int bold = false;
@@ -412,7 +412,7 @@ void M_Credits_MenuDraw (void)
 		{
 			int x;
 
-			x = (viddef.width - strlen (credits[i]) * 8 - stringoffset * 8) / 2 + (j + stringoffset) * 8;
+			x = (viddef.conwidth - strlen (credits[i]) * 8 - stringoffset * 8) / 2 + (j + stringoffset) * 8;
 
 			if (bold)
 				re.DrawChar (x, y, credits[i][j + stringoffset] + 128);

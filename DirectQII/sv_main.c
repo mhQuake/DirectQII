@@ -338,9 +338,7 @@ void SVC_DirectConnect (void)
 	{
 		if (cl->state == cs_free)
 			continue;
-		if (NET_CompareBaseAdr (adr, cl->netchan.remote_address)
-			&& (cl->netchan.qport == qport
-			|| adr.port == cl->netchan.remote_address.port))
+		if (NET_CompareBaseAdr (adr, cl->netchan.remote_address) && (cl->netchan.qport == qport || adr.port == cl->netchan.remote_address.port))
 		{
 			if (!NET_IsLocalAddress (adr) && (svs.realtime - cl->lastconnect) < ((int) sv_reconnect_limit->value * 1000))
 			{

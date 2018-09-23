@@ -709,11 +709,8 @@ void CM_InitBoxHull (void)
 
 	box_headnode = numnodes;
 	box_planes = &map_planes[numplanes];
-	if (numnodes + 6 > MAX_MAP_NODES
-		|| numbrushes + 1 > MAX_MAP_BRUSHES
-		|| numleafbrushes + 1 > MAX_MAP_LEAFBRUSHES
-		|| numbrushsides + 6 > MAX_MAP_BRUSHSIDES
-		|| numplanes + 12 > MAX_MAP_PLANES)
+
+	if (numnodes + 6 > MAX_MAP_NODES || numbrushes + 1 > MAX_MAP_BRUSHES || numleafbrushes + 1 > MAX_MAP_LEAFBRUSHES || numbrushsides + 6 > MAX_MAP_BRUSHSIDES || numplanes + 12 > MAX_MAP_PLANES)
 		Com_Error (ERR_DROP, "Not enough room for box tree");
 
 	box_brush = &map_brushes[numbrushes];
@@ -1399,8 +1396,7 @@ trace_t		CM_BoxTrace (vec3_t start, vec3_t end,
 	}
 
 	// check for point special case
-	if (mins[0] == 0 && mins[1] == 0 && mins[2] == 0
-		&& maxs[0] == 0 && maxs[1] == 0 && maxs[2] == 0)
+	if (mins[0] == 0 && mins[1] == 0 && mins[2] == 0 && maxs[0] == 0 && maxs[1] == 0 && maxs[2] == 0)
 	{
 		trace_ispoint = true;
 		VectorClear (trace_extents);

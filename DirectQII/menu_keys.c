@@ -61,7 +61,6 @@ char *bindnames[][2] =
 };
 
 int				keys_cursor;
-static int		bind_grab;
 
 static menuframework_s	s_keys_menu;
 static menuaction_s		s_keys_attack_action;
@@ -135,7 +134,7 @@ static void M_FindKeysForCommand (char *command, int *twokeys)
 
 static void KeyCursorDrawFunc (menuframework_s *menu)
 {
-	if (bind_grab)
+	if (cls.bind_grab)
 		re.DrawChar (menu->x, menu->y + menu->cursor * 9, '=');
 	else
 		re.DrawChar (menu->x, menu->y + menu->cursor * 9, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
@@ -183,7 +182,7 @@ static void KeyBindingFunc (void *self)
 	if (keys[1] != -1)
 		M_UnbindCommand (bindnames[a->generic.localdata[0]][0]);
 
-	bind_grab = true;
+	cls.bind_grab = true;
 
 	Menu_SetStatusBar (&s_keys_menu, "press a key or button for this action");
 }
@@ -193,7 +192,7 @@ static void Keys_MenuInit (void)
 	int y = 0;
 	int i = 0;
 
-	s_keys_menu.x = viddef.width * 0.50;
+	s_keys_menu.x = viddef.conwidth * 0.50;
 	s_keys_menu.nitems = 0;
 	s_keys_menu.cursordraw = KeyCursorDrawFunc;
 
@@ -421,7 +420,7 @@ static const char *Keys_MenuKey (int key)
 {
 	menuaction_s *item = (menuaction_s *) Menu_ItemAtCursor (&s_keys_menu);
 
-	if (bind_grab)
+	if (cls.bind_grab)
 	{
 		if (key != K_ESCAPE && key != '`')
 		{
@@ -432,7 +431,7 @@ static const char *Keys_MenuKey (int key)
 		}
 
 		Menu_SetStatusBar (&s_keys_menu, "enter to change, backspace to clear");
-		bind_grab = false;
+		cls.bind_grab = false;
 		return menu_out_sound;
 	}
 

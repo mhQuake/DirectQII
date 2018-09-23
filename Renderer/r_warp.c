@@ -110,7 +110,7 @@ void R_InitWarp (void)
 	};
 
 	d3d_SurfDrawSkyShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawSkyVS", NULL, "SurfDrawSkyPS", DEFINE_LAYOUT (layout));
-	d3d_WaterWarpShader = D_CreateShaderBundleForQuadBatch (IDR_WATERWARP, "WaterWarpVS", "WaterWarpPS");
+	d3d_WaterWarpShader = D_CreateShaderBundleForQuadBatch (IDR_WATERWARP, "WaterWarpVS", "WaterWarpPS", batch_standard);
 
 	D_CreateRenderTargetAtBackbufferSize ();
 	D_CreateNoiseTexture ();

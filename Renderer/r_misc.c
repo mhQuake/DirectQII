@@ -23,25 +23,66 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ==================
-R_InitParticleTexture
+R_CreateSpecialTextures
 ==================
 */
-byte	dottexture[8][8] =
+void R_CreateSpecialTextures (void)
 {
-	{0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 1, 1, 0, 0, 0, 0},
-	{0, 1, 1, 1, 1, 0, 0, 0},
-	{0, 1, 1, 1, 1, 0, 0, 0},
-	{0, 0, 1, 1, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0},
-};
+	int x, y;
+	byte data[8][8][4];
 
-void R_InitParticleTexture (void)
-{
-	int		x, y;
-	byte	data[8][8][4];
+	byte dottexture[8][8] = {
+		{0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 1, 0, 0, 0, 0},
+		{0, 1, 1, 1, 1, 0, 0, 0},
+		{0, 1, 1, 1, 1, 0, 0, 0},
+		{0, 0, 1, 1, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0},
+	};
+
+	// also use this for bad textures, but without alpha
+	for (x = 0; x < 8; x++)
+	{
+		for (y = 0; y < 8; y++)
+		{
+			data[y][x][0] = 0;
+			data[y][x][1] = 0;
+			data[y][x][2] = 0;
+			data[y][x][3] = 255;
+		}
+	}
+
+	r_blacktexture = GL_LoadPic ("***r_blacktexture***", (byte *) data, 8, 8, it_wall, 32, NULL);
+
+	// also use this for bad textures, but without alpha
+	for (x = 0; x < 8; x++)
+	{
+		for (y = 0; y < 8; y++)
+		{
+			data[y][x][0] = 127;
+			data[y][x][1] = 127;
+			data[y][x][2] = 127;
+			data[y][x][3] = 255;
+		}
+	}
+
+	r_greytexture = GL_LoadPic ("***r_greytexture***", (byte *) data, 8, 8, it_wall, 32, NULL);
+
+	// also use this for bad textures, but without alpha
+	for (x = 0; x < 8; x++)
+	{
+		for (y = 0; y < 8; y++)
+		{
+			data[y][x][0] = 255;
+			data[y][x][1] = 255;
+			data[y][x][2] = 255;
+			data[y][x][3] = 255;
+		}
+	}
+
+	r_blacktexture = GL_LoadPic ("***r_blacktexture***", (byte *) data, 8, 8, it_wall, 32, NULL);
 
 	// also use this for bad textures, but without alpha
 	for (x = 0; x < 8; x++)
@@ -49,8 +90,8 @@ void R_InitParticleTexture (void)
 		for (y = 0; y < 8; y++)
 		{
 			data[y][x][0] = dottexture[x & 3][y & 3] * 255;
-			data[y][x][1] = 0; // dottexture[x&3][y&3]*255;
-			data[y][x][2] = 0; //dottexture[x&3][y&3]*255;
+			data[y][x][1] = 0;
+			data[y][x][2] = 0;
 			data[y][x][3] = 255;
 		}
 	}
@@ -178,6 +219,5 @@ void GL_ScreenShot_f (void)
 
 	D_CaptureScreenshot (checkname, vid_gamma->value);
 }
-
 
 

@@ -79,8 +79,8 @@ void LoadGame_MenuInit (void)
 {
 	int i;
 
-	s_loadgame_menu.x = viddef.width / 2 - 120;
-	s_loadgame_menu.y = viddef.height / 2 - 58;
+	s_loadgame_menu.x = viddef.conwidth / 2 - 120;
+	s_loadgame_menu.y = viddef.conheight / 2 - 58;
 	s_loadgame_menu.nitems = 0;
 
 	Create_Savestrings ();
@@ -157,8 +157,8 @@ void SaveGame_MenuInit (void)
 {
 	int i;
 
-	s_savegame_menu.x = viddef.width / 2 - 120;
-	s_savegame_menu.y = viddef.height / 2 - 58;
+	s_savegame_menu.x = viddef.conwidth / 2 - 120;
+	s_savegame_menu.y = viddef.conheight / 2 - 58;
 	s_savegame_menu.nitems = 0;
 
 	Create_Savestrings ();

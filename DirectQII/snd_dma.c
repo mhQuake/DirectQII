@@ -77,7 +77,6 @@ cvar_t		*s_loadas8bit;
 cvar_t		*s_khz;
 cvar_t		*s_show;
 cvar_t		*s_mixahead;
-cvar_t		*s_primary;
 
 
 int		s_rawend;
@@ -115,11 +114,10 @@ S_Init
 */
 void S_Init (void)
 {
-	cvar_t	*cv;
+	cvar_t	*cv = Cvar_Get ("s_initsound", "1", 0);
 
 	Com_Printf ("\n------- sound initialization -------\n");
 
-	cv = Cvar_Get ("s_initsound", "1", 0);
 	if (!cv->value)
 		Com_Printf ("not initializing.\n");
 	else
@@ -130,7 +128,6 @@ void S_Init (void)
 		s_mixahead = Cvar_Get ("s_mixahead", "0.2", CVAR_ARCHIVE);
 		s_show = Cvar_Get ("s_show", "0", 0);
 		s_testsound = Cvar_Get ("s_testsound", "0", 0);
-		s_primary = Cvar_Get ("s_primary", "0", CVAR_ARCHIVE);	// win32 specific
 
 		Cmd_AddCommand ("play", S_Play);
 		Cmd_AddCommand ("stopsound", S_StopAllSounds);
@@ -376,11 +373,11 @@ channel_t *S_PickChannel (int entnum, int entchannel)
 	// Check for replacement sound, or find the best one to replace
 	first_to_die = -1;
 	life_left = 0x7fffffff;
+
 	for (ch_idx = 0; ch_idx < MAX_CHANNELS; ch_idx++)
 	{
-		if (entchannel != 0		// channel 0 never overrides
-			&& channels[ch_idx].entnum == entnum
-			&& channels[ch_idx].entchannel == entchannel)
+		// channel 0 never overrides
+		if (entchannel != 0 && channels[ch_idx].entnum == entnum && channels[ch_idx].entchannel == entchannel)
 		{
 			// always override sound from same entity
 			first_to_die = ch_idx;

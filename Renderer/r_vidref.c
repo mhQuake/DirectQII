@@ -20,11 +20,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
+void VID_ScaleVidDef (viddef_t *vd, int w, int h);
+
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_ref;
 
 void R_Register (void)
 {
+	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_CHEAT);
 	r_beamdetail = ri.Cvar_Get ("r_beamdetail", "24", CVAR_ARCHIVE);
 	r_lefthand = ri.Cvar_Get ("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);
@@ -82,7 +85,7 @@ qboolean R_SetMode (void)
 			vid_fullscreen->modified = false;
 			ri.Con_Printf (PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
 			if ((err = GLimp_SetMode (&vid.width, &vid.height, gl_mode->value, false)) == rserr_ok)
-				return true;
+				goto done;
 		}
 		else if (err == rserr_invalid_mode)
 		{
@@ -98,6 +101,11 @@ qboolean R_SetMode (void)
 			return false;
 		}
 	}
+
+done:;
+	// let the sound and input subsystems know about the new window
+	VID_ScaleVidDef (&vid, vid.width, vid.height);
+
 	return true;
 }
 
@@ -141,7 +149,7 @@ int R_Init (void *hinstance, void *wndproc)
 	// initialize all objects, textures, shaders, etc
 	GL_InitImages ();
 	Mod_Init ();
-	R_InitParticleTexture ();
+	R_CreateSpecialTextures ();
 	Draw_InitLocal ();
 
 	// success
@@ -182,7 +190,6 @@ struct image_s	*Draw_FindPic (char *name);
 
 void Draw_Pic (int x, int y, char *name);
 void Draw_Char (int x, int y, int c);
-void Draw_TileClear (int x, int y, int w, int h, char *name);
 void Draw_Fill (int x, int y, int w, int h, int c);
 void Draw_FadeScreen (void);
 
@@ -212,12 +219,12 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.DrawConsoleBackground = Draw_ConsoleBackground;
 	re.DrawGetPicSize = Draw_GetPicSize;
 	re.DrawPic = Draw_Pic;
-	re.DrawTileClear = Draw_TileClear;
 	re.DrawFill = Draw_Fill;
 	re.DrawFadeScreen = Draw_FadeScreen;
 
 	re.DrawChar = Draw_Char;
 	re.DrawString = D_EndQuadBatch;
+	re.DrawField = Draw_Field;
 
 	re.DrawStretchRaw = Draw_StretchRaw;
 

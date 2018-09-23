@@ -32,6 +32,11 @@ typedef struct quadpolyvert_s {
 	float texcoord[2];
 } quadpolyvert_t;
 
+typedef struct quadpolyvert_texarray_s {
+	float position[3];
+	float texcoord[3];
+} quadpolyvert_texarray_t;
+
 // these should be sized such that MAX_DRAW_INDEXES = (MAX_DRAW_VERTS / 4) * 6
 // sized larger for particles going through this path
 #define MAX_QUAD_VERTS		0x4000
@@ -95,15 +100,28 @@ void R_InitQuadBatch (void)
 }
 
 
-int D_CreateShaderBundleForQuadBatch (int resourceID, const char *vsentry, const char *psentry)
+int D_CreateShaderBundleForQuadBatch (int resourceID, const char *vsentry, const char *psentry, batchtype_t type)
 {
-	D3D11_INPUT_ELEMENT_DESC layout[] = {
+	D3D11_INPUT_ELEMENT_DESC layout_standard[] = {
 		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0),
 		VDECL ("COLOUR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 0),
 		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0)
 	};
 
-	return D_CreateShaderBundle (resourceID, vsentry, NULL, psentry, DEFINE_LAYOUT (layout));
+	D3D11_INPUT_ELEMENT_DESC layout_texarray[] = {
+		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0),
+		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0)
+	};
+
+	switch (type)
+	{
+	case batch_standard: return D_CreateShaderBundle (resourceID, vsentry, NULL, psentry, DEFINE_LAYOUT (layout_standard));
+	case batch_texarray: return D_CreateShaderBundle (resourceID, vsentry, NULL, psentry, DEFINE_LAYOUT (layout_texarray));
+	default: ri.Sys_Error (ERR_FATAL, "D_CreateShaderBundleForQuadBatch : bad batchtype");
+	}
+
+	// never reached; shut up compiler
+	return -1;
 }
 
 
@@ -185,6 +203,22 @@ void D_QuadVertexPosition2f (float x, float y)
 	d_quadverts[d_numquadverts].position[0] = x;
 	d_quadverts[d_numquadverts].position[1] = y;
 	d_quadverts[d_numquadverts].position[2] = 0;
+
+	d_numquadverts++;
+}
+
+
+void D_QuadVertexPosition2fTexCoord3f (float x, float y, float s, float t, float slice)
+{
+	quadpolyvert_texarray_t *vert = (quadpolyvert_texarray_t *) &d_quadverts[d_numquadverts];
+
+	vert->position[0] = x;
+	vert->position[1] = y;
+	vert->position[2] = 0;
+
+	vert->texcoord[0] = s;
+	vert->texcoord[1] = t;
+	vert->texcoord[2] = slice;
 
 	d_numquadverts++;
 }

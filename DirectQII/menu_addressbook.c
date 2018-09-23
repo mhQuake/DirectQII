@@ -40,8 +40,8 @@ void AddressBook_MenuInit (void)
 {
 	int i;
 
-	s_addressbook_menu.x = viddef.width / 2 - 142;
-	s_addressbook_menu.y = viddef.height / 2 - 58;
+	s_addressbook_menu.x = viddef.conwidth / 2 - 142;
+	s_addressbook_menu.y = viddef.conheight / 2 - 58;
 	s_addressbook_menu.nitems = 0;
 
 	for (i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++)

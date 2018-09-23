@@ -213,7 +213,7 @@ void DMOptions_MenuInit (void)
 	int dmflags = Cvar_VariableValue ("dmflags");
 	int y = 0;
 
-	s_dmoptions_menu.x = viddef.width * 0.50;
+	s_dmoptions_menu.x = viddef.conwidth * 0.50;
 	s_dmoptions_menu.nitems = 0;
 
 	s_falls_box.generic.type = MTYPE_SPINCONTROL;

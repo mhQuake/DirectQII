@@ -61,6 +61,12 @@ float4 MeshLightmapPS (PS_MESH ps_in) : SV_TARGET0
 	return float4 (diff.rgb * lmap, diff.a * AlphaVal);
 }
 
+float4 MeshFullbrightPS (PS_MESH ps_in) : SV_TARGET0
+{
+	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
+	return float4 (diff.rgb, diff.a * AlphaVal);
+}
+
 float4 MeshPowersuitPS (float4 Position: SV_POSITION) : SV_TARGET0
 {
 	return GetGamma (float4 (ShadeLight, AlphaVal));

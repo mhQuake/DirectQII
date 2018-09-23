@@ -135,12 +135,7 @@ void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *heigh
 
 	raw = &pcx->data;
 
-	if (pcx->manufacturer != 0x0a
-		|| pcx->version != 5
-		|| pcx->encoding != 1
-		|| pcx->bits_per_pixel != 8
-		|| pcx->xmax >= 640
-		|| pcx->ymax >= 480)
+	if (pcx->manufacturer != 0x0a || pcx->version != 5 || pcx->encoding != 1 || pcx->bits_per_pixel != 8)
 	{
 		ri.Con_Printf (PRINT_ALL, "Bad pcx file %s\n", filename);
 		return;
@@ -212,14 +207,15 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 	byte	*buf_p;
 	byte	*buffer;
 	int		length;
-	TargaHeader		targa_header;
+	TargaHeader		*targa_header;
 	byte			*targa_rgba;
-	byte tmp[2];
+//	byte tmp[2];
 
 	*pic = NULL;
 
 	// load the file
 	length = ri.FS_LoadFile (name, (void **) &buffer);
+
 	if (!buffer)
 	{
 		ri.Con_Printf (PRINT_DEVELOPER, "Bad tga file %s\n", name);
@@ -228,40 +224,25 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 
 	buf_p = buffer;
 
-	targa_header.id_length = *buf_p++;
-	targa_header.colormap_type = *buf_p++;
-	targa_header.image_type = *buf_p++;
+	targa_header = (TargaHeader *) buf_p;
+	buf_p += sizeof (TargaHeader);
 
-	tmp[0] = buf_p[0];
-	tmp[1] = buf_p[1];
-	targa_header.colormap_index = LittleShort (*((short *) tmp));
-	buf_p += 2;
-	tmp[0] = buf_p[0];
-	tmp[1] = buf_p[1];
-	targa_header.colormap_length = LittleShort (*((short *) tmp));
-	buf_p += 2;
-	targa_header.colormap_size = *buf_p++;
-	targa_header.x_origin = LittleShort (*((short *) buf_p));
-	buf_p += 2;
-	targa_header.y_origin = LittleShort (*((short *) buf_p));
-	buf_p += 2;
-	targa_header.width = LittleShort (*((short *) buf_p));
-	buf_p += 2;
-	targa_header.height = LittleShort (*((short *) buf_p));
-	buf_p += 2;
-	targa_header.pixel_size = *buf_p++;
-	targa_header.attributes = *buf_p++;
+	targa_header->colormap_index = LittleShort (targa_header->colormap_index);
+	targa_header->colormap_length = LittleShort (targa_header->colormap_length);
 
-	if (targa_header.image_type != 2
-		&& targa_header.image_type != 10)
+	targa_header->x_origin = LittleShort (targa_header->x_origin);
+	targa_header->y_origin = LittleShort (targa_header->y_origin);
+	targa_header->width = LittleShort (targa_header->width);
+	targa_header->height = LittleShort (targa_header->height);
+
+	if (targa_header->image_type != 2 && targa_header->image_type != 10)
 		ri.Sys_Error (ERR_DROP, "LoadTGA: Only type 2 and 10 targa RGB images supported\n");
 
-	if (targa_header.colormap_type != 0
-		|| (targa_header.pixel_size != 32 && targa_header.pixel_size != 24))
+	if (targa_header->colormap_type != 0 || (targa_header->pixel_size != 32 && targa_header->pixel_size != 24))
 		ri.Sys_Error (ERR_DROP, "LoadTGA: Only 32 or 24 bit images supported (no colormaps)\n");
 
-	columns = targa_header.width;
-	rows = targa_header.height;
+	columns = targa_header->width;
+	rows = targa_header->height;
 	numPixels = columns * rows;
 
 	if (width)
@@ -272,21 +253,23 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 	targa_rgba = ri.Load_AllocMemory (numPixels * 4);
 	*pic = targa_rgba;
 
-	if (targa_header.id_length != 0)
-		buf_p += targa_header.id_length;  // skip TARGA image comment
+	if (targa_header->id_length != 0)
+		buf_p += targa_header->id_length;  // skip TARGA image comment
 
-	if (targa_header.image_type == 2)
-	{  // Uncompressed, RGB images
+	if (targa_header->image_type == 2)
+	{
+		// Uncompressed, RGB images
 		for (row = rows - 1; row >= 0; row--)
 		{
-			pixbuf = targa_rgba + row*columns * 4;
+			pixbuf = targa_rgba + row * columns * 4;
+
 			for (column = 0; column < columns; column++)
 			{
 				unsigned char red, green, blue, alphabyte;
-				switch (targa_header.pixel_size)
+
+				switch (targa_header->pixel_size)
 				{
 				case 24:
-
 					blue = *buf_p++;
 					green = *buf_p++;
 					red = *buf_p++;
@@ -295,6 +278,7 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 					*pixbuf++ = blue;
 					*pixbuf++ = 255;
 					break;
+
 				case 32:
 					blue = *buf_p++;
 					green = *buf_p++;
@@ -309,19 +293,24 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 			}
 		}
 	}
-	else if (targa_header.image_type == 10)
-	{   // Runlength encoded RGB images
+	else if (targa_header->image_type == 10)
+	{
+		// Runlength encoded RGB images
 		unsigned char red, green, blue, alphabyte, packetHeader, packetSize, j;
+
 		for (row = rows - 1; row >= 0; row--)
 		{
-			pixbuf = targa_rgba + row*columns * 4;
+			pixbuf = targa_rgba + row * columns * 4;
+
 			for (column = 0; column < columns;)
 			{
 				packetHeader = *buf_p++;
 				packetSize = 1 + (packetHeader & 0x7f);
+
 				if (packetHeader & 0x80)
-				{        // run-length packet
-					switch (targa_header.pixel_size)
+				{
+					// run-length packet
+					switch (targa_header->pixel_size)
 					{
 					case 24:
 						blue = *buf_p++;
@@ -329,6 +318,7 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 						red = *buf_p++;
 						alphabyte = 255;
 						break;
+
 					case 32:
 						blue = *buf_p++;
 						green = *buf_p++;
@@ -344,22 +334,27 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 						*pixbuf++ = blue;
 						*pixbuf++ = alphabyte;
 						column++;
+
 						if (column == columns)
-						{ // run spans across rows
+						{
+							// run spans across rows
 							column = 0;
+
 							if (row > 0)
 								row--;
 							else
 								goto breakOut;
-							pixbuf = targa_rgba + row*columns * 4;
+
+							pixbuf = targa_rgba + row * columns * 4;
 						}
 					}
 				}
 				else
-				{                            // non run-length packet
+				{
+					// non run-length packet
 					for (j = 0; j < packetSize; j++)
 					{
-						switch (targa_header.pixel_size)
+						switch (targa_header->pixel_size)
 						{
 						case 24:
 							blue = *buf_p++;
@@ -370,6 +365,7 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 							*pixbuf++ = blue;
 							*pixbuf++ = 255;
 							break;
+
 						case 32:
 							blue = *buf_p++;
 							green = *buf_p++;
@@ -381,15 +377,19 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 							*pixbuf++ = alphabyte;
 							break;
 						}
+
 						column++;
+
 						if (column == columns)
-						{ // pixel packet run spans across rows
+						{
+							// pixel packet run spans across rows
 							column = 0;
+
 							if (row > 0)
 								row--;
-							else
-								goto breakOut;
-							pixbuf = targa_rgba + row*columns * 4;
+							else goto breakOut;
+
+							pixbuf = targa_rgba + row * columns * 4;
 						}
 					}
 				}

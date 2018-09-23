@@ -61,6 +61,7 @@ static aliasbuffers_t d3d_AliasBuffers[MAX_MOD_KNOWN];
 static int d3d_MeshLightmapShader;
 static int d3d_MeshDynamicShader;
 static int d3d_MeshPowersuitShader;
+static int d3d_MeshFullbrightShader;
 
 static ID3D11Buffer *d3d_MeshConstants = NULL;
 
@@ -84,6 +85,7 @@ void R_InitMesh (void)
 	d3d_MeshLightmapShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshLightmapPS", DEFINE_LAYOUT (layout));
 	d3d_MeshDynamicShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshDynamicVS", NULL, "GenericDynamicPS", DEFINE_LAYOUT (layout));
 	d3d_MeshPowersuitShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshPowersuitVS", NULL, "MeshPowersuitPS", DEFINE_LAYOUT (layout));
+	d3d_MeshFullbrightShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshFullbrightPS", DEFINE_LAYOUT (layout));
 
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbPerMeshDesc, NULL, &d3d_MeshConstants);
 	D_RegisterConstantBuffer (d3d_MeshConstants, 3);
@@ -419,14 +421,16 @@ void GL_DrawAliasPolySet (model_t *mod)
 
 void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
+	GL_BindTexture (R_GetAliasSkin (e, mod)->SRV);
+
 	// figure the correct shaders to use
 	if (e->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
 		D_BindShaderBundle (d3d_MeshPowersuitShader);
-	else
-	{
-		GL_BindTexture (R_GetAliasSkin (e, mod)->SRV);
-		D_BindShaderBundle (d3d_MeshLightmapShader);
-	}
+	else if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+		D_BindShaderBundle (d3d_MeshFullbrightShader);
+	else if (!r_worldmodel->lightdata || r_fullbright->value)
+		D_BindShaderBundle (d3d_MeshFullbrightShader);
+	else D_BindShaderBundle (d3d_MeshLightmapShader);
 
 	D_BindVertexBuffer (0, set->PolyVerts, sizeof (aliaspolyvert_t), e->prevframe * sizeof (aliaspolyvert_t) * set->NumVerts);
 	D_BindVertexBuffer (1, set->PolyVerts, sizeof (aliaspolyvert_t), e->currframe * sizeof (aliaspolyvert_t) * set->NumVerts);
@@ -776,8 +780,16 @@ void R_DrawAliasModel (entity_t *e)
 	// and draw it
 	GL_DrawAliasPolySet (mod);
 
+	// no dlights in the player setup screens
+	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL) return;
+
+	// no dlights in fullbright mode
+	if (!r_worldmodel->lightdata || r_fullbright->value) return;
+
+	// no dlights unless it's flagged for them
+	if (!(e->flags & RF_DYNAMICLIGHT)) return;
+
 	// add dynamic lighting to the entity
-	if (e->flags & RF_DYNAMICLIGHT)
-		R_AliasDlights (e, mod, hdr, &localmatrix, bbox);
+	R_AliasDlights (e, mod, hdr, &localmatrix, bbox);
 }
 

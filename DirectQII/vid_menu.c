@@ -115,7 +115,7 @@ void VID_MenuInit (void)
 		"[640 480  ]",
 		"[800 600  ]",
 		"[960 720  ]",
-		"[1024 768 ]",
+		"[1024 600 ]",
 		"[1152 864 ]",
 		"[1280 960 ]",
 		"[1600 1200]",
@@ -157,9 +157,9 @@ void VID_MenuInit (void)
 		s_current_menu_index = FULLSCREEN_MENU;
 	}
 
-	s_windowed_menu.x = viddef.width * 0.50;
+	s_windowed_menu.x = viddef.conwidth * 0.50;
 	s_windowed_menu.nitems = 0;
-	s_fullscreen_menu.x = viddef.width * 0.50;
+	s_fullscreen_menu.x = viddef.conwidth * 0.50;
 	s_fullscreen_menu.nitems = 0;
 
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
@@ -251,7 +251,7 @@ void VID_MenuDraw (void)
 
 	// draw the banner
 	re.DrawGetPicSize (&w, &h, "m_banner_video");
-	re.DrawPic (viddef.width / 2 - w / 2, viddef.height / 2 - 110, "m_banner_video");
+	re.DrawPic (viddef.conwidth / 2 - w / 2, viddef.conheight / 2 - 110, "m_banner_video");
 
 	// move cursor to a reasonable starting position
 	Menu_AdjustCursor (s_current_menu, 1);

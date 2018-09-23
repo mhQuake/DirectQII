@@ -123,7 +123,7 @@ void JoinServer_MenuInit (void)
 {
 	int i;
 
-	s_joinserver_menu.x = viddef.width * 0.50 - 120;
+	s_joinserver_menu.x = viddef.conwidth * 0.50 - 120;
 	s_joinserver_menu.nitems = 0;
 
 	s_joinserver_address_book_action.generic.type = MTYPE_ACTION;

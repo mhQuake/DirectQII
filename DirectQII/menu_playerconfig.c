@@ -345,8 +345,8 @@ qboolean PlayerConfig_MenuInit (void)
 		}
 	}
 
-	s_player_config_menu.x = viddef.width / 2 - 95;
-	s_player_config_menu.y = viddef.height / 2 - 97;
+	s_player_config_menu.x = viddef.conwidth / 2 - 95;
+	s_player_config_menu.y = viddef.conheight / 2 - 97;
 	s_player_config_menu.nitems = 0;
 
 	s_player_name_field.generic.type = MTYPE_FIELD;
@@ -445,31 +445,37 @@ qboolean PlayerConfig_MenuInit (void)
 
 void PlayerConfig_MenuDraw (void)
 {
-	extern float CalcFov (float fov_x, float w, float h);
+	void SCR_SetFOV (refdef_t *rd, float fovvar, int width, int height);
 	refdef_t refdef;
 	char scratch[MAX_QPATH];
+	playermodelinfo_s *pmi = &s_pmi[s_player_model_box.curvalue];
 
 	memset (&refdef, 0, sizeof (refdef));
 
-	refdef.x = viddef.width / 2;
-	refdef.y = viddef.height / 2 - 72;
-	refdef.width = 144;
-	refdef.height = 168;
-	refdef.fov_x = 40;
-	refdef.fov_y = CalcFov (refdef.fov_x, refdef.width, refdef.height);
-	refdef.time = cls.realtime*0.001;
+#define RDWIDTH		144
+#define RDHEIGHT	168
 
-	if (s_pmi[s_player_model_box.curvalue].skindisplaynames)
+	// position the refdef properly....
+	refdef.x = ((viddef.conwidth / 2) * viddef.width) / viddef.conwidth;
+	refdef.y = ((viddef.conheight / 2 - 72) * viddef.height) / viddef.conheight;
+	refdef.width = ((RDWIDTH) * viddef.width) / viddef.conwidth;
+	refdef.height = ((RDHEIGHT) * viddef.height) / viddef.conheight;
+
+	SCR_SetFOV (&refdef, 40, RDWIDTH, RDHEIGHT);
+	refdef.time = cls.realtime * 0.001;
+
+	if (pmi->skindisplaynames)
 	{
 		static int yaw;
 		int maxframe = 29;
 		entity_t entity;
+		char *curskin = pmi->skindisplaynames[s_player_skin_box.curvalue];
 
 		memset (&entity, 0, sizeof (entity));
 
-		Com_sprintf (scratch, sizeof (scratch), "players/%s/tris.md2", s_pmi[s_player_model_box.curvalue].directory);
+		Com_sprintf (scratch, sizeof (scratch), "players/%s/tris.md2", pmi->directory);
 		entity.model = re.RegisterModel (scratch);
-		Com_sprintf (scratch, sizeof (scratch), "players/%s/%s.pcx", s_pmi[s_player_model_box.curvalue].directory, s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue]);
+		Com_sprintf (scratch, sizeof (scratch), "players/%s/%s.pcx", pmi->directory, curskin);
 		entity.skin = re.RegisterSkin (scratch);
 		entity.flags = RF_FULLBRIGHT;
 		entity.currorigin[0] = 80;
@@ -491,15 +497,18 @@ void PlayerConfig_MenuDraw (void)
 
 		Menu_Draw (&s_player_config_menu);
 
-		M_DrawTextBox ((refdef.x) * (320.0F / viddef.width) - 8, (viddef.height / 2) * (240.0F / viddef.height) - 77, refdef.width / 8, refdef.height / 8);
+		Com_sprintf (scratch, sizeof (scratch), "/players/%s/%s_i.pcx", pmi->directory, curskin);
+		re.DrawPic (s_player_config_menu.x - 40, viddef.conheight / 2 - 72, scratch);
+
+		M_DrawTextBox (
+			(viddef.conwidth / 2) * (320.0f / viddef.conwidth) - 8,
+			(viddef.conheight / 2) * (240.0f / viddef.conheight) - 77,
+			RDWIDTH / 8, RDHEIGHT / 8
+		);
+
 		refdef.height += 4;
 
 		re.RenderFrame (&refdef);
-
-		Com_sprintf (scratch, sizeof (scratch), "/players/%s/%s_i.pcx",
-			s_pmi[s_player_model_box.curvalue].directory,
-			s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue]);
-		re.DrawPic (s_player_config_menu.x - 40, refdef.y, scratch);
 	}
 }
 

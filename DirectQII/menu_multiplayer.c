@@ -62,7 +62,7 @@ static void StartNetworkServerFunc (void *unused)
 
 void Multiplayer_MenuInit (void)
 {
-	s_multiplayer_menu.x = viddef.width * 0.50 - 64;
+	s_multiplayer_menu.x = viddef.conwidth * 0.50 - 64;
 	s_multiplayer_menu.nitems = 0;
 
 	s_join_network_server_action.generic.type = MTYPE_ACTION;

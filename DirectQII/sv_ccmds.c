@@ -376,8 +376,7 @@ void SV_WriteServerFile (qboolean autosave)
 	{
 		if (!(var->flags & CVAR_LATCH))
 			continue;
-		if (strlen (var->name) >= sizeof (name) - 1
-			|| strlen (var->string) >= sizeof (string) - 1)
+		if (strlen (var->name) >= sizeof (name) - 1 || strlen (var->string) >= sizeof (string) - 1)
 		{
 			Com_Printf ("Cvar too long: %s = %s\n", var->name, var->string);
 			continue;

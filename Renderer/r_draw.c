@@ -22,11 +22,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-image_t		*draw_chars;
+#define STAT_MINUS		10	// num frame for '-' stats digit
+
+static image_t	*draw_chars;
+static image_t	*sb_nums[2];
 
 static int d3d_DrawTexturedShader;
 static int d3d_DrawColouredShader;
-static int d3d_DrawFinalizeShader;
+static int d3d_DrawFullviewShader;
+static int d3d_DrawTexArrayShader;
 
 
 static ID3D11Buffer *d3d_DrawConstants = NULL;
@@ -60,12 +64,15 @@ void Draw_InitLocal (void)
 	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
 
 	// shaders
-	d3d_DrawTexturedShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawTexturedVS", "DrawTexturedPS");
-	d3d_DrawColouredShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawColouredVS", "DrawColouredPS");
-	d3d_DrawFinalizeShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawFinalizeVS", "DrawFinalizePS");
+	d3d_DrawTexturedShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawTexturedVS", "DrawTexturedPS", batch_standard);
+	d3d_DrawColouredShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawColouredVS", "DrawColouredPS", batch_standard);
+	d3d_DrawFullviewShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawTexturedVS", "DrawFullviewPS", batch_standard);
+	d3d_DrawTexArrayShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawTexArrayVS", "DrawTexArrayPS", batch_texarray);
 
 	// load console characters
-	draw_chars = GL_FindImage ("pics/conchars.pcx", it_pic);
+	draw_chars = GL_FindImage ("pics/conchars.pcx", it_charset);
+	sb_nums[0] = GL_LoadTexArray ("num");
+	sb_nums[1] = GL_LoadTexArray ("anum");
 }
 
 
@@ -83,11 +90,11 @@ void D_UpdateDrawConstants (int width, int height, float gammaval, float contras
 }
 
 
-void Draw_TexturedColouredQuad (image_t *image, int x, int y, int w, int h, unsigned color, int sl, int sh, int tl, int th)
+void Draw_TexturedColouredQuad (image_t *image, int x, int y, int w, int h, unsigned color, int sl, int sh, int tl, int th, int shader)
 {
 	GL_BindTexture (image->SRV);
 
-	D_BindShaderBundle (d3d_DrawTexturedShader);
+	D_BindShaderBundle (shader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
 
 	D_CheckQuadBatch ();
@@ -101,11 +108,11 @@ void Draw_TexturedColouredQuad (image_t *image, int x, int y, int w, int h, unsi
 }
 
 
-void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, int sl, int sh, int tl, int th)
+void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, int sl, int sh, int tl, int th, int shader)
 {
 	GL_BindTexture (image->SRV);
 
-	D_BindShaderBundle (d3d_DrawTexturedShader);
+	D_BindShaderBundle (shader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
 
 	D_CheckQuadBatch ();
@@ -135,6 +142,57 @@ void Draw_ColouredQuad (int x, int y, int w, int h, unsigned colour)
 }
 
 
+void Draw_Field (int x, int y, int color, int width, int value)
+{
+	char	num[16], *ptr;
+	int		l;
+	int		frame;
+
+	if (width < 1)
+		return;
+
+	// draw number string
+	if (width > 5)
+		width = 5;
+
+	Com_sprintf (num, sizeof (num), "%i", value);
+	l = strlen (num);
+
+	if (l > width)
+		l = width;
+
+	x += 2 + sb_nums[color]->width * (width - l);
+	ptr = num;
+
+	GL_BindTexArray (sb_nums[color]->SRV);
+
+	D_BindShaderBundle (d3d_DrawTexArrayShader);
+	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
+
+	while (*ptr && l)
+	{
+		if (*ptr == '-')
+			frame = STAT_MINUS;
+		else
+			frame = *ptr - '0';
+
+		// check for overflow
+		D_CheckQuadBatch ();
+
+		D_QuadVertexPosition2fTexCoord3f (x, y, 0, 0, frame);
+		D_QuadVertexPosition2fTexCoord3f (x + sb_nums[color]->width, y, 1, 0, frame);
+		D_QuadVertexPosition2fTexCoord3f (x + sb_nums[color]->width, y + sb_nums[color]->height, 1, 1, frame);
+		D_QuadVertexPosition2fTexCoord3f (x, y + sb_nums[color]->height, 0, 1, frame);
+
+		x += sb_nums[color]->width;
+		ptr++;
+		l--;
+	}
+
+	D_EndQuadBatch ();
+}
+
+
 /*
 ================
 Draw_Char
@@ -144,22 +202,6 @@ It can be clipped to the top of the screen to allow the console to be
 smoothly scrolled off.
 ================
 */
-static void Draw_CharInner (int x, int y, int num)
-{
-	int row = num >> 4;
-	int col = num & 15;
-
-	float frow = row * 0.0625;
-	float fcol = col * 0.0625;
-	float size = 0.0625;
-
-	D_QuadVertexPosition2fTexCoord2f (x, y, fcol, frow);
-	D_QuadVertexPosition2fTexCoord2f (x + 8, y, fcol + size, frow);
-	D_QuadVertexPosition2fTexCoord2f (x + 8, y + 8, fcol + size, frow + size);
-	D_QuadVertexPosition2fTexCoord2f (x, y + 8, fcol, frow + size);
-}
-
-
 void Draw_Char (int x, int y, int num)
 {
 	// totally off screen
@@ -168,18 +210,19 @@ void Draw_Char (int x, int y, int num)
 	// space
 	if ((num & 127) == 32) return;
 
-	// at this stage we are definitely drawing at least one char so we need to set up state now; 
-	// doing it now rather than at Draw_String time in case a char batch needs to be flushed because state would not be set if we deferred it
-	GL_BindTexture (draw_chars->SRV);
+	GL_BindTexArray (draw_chars->SRV);
 
-	D_BindShaderBundle (d3d_DrawTexturedShader);
+	D_BindShaderBundle (d3d_DrawTexArrayShader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
 
 	// check for overflow
 	D_CheckQuadBatch ();
 
 	// and draw it
-	Draw_CharInner (x, y, num & 255);
+	D_QuadVertexPosition2fTexCoord3f (x, y, 0, 0, (num & 255));
+	D_QuadVertexPosition2fTexCoord3f (x + 8, y, 1, 0, (num & 255));
+	D_QuadVertexPosition2fTexCoord3f (x + 8, y + 8, 1, 1, (num & 255));
+	D_QuadVertexPosition2fTexCoord3f (x, y + 8, 0, 1, (num & 255));
 }
 
 
@@ -230,7 +273,7 @@ void Draw_Pic (int x, int y, char *pic)
 		return;
 	}
 
-	Draw_TexturedQuad (gl, x, y, gl->width, gl->height, 0, 1, 0, 1);
+	Draw_TexturedQuad (gl, x, y, gl->width, gl->height, 0, 1, 0, 1, d3d_DrawTexturedShader);
 }
 
 
@@ -245,31 +288,9 @@ void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha)
 	}
 
 	if (alpha >= 255)
-		Draw_TexturedQuad (gl, x, y, w, h, 0, 1, 0, 1);
+		Draw_TexturedQuad (gl, x, y, w, h, 0, 1, 0, 1, d3d_DrawFullviewShader);
 	else if (alpha > 0)
-		Draw_TexturedColouredQuad (gl, x, y, w, h, (alpha << 24) | 0xffffff, 0, 1, 0, 1);
-}
-
-
-/*
-=============
-Draw_TileClear
-
-This repeats a 64*64 tile graphic to fill the screen around a sized down
-refresh window.
-=============
-*/
-void Draw_TileClear (int x, int y, int w, int h, char *pic)
-{
-	image_t	*image = Draw_FindPic (pic);
-
-	if (!image)
-	{
-		ri.Con_Printf (PRINT_ALL, "Can't find pic: %s\n", pic);
-		return;
-	}
-
-	Draw_TexturedQuad (image, x, y, w, h, x / 64.0, (x + w) / 64.0, y / 64.0, (y + h) / 64.0);
+		Draw_TexturedColouredQuad (gl, x, y, w, h, (alpha << 24) | 0xffffff, 0, 1, 0, 1, d3d_DrawFullviewShader);
 }
 
 
@@ -295,7 +316,7 @@ Draw_FadeScreen
 */
 void Draw_FadeScreen (void)
 {
-	Draw_ColouredQuad (0, 0, vid.width, vid.height, 0xcc000000);
+	Draw_ColouredQuad (0, 0, vid.conwidth, vid.conheight, 0xcc000000);
 }
 
 
@@ -378,31 +399,31 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 	ri.Load_FreeMemory ();
 
 	// clear out the background
-	Draw_ColouredQuad (0, 0, vid.width, vid.height, 0x00000000);
+	Draw_ColouredQuad (0, 0, vid.conwidth, vid.conheight, 0x00000000);
 
 	// stretch up the pic to fill the viewport while still maintaining aspect
-	w = vid.width;
+	w = vid.conwidth;
 	h = (w * rows) / cols;
 
-	if (h > vid.height)
+	if (h > vid.conheight)
 	{
-		h = vid.height;
+		h = vid.conheight;
 		w = (h * cols) / rows;
 	}
 
 	// take it down if required
-	while (w > vid.width) w >>= 1;
-	while (h > vid.height) h >>= 1;
+	while (w > vid.conwidth) w >>= 1;
+	while (h > vid.conheight) h >>= 1;
 
 	// and center it properly
-	x = (vid.width - w) >> 1;
-	y = (vid.height - h) >> 1;
+	x = (vid.conwidth - w) >> 1;
+	y = (vid.conheight - h) >> 1;
 
 	// set up our dummy image_t
 	gl.Texture = r_RawTexture;
 	gl.SRV = r_RawSRV;
 
 	// and draw it
-	Draw_TexturedQuad (&gl, x, y, w, h, 0, 1, 0, 1);
+	Draw_TexturedQuad (&gl, x, y, w, h, 0, 1, 0, 1, d3d_DrawFullviewShader);
 }
 

@@ -41,8 +41,8 @@ static void  SpinControl_DoSlide (menulist_s *s, int dir);
 extern refexport_t re;
 extern viddef_t viddef;
 
-#define VID_WIDTH viddef.width
-#define VID_HEIGHT viddef.height
+#define VID_WIDTH viddef.conwidth
+#define VID_HEIGHT viddef.conheight
 
 
 void Action_DoEnter (menuaction_s *a)
@@ -67,6 +67,7 @@ void Action_Draw (menuaction_s *a)
 		else
 			Menu_DrawStringR2L (a->generic.x + a->generic.parent->x + LCOLUMN_OFFSET, a->generic.y + a->generic.parent->y, a->generic.name);
 	}
+
 	if (a->generic.ownerdraw)
 		a->generic.ownerdraw (a);
 }

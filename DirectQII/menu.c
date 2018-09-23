@@ -52,7 +52,7 @@ void M_Banner (char *name)
 	int w, h;
 
 	re.DrawGetPicSize (&w, &h, name);
-	re.DrawPic (viddef.width / 2 - w / 2, viddef.height / 2 - 110, name);
+	re.DrawPic (viddef.conwidth / 2 - w / 2, viddef.conheight / 2 - 110, name);
 }
 
 void M_PushMenu (void (*draw) (void), const char *(*key) (int k))
@@ -242,7 +242,7 @@ higher res screens.
 */
 void M_DrawCharacter (int cx, int cy, int num)
 {
-	re.DrawChar (cx + ((viddef.width - 320) >> 1), cy + ((viddef.height - 240) >> 1), num);
+	re.DrawChar (cx + ((viddef.conwidth - 320) >> 1), cy + ((viddef.conheight - 240) >> 1), num);
 }
 
 void M_Print (int cx, int cy, char *str)
@@ -271,7 +271,7 @@ void M_PrintWhite (int cx, int cy, char *str)
 
 void M_DrawPic (int x, int y, char *pic)
 {
-	re.DrawPic (x + ((viddef.width - 320) >> 1), y + ((viddef.height - 240) >> 1), pic);
+	re.DrawPic (x + ((viddef.conwidth - 320) >> 1), y + ((viddef.conheight - 240) >> 1), pic);
 }
 
 
@@ -393,7 +393,7 @@ void M_Draw (void)
 
 	// dim everything behind it down
 	if (cl.cinematictime > 0)
-		re.DrawFill (0, 0, viddef.width, viddef.height, 0);
+		re.DrawFill (0, 0, viddef.conwidth, viddef.conheight, 0);
 	else
 		re.DrawFadeScreen ();
 

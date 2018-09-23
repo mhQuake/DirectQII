@@ -148,7 +148,7 @@ void R_LightPoint (vec3_t p, vec3_t color)
 	vec3_t		end;
 	float		r;
 
-	if (!r_worldmodel->lightdata)
+	if (!r_worldmodel->lightdata || r_fullbright->value)
 	{
 		color[0] = color[1] = color[2] = 1.0;
 		return;
@@ -223,7 +223,7 @@ static int lm_allocated[LIGHTMAP_SIZE];
 static ID3D11Texture2D *d3d_LightmapTextures[3];
 static ID3D11ShaderResourceView *d3d_LightmapSRVs[3];
 
-static lighttexel_t *lm_data[3][MAX_LIGHTMAPS];
+static lighttexel_t **lm_data[3];
 
 ID3D11Buffer *d3d_DLightConstants = NULL;
 
@@ -244,10 +244,8 @@ float	r_avertexnormals[NUMVERTEXNORMALS][4] = {
 
 void D_CreateLightStylesResources (void)
 {
-	float lightstyles[MAX_LIGHTSTYLES];
-
 	D3D11_BUFFER_DESC LightStylesDesc = {
-		sizeof (lightstyles),
+		sizeof (float) * MAX_LIGHTSTYLES,
 		D3D11_USAGE_DEFAULT,
 		D3D11_BIND_SHADER_RESOURCE,
 		0,
@@ -328,6 +326,13 @@ void R_ShutdownLight (void)
 
 void R_BuildLightMap (msurface_t *surf, int ch, int smax, int tmax)
 {
+	// create the channel if needed first time it's seen
+	if (!lm_data[ch])
+	{
+		lm_data[ch] = (lighttexel_t **) ri.Load_AllocMemory (MAX_LIGHTMAPS * sizeof (lm_data[ch]));
+		memset (lm_data[ch], 0, MAX_LIGHTMAPS * sizeof (lm_data[ch]));
+	}
+
 	// create the texture if needed first time it's seen
 	if (!lm_data[ch][surf->lightmaptexturenum])
 	{
@@ -394,7 +399,8 @@ void GL_CreateSurfaceLightmap (msurface_t *surf)
 	if (best + tmax > LIGHTMAP_SIZE)
 	{
 		// go to next lightmap
-		r_currentlightmap++;
+		if (++r_currentlightmap >= MAX_LIGHTMAPS)
+			ri.Sys_Error (ERR_DROP, "GL_CreateSurfaceLightmap : MAX_LIGHTMAPS exceeded");
 
 		// clear allocations
 		memset (lm_allocated, 0, sizeof (lm_allocated));
@@ -446,7 +452,7 @@ void R_CreateLightmapTexture (int ch)
 {
 	int i;
 	D3D11_TEXTURE2D_DESC Desc;
-	D3D11_SUBRESOURCE_DATA srd[MAX_LIGHTMAPS];
+	D3D11_SUBRESOURCE_DATA *srd = ri.Load_AllocMemory (sizeof (D3D11_SUBRESOURCE_DATA) * r_currentlightmap);
 
 	// describe the texture
 	R_DescribeTexture (&Desc, LIGHTMAP_SIZE, LIGHTMAP_SIZE, r_currentlightmap, TEX_RGBA8);

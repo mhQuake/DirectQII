@@ -79,7 +79,7 @@ void R_InitMain (void)
 	D_RegisterConstantBuffer (d3d_MainConstants, 1);
 	D_RegisterConstantBuffer (d3d_EntityConstants, 2);
 
-	d3d_PolyblendShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawPolyblendVS", "DrawPolyblendPS");
+	d3d_PolyblendShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawPolyblendVS", "DrawPolyblendPS", batch_standard);
 }
 
 
@@ -93,6 +93,9 @@ glconfig_t gl_config;
 glstate_t  gl_state;
 
 image_t		*r_notexture;		// use for bad textures
+image_t		*r_blacktexture;	// use for bad textures
+image_t		*r_greytexture;		// use for bad textures
+image_t		*r_whitetexture;	// use for bad textures
 
 cplane_t	frustum[4];
 
@@ -122,6 +125,7 @@ refdef_t	r_newrefdef;
 
 int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
+cvar_t	*r_fullbright;
 cvar_t	*r_beamdetail;
 cvar_t	*r_drawentities;
 cvar_t	*r_drawworld;

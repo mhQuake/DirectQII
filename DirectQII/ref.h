@@ -20,6 +20,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "qcommon.h"
 
+typedef struct viddef_s
+{
+	// main 3d view and cinematics
+	int		width;
+	int		height;
+
+	// 2d gui objects
+	int		conwidth;
+	int		conheight;
+} viddef_t;
+
 #define	MAX_DLIGHTS		64
 #define	MAX_ENTITIES	256
 #define	MAX_PARTICLES	32768
@@ -151,12 +162,12 @@ typedef struct refexport_s
 	void (*DrawConsoleBackground) (int x, int y, int w, int h, char *pic, int alpha);
 	void (*DrawGetPicSize) (int *w, int *h, char *name);	// will return 0 0 if not found
 	void (*DrawPic) (int x, int y, char *name);
-	void (*DrawTileClear) (int x, int y, int w, int h, char *name);
 	void (*DrawFill) (int x, int y, int w, int h, int c);
 	void (*DrawFadeScreen) (void);
 
 	void (*DrawChar) (int x, int y, int num);
 	void (*DrawString) (void);
+	void (*DrawField) (int x, int y, int color, int width, int value);
 
 	// Draw images for cinematic rendering (which can have a different palette). Note that calls
 	void (*DrawStretchRaw) (int cols, int rows, byte *data, int frame);
@@ -216,7 +227,7 @@ typedef struct refimport_s
 
 	qboolean (*Vid_GetModeInfo)(int *width, int *height, int mode);
 	void (*Vid_MenuInit)(void);
-	void (*Vid_NewWindow)(int width, int height);
+	void (*Vid_NewWindow)(viddef_t *vd);
 } refimport_t;
 
 

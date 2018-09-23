@@ -141,8 +141,7 @@ void SV_Configstrings_f (void)
 
 	// write a packet full of data
 
-	while (sv_client->netchan.message.cursize < MAX_MSGLEN / 2
-		&& start < MAX_CONFIGSTRINGS)
+	while (sv_client->netchan.message.cursize < MAX_MSGLEN / 2 && start < MAX_CONFIGSTRINGS)
 	{
 		if (sv.configstrings[start][0])
 		{
@@ -150,11 +149,11 @@ void SV_Configstrings_f (void)
 			MSG_WriteShort (&sv_client->netchan.message, start);
 			MSG_WriteString (&sv_client->netchan.message, sv.configstrings[start]);
 		}
+
 		start++;
 	}
 
 	// send next command
-
 	if (start == MAX_CONFIGSTRINGS)
 	{
 		MSG_WriteByte (&sv_client->netchan.message, svc_stufftext);
@@ -200,20 +199,20 @@ void SV_Baselines_f (void)
 
 	// write a packet full of data
 
-	while (sv_client->netchan.message.cursize < MAX_MSGLEN / 2
-		&& start < MAX_EDICTS)
+	while (sv_client->netchan.message.cursize < MAX_MSGLEN / 2 && start < MAX_EDICTS)
 	{
 		base = &sv.baselines[start];
+
 		if (base->modelindex || base->sound || base->effects)
 		{
 			MSG_WriteByte (&sv_client->netchan.message, svc_spawnbaseline);
 			MSG_WriteDeltaEntity (&nullstate, base, &sv_client->netchan.message, true, true);
 		}
+
 		start++;
 	}
 
 	// send next command
-
 	if (start == MAX_EDICTS)
 	{
 		MSG_WriteByte (&sv_client->netchan.message, svc_stufftext);
@@ -313,21 +312,21 @@ void SV_BeginDownload_f (void)
 
 	// hacked by zoid to allow more conrol over download
 	// first off, no .. or global allow check
-	if (strstr (name, "..") || !allow_download->value
+	if (strstr (name, "..") || !allow_download->value ||
 		// leading dot is no good
-		|| *name == '.'
+		*name == '.' ||
 		// leading slash bad as well, must be in subdir
-		|| *name == '/'
+		*name == '/' ||
 		// next up, skin check
-		|| (strncmp (name, "players/", 6) == 0 && !allow_download_players->value)
+		(strncmp (name, "players/", 6) == 0 && !allow_download_players->value) ||
 		// now models
-		|| (strncmp (name, "models/", 6) == 0 && !allow_download_models->value)
+		(strncmp (name, "models/", 6) == 0 && !allow_download_models->value) ||
 		// now sounds
-		|| (strncmp (name, "sound/", 6) == 0 && !allow_download_sounds->value)
+		(strncmp (name, "sound/", 6) == 0 && !allow_download_sounds->value) ||
 		// now maps (note special case for maps, must not be in pak)
-		|| (strncmp (name, "maps/", 6) == 0 && !allow_download_maps->value)
-		// MUST be in a subdirectory	
-		|| !strstr (name, "/"))
+		(strncmp (name, "maps/", 6) == 0 && !allow_download_maps->value) ||
+		// MUST be in a subdirectory
+		!strstr (name, "/"))
 	{
 		// don't allow anything with .. path
 		MSG_WriteByte (&sv_client->netchan.message, svc_download);
@@ -345,10 +344,8 @@ void SV_BeginDownload_f (void)
 	if (offset > sv_client->downloadsize)
 		sv_client->downloadcount = sv_client->downloadsize;
 
-	if (!sv_client->download
-		// special check for maps, if it came from a pak file, don't allow
-		// download  ZOID
-		|| (strncmp (name, "maps/", 5) == 0 && file_from_pak))
+	// special check for maps, if it came from a pak file, don't allow download  ZOID
+	if (!sv_client->download || (strncmp (name, "maps/", 5) == 0 && file_from_pak))
 	{
 		Com_DPrintf ("Couldn't download %s to %s\n", name, sv_client->name);
 		if (sv_client->download)

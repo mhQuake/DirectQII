@@ -187,8 +187,7 @@ qboolean Netchan_NeedReliable (netchan_t *chan)
 	// if the remote side dropped the last reliable message, resend it
 	send_reliable = false;
 
-	if (chan->incoming_acknowledged > chan->last_reliable_sequence
-		&& chan->incoming_reliable_acknowledged != chan->reliable_sequence)
+	if (chan->incoming_acknowledged > chan->last_reliable_sequence && chan->incoming_reliable_acknowledged != chan->reliable_sequence)
 		send_reliable = true;
 
 	// if the reliable transmit buffer is empty, copy the current message out

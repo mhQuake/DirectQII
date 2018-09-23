@@ -137,11 +137,12 @@ static qboolean DS_CreateBuffers (void)
 	primary_format_set = false;
 
 	Com_DPrintf ("...creating primary buffer: ");
+
 	if (DS_OK == pDS->lpVtbl->CreateSoundBuffer (pDS, &dsbuf, &pDSPBuf, NULL))
 	{
 		pformat = format;
-
 		Com_DPrintf ("ok\n");
+
 		if (DS_OK != pDSPBuf->lpVtbl->SetFormat (pDSPBuf, &pformat))
 		{
 			if (snd_firsttime)
@@ -158,61 +159,37 @@ static qboolean DS_CreateBuffers (void)
 	else
 		Com_Printf ("failed\n");
 
-	if (!primary_format_set || !s_primary->value)
+	// create the secondary buffer we'll actually work with
+	memset (&dsbuf, 0, sizeof (dsbuf));
+	dsbuf.dwSize = sizeof (DSBUFFERDESC);
+	dsbuf.dwFlags = DSBCAPS_CTRLFREQUENCY | DSBCAPS_LOCSOFTWARE;
+	dsbuf.dwBufferBytes = SECONDARY_BUFFER_SIZE;
+	dsbuf.lpwfxFormat = &format;
+
+	memset (&dsbcaps, 0, sizeof (dsbcaps));
+	dsbcaps.dwSize = sizeof (dsbcaps);
+
+	Com_DPrintf ("...creating secondary buffer: ");
+	if (DS_OK != pDS->lpVtbl->CreateSoundBuffer (pDS, &dsbuf, &pDSBuf, NULL))
 	{
-		// create the secondary buffer we'll actually work with
-		memset (&dsbuf, 0, sizeof (dsbuf));
-		dsbuf.dwSize = sizeof (DSBUFFERDESC);
-		dsbuf.dwFlags = DSBCAPS_CTRLFREQUENCY | DSBCAPS_LOCSOFTWARE;
-		dsbuf.dwBufferBytes = SECONDARY_BUFFER_SIZE;
-		dsbuf.lpwfxFormat = &format;
-
-		memset (&dsbcaps, 0, sizeof (dsbcaps));
-		dsbcaps.dwSize = sizeof (dsbcaps);
-
-		Com_DPrintf ("...creating secondary buffer: ");
-		if (DS_OK != pDS->lpVtbl->CreateSoundBuffer (pDS, &dsbuf, &pDSBuf, NULL))
-		{
-			Com_Printf ("failed\n");
-			FreeSound ();
-			return false;
-		}
-		Com_DPrintf ("ok\n");
-
-		dma.channels = format.nChannels;
-		dma.samplebits = format.wBitsPerSample;
-		dma.speed = format.nSamplesPerSec;
-
-		if (DS_OK != pDSBuf->lpVtbl->GetCaps (pDSBuf, &dsbcaps))
-		{
-			Com_Printf ("*** GetCaps failed ***\n");
-			FreeSound ();
-			return false;
-		}
-
-		Com_Printf ("...using secondary sound buffer\n");
+		Com_Printf ("failed\n");
+		FreeSound ();
+		return false;
 	}
-	else
+	Com_DPrintf ("ok\n");
+
+	dma.channels = format.nChannels;
+	dma.samplebits = format.wBitsPerSample;
+	dma.speed = format.nSamplesPerSec;
+
+	if (DS_OK != pDSBuf->lpVtbl->GetCaps (pDSBuf, &dsbcaps))
 	{
-		Com_Printf ("...using primary buffer\n");
-
-		Com_DPrintf ("...setting WRITEPRIMARY coop level: ");
-		if (DS_OK != pDS->lpVtbl->SetCooperativeLevel (pDS, cl_hwnd, DSSCL_WRITEPRIMARY))
-		{
-			Com_Printf ("failed\n");
-			FreeSound ();
-			return false;
-		}
-		Com_DPrintf ("ok\n");
-
-		if (DS_OK != pDSPBuf->lpVtbl->GetCaps (pDSPBuf, &dsbcaps))
-		{
-			Com_Printf ("*** GetCaps failed ***\n");
-			return false;
-		}
-
-		pDSBuf = pDSPBuf;
+		Com_Printf ("*** GetCaps failed ***\n");
+		FreeSound ();
+		return false;
 	}
+
+	Com_Printf ("...using secondary sound buffer\n");
 
 	// Make sure mixer is active
 	pDSBuf->lpVtbl->Play (pDSBuf, 0, 0, DSBPLAY_LOOPING);

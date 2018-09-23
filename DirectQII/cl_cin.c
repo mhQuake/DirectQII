@@ -63,6 +63,7 @@ SCR_LoadPCX
 */
 void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height)
 {
+	// fixme - route through LoadPCX in the renderer
 	byte	*raw;
 	pcx_t	*pcx;
 	int		x, y;
@@ -81,21 +82,14 @@ void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *h
 	pcx = (pcx_t *) raw;
 	raw = &pcx->data;
 
-	if (pcx->manufacturer != 0x0a
-		|| pcx->version != 5
-		|| pcx->encoding != 1
-		|| pcx->bits_per_pixel != 8
-		|| pcx->xmax >= 640
-		|| pcx->ymax >= 480)
+	if (pcx->manufacturer != 0x0a || pcx->version != 5 || pcx->encoding != 1 || pcx->bits_per_pixel != 8)
 	{
 		Com_Printf ("Bad pcx file %s\n", filename);
 		return;
 	}
 
 	out = Z_Alloc ((pcx->ymax + 1) * (pcx->xmax + 1));
-
 	*pic = out;
-
 	pix = out;
 
 	if (palette)
@@ -103,11 +97,10 @@ void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *h
 		*palette = Z_Alloc (768);
 		memcpy (*palette, (byte *) pcx + len - 768, 768);
 	}
+	else *palette = NULL;
 
-	if (width)
-		*width = pcx->xmax + 1;
-	if (height)
-		*height = pcx->ymax + 1;
+	if (width) *width = pcx->xmax + 1;
+	if (height) *height = pcx->ymax + 1;
 
 	for (y = 0; y <= pcx->ymax; y++, pix += pcx->xmax + 1)
 	{
@@ -126,7 +119,6 @@ void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *h
 			while (runLength-- > 0)
 				pix[x++] = dataByte;
 		}
-
 	}
 
 	if (raw - (byte *) pcx > len)

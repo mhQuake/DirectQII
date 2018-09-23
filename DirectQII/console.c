@@ -98,8 +98,7 @@ void Con_ToggleConsole_f (void)
 		M_ForceMenuOff ();
 		cls.key_dest = key_console;
 
-		if (Cvar_VariableValue ("maxclients") == 1
-			&& Com_ServerState ())
+		if (Cvar_VariableValue ("maxclients") == 1 && Com_ServerState ())
 			Cvar_Set ("paused", "1");
 	}
 }
@@ -252,7 +251,7 @@ void Con_CheckResize (void)
 	int		i, j, width, oldwidth, oldtotallines, numlines, numchars;
 	char	tbuf[CON_TEXTSIZE];
 
-	width = (viddef.width >> 3) - 2;
+	width = (viddef.conwidth >> 3) - 2;
 
 	if (width == con.linewidth)
 		return;
@@ -545,8 +544,8 @@ void Con_DrawNotify (void)
 		}
 
 		s = chat_buffer;
-		if (chat_bufferlen > (viddef.width >> 3) - (skip + 1))
-			s += chat_bufferlen - ((viddef.width >> 3) - (skip + 1));
+		if (chat_bufferlen > (viddef.conwidth >> 3) - (skip + 1))
+			s += chat_bufferlen - ((viddef.conwidth >> 3) - (skip + 1));
 		x = 0;
 		while (s[x])
 		{
@@ -576,16 +575,16 @@ void Con_DrawConsole (float frac, int alpha)
 	int				lines;
 	char			dlbar[1024];
 
-	lines = viddef.height * frac;
+	lines = viddef.conheight * frac;
 
 	if (alpha <= 0) return;
 	if (lines <= 0) return;
 
 	if (alpha > 255) alpha = 255;
-	if (lines > viddef.height) lines = viddef.height;
+	if (lines > viddef.conheight) lines = viddef.conheight;
 
 	// draw the background
-	re.DrawConsoleBackground (0, -viddef.height + lines, viddef.width, viddef.height, "conback", alpha);
+	re.DrawConsoleBackground (0, -viddef.conheight + lines, viddef.conwidth, viddef.conheight, "conback", alpha);
 
 #if 0
 	// draw the version string
@@ -593,7 +592,7 @@ void Con_DrawConsole (float frac, int alpha)
 	Com_sprintf (version, sizeof (version), "v%4.2f", VERSION);
 
 	for (x = 0; x < 5; x++)
-		re.DrawChar (viddef.width - 44 + x * 8, lines - 12, 128 + version[x]);
+		re.DrawChar (viddef.conwidth - 44 + x * 8, lines - 12, 128 + version[x]);
 #endif
 
 	// draw the text
