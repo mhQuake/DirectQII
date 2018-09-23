@@ -1,9 +1,7 @@
 Video menu stuff
 Timer catch up from debug break
 Big map support
-Widescreen FOV
 Split out mmdl_t from dmdl_t, remove offsets and replace with pointers, don't store everything in memory.
-conwidth/conheight
 
 "refusing to download a path with .." - for these
 models/monsters/tank/../ctank/skin.pcx
