@@ -28,7 +28,7 @@ extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_gamma;
 extern cvar_t *scr_viewsize;
 
-static cvar_t *gl_mode;
+static cvar_t *vid_mode;
 static cvar_t *gl_finish;
 
 extern void M_ForceMenuOff (void);
@@ -88,7 +88,7 @@ static void ApplyChanges (void *unused)
 	// other cvars
 	Cvar_SetValue ("vid_fullscreen", s_fs_box.curvalue);
 	Cvar_SetValue ("gl_finish", s_finish_box.curvalue);
-	Cvar_SetValue ("gl_mode", s_mode_list.curvalue);
+	Cvar_SetValue ("vid_mode", s_mode_list.curvalue);
 
 	M_ForceMenuOff ();
 }
@@ -136,12 +136,12 @@ void VID_MenuInit (void)
 		0
 	};
 
-	if (!gl_mode)
-		gl_mode = Cvar_Get ("gl_mode", "3", 0);
+	if (!vid_mode)
+		vid_mode = Cvar_Get ("vid_mode", "-1", 0);
 	if (!gl_finish)
 		gl_finish = Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE);
 
-	s_mode_list.curvalue = gl_mode->value;
+	s_mode_list.curvalue = vid_mode->value;
 
 	if (!scr_viewsize)
 		scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);

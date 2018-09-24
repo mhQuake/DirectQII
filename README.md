@@ -12,6 +12,8 @@ In a fullscreen mode set vid_mode to the mode number you wish to use, followed b
 Video modes are correctly enumerated from your display hardware rather than the engine having a hard-coded list of modes.
 A fullscreen video mode includes width, height, refresh rate, scaling and scanline ordering combined in a single mode.
 
+Set vid_mode to -1 to select the best available video mode.
+
 Set vid_vsync to 0 or 1 to toggle vsync off or on; this does not need a vid_restart.
 
 Set vid_gamma to your desired gamma value; values between 0.7 (brighter) and 1.0 (darker) generally work well.  This does not need a vid_restart.

@@ -37,7 +37,7 @@ void R_Register (void)
 
 	r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0);
 
-	gl_mode = ri.Cvar_Get ("gl_mode", "3", CVAR_ARCHIVE);
+	vid_mode = ri.Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE);
 	gl_finish = ri.Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE);
 	gl_clear = ri.Cvar_Get ("gl_clear", "0", 0);
 	gl_polyblend = ri.Cvar_Get ("gl_polyblend", "1", 0);
@@ -46,6 +46,9 @@ void R_Register (void)
 	vid_fullscreen = ri.Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get ("vid_gamma", "1.0", CVAR_ARCHIVE);
 	vid_ref = ri.Cvar_Get ("vid_ref", "gl", CVAR_ARCHIVE);
+
+	vid_width = ri.Cvar_Get ("vid_width", "640", CVAR_ARCHIVE);
+	vid_height = ri.Cvar_Get ("vid_height", "480", CVAR_ARCHIVE);
 
 	r_fov = ri.Cvar_Get ("fov", "90", CVAR_USERINFO | CVAR_ARCHIVE);
 
@@ -74,11 +77,11 @@ qboolean R_SetMode (void)
 	fullscreen = vid_fullscreen->value;
 
 	vid_fullscreen->modified = false;
-	gl_mode->modified = false;
+	vid_mode->modified = false;
 
-	if ((err = GLimp_SetMode (&vid.width, &vid.height, gl_mode->value, fullscreen)) == rserr_ok)
+	if ((err = GLimp_SetMode (&vid.width, &vid.height, vid_mode->value, fullscreen)) == rserr_ok)
 	{
-		gl_state.prev_mode = gl_mode->value;
+		gl_state.prev_mode = vid_mode->value;
 	}
 	else
 	{
@@ -87,13 +90,13 @@ qboolean R_SetMode (void)
 			ri.Cvar_SetValue ("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
 			ri.Con_Printf (PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
-			if ((err = GLimp_SetMode (&vid.width, &vid.height, gl_mode->value, false)) == rserr_ok)
+			if ((err = GLimp_SetMode (&vid.width, &vid.height, vid_mode->value, false)) == rserr_ok)
 				goto done;
 		}
 		else if (err == rserr_invalid_mode)
 		{
-			ri.Cvar_SetValue ("gl_mode", gl_state.prev_mode);
-			gl_mode->modified = false;
+			ri.Cvar_SetValue ("vid_mode", gl_state.prev_mode);
+			vid_mode->modified = false;
 			ri.Con_Printf (PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
 		}
 
@@ -135,7 +138,7 @@ int R_Init (void *hinstance, void *wndproc)
 	}
 
 	// set our "safe" modes
-	gl_state.prev_mode = 3;
+	gl_state.prev_mode = -1;
 
 	// create the window and set up the context
 	if (!R_SetMode ())

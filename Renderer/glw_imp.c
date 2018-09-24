@@ -227,6 +227,37 @@ void D_EnumerateVideoModes (void)
 }
 
 
+void D_GetModeInfo (int *width, int *height, int mode)
+{
+	if (vid_fullscreen->value)
+	{
+		if (mode < 0 || mode >= d3d_NumVideoModes)
+		{
+			// select best mode available
+			*width = d3d_VideoModes[d3d_NumVideoModes - 1].Width;
+			*height = d3d_VideoModes[d3d_NumVideoModes - 1].Height;
+		}
+		else
+		{
+			// select explicit numbered mode
+			*width = d3d_VideoModes[mode].Width;
+			*height = d3d_VideoModes[mode].Height;
+		}
+	}
+	else
+	{
+		// select dimensions based on vid_width and vid_height cvars
+		if (vid_width->value > 0)
+			*width = vid_width->value;
+		else *width = 640;
+
+		if (vid_height->value > 0)
+			*height = vid_height->value;
+		else *height = 480;
+	}
+}
+
+
 /*
 =========================================================================================================================================================================
 
@@ -436,18 +467,14 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	ri.Con_Printf (PRINT_ALL, "Initializing OpenGL display\n");
 	ri.Con_Printf (PRINT_ALL, "...setting mode %d:", mode);
 
-	if (!ri.Vid_GetModeInfo (&width, &height, mode))
-	{
-		ri.Con_Printf (PRINT_ALL, " invalid mode\n");
-		return rserr_invalid_mode;
-	}
-
+	D_GetModeInfo (&width, &height, mode);
 	ri.Con_Printf (PRINT_ALL, " %d %d %s\n", width, height, win_fs[fullscreen]);
 
 	// destroy the existing window
 	if (glw_state.hWnd)
 	{
 		GLimp_Shutdown ();
+		glw_state.hWnd = NULL;
 	}
 
 	// do a CDS if needed

@@ -132,7 +132,7 @@ cvar_t	*r_lefthand;
 
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
-cvar_t	*gl_mode;
+cvar_t	*vid_mode;
 cvar_t	*gl_finish;
 cvar_t	*gl_clear;
 cvar_t	*gl_polyblend;
@@ -141,6 +141,9 @@ cvar_t	*gl_lockpvs;
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
 cvar_t	*vid_ref;
+
+cvar_t	*vid_width;
+cvar_t	*vid_height;
 
 cvar_t	*r_fov;
 
@@ -611,7 +614,7 @@ R_BeginFrame
 void R_BeginFrame (void)
 {
 	// change modes if necessary
-	if (gl_mode->modified || vid_fullscreen->modified)
+	if (vid_mode->modified || vid_fullscreen->modified)
 	{
 		// FIXME: only restart if CDS is required
 		cvar_t	*ref = ri.Cvar_Get ("vid_ref", "gl", 0);

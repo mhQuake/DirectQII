@@ -22,3 +22,4 @@ negative dlights
 
 GLimp_AppActivate - does DXGI not do this for us????
 
+Test video mode stuff with a clean config.
