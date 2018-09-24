@@ -580,12 +580,6 @@ typedef struct pmove_s
 #define RF_USE_DISGUISE		0x00040000
 //ROGUE
 
-// dynamic light pass
-// what's the possibility that a mod may be abusing these for it's own internal crap?
-// fixed: "r_entities[r_numentities].flags &= 0x79FFF;" in V_AddEntity
-#define RF_ADDITIVEBLEND	(1 << 29)
-#define RF_SUBTRACTBLEND	(1 << 30)
-
 // only entities with this set get the dynamic light pass
 #define RF_DYNAMICLIGHT		(1 << 31)
 

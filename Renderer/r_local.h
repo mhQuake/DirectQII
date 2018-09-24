@@ -366,6 +366,7 @@ extern ID3D11BlendState *d3d_BSAlphaBlend;
 extern ID3D11BlendState *d3d_BSAlphaReverse;
 extern ID3D11BlendState *d3d_BSAlphaPreMult;
 extern ID3D11BlendState *d3d_BSAdditive;
+extern ID3D11BlendState *d3d_BSSubtractive;
 
 extern ID3D11DepthStencilState *d3d_DSFullDepth;
 extern ID3D11DepthStencilState *d3d_DSDepthNoWrite;

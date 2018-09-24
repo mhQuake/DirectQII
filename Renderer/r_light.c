@@ -514,8 +514,15 @@ void R_BindLightmaps (void)
 
 void D_SetupDynamicLight (dlight_t *dl)
 {
+	if (dl->intensity < 0)
+	{
+		// flip intensity back to positive and set the appropriate state
+		dl->intensity = -dl->intensity;
+		D_SetRenderStates (d3d_BSSubtractive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
+	}
+	else D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
+
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, dl, 0, 0);
-	D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
 }
 
 
