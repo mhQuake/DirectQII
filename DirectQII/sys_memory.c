@@ -206,6 +206,9 @@ int		currPageBoundary;
 
 void *Hunk_Begin (int maxsize)
 {
+	// round to page size granularity
+	maxsize = (maxsize + 4095) & ~4095;
+
 	// reserve a huge chunk of memory, but don't commit any yet
 	cursize = 0;
 	currPageBoundary = 0;
