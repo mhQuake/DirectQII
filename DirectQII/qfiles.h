@@ -483,3 +483,4 @@ typedef struct darea_s
 	int		numareaportals;
 	int		firstareaportal;
 } darea_t;
+

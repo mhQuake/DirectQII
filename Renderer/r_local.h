@@ -87,7 +87,7 @@ void R_InitNull (void);
 
 
 
-#define	REF_VERSION	"GL 0.01"
+#define	REF_VERSION	"D3D 11"
 
 
 extern	viddef_t	vid;

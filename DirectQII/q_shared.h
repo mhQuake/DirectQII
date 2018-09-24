@@ -56,6 +56,9 @@ typedef enum { false, true }	qboolean;
 #endif
 
 
+// stuff in the renderer should not access these functions
+#ifndef RENDERER_LIBRARY
+
 #define	MAX_STRING_CHARS	1024	// max length of a string passed to Cmd_TokenizeString
 #define	MAX_STRING_TOKENS	80		// max tokens resulting from Cmd_TokenizeString
 #define	MAX_TOKEN_CHARS		128		// max length of an individual token
@@ -82,7 +85,13 @@ typedef enum { false, true }	qboolean;
 #define	PRINT_HIGH			2		// critical messages
 #define	PRINT_CHAT			3		// chat messages
 
+#else
 
+#define	MAX_QPATH			64		// max length of a quake game pathname
+#define	MAX_OSPATH			128		// max length of a filesystem pathname
+#define	MAX_TOKEN_CHARS		128		// max length of an individual token
+
+#endif
 
 #define	ERR_FATAL			0		// exit the entire game with a popup window
 #define	ERR_DROP			1		// print to console and disconnect from game

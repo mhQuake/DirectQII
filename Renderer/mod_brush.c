@@ -335,16 +335,16 @@ void Mod_LoadFaces (lump_t *l)
 		out->numedges = LittleShort (in->numedges);
 		out->flags = 0;
 
-		planenum = LittleShort (in->planenum);
+		planenum = (unsigned short) LittleShort (in->planenum);
 		side = LittleShort (in->side);
 
 		if (side)
 			out->flags |= SURF_PLANEBACK;
 
 		out->plane = loadmodel->planes + planenum;
-		ti = LittleShort (in->texinfo);
+		ti = (unsigned short) LittleShort (in->texinfo);
 
-		if (ti < 0 || ti >= loadmodel->numtexinfo)
+		if (ti >= loadmodel->numtexinfo)
 			ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: bad texinfo number");
 
 		out->texinfo = loadmodel->texinfo + ti;
@@ -430,8 +430,8 @@ void Mod_LoadNodes (lump_t *l)
 		p = LittleLong (in->planenum);
 		out->plane = loadmodel->planes + p;
 
-		out->surfaces = loadmodel->surfaces + LittleShort (in->firstface);
-		out->numsurfaces = LittleShort (in->numfaces);
+		out->surfaces = loadmodel->surfaces + (unsigned short) LittleShort (in->firstface);
+		out->numsurfaces = (unsigned short) LittleShort (in->numfaces);
 		out->contents = -1;	// differentiate from leafs
 
 		for (j = 0; j < 2; j++)
@@ -484,8 +484,8 @@ void Mod_LoadLeafs (lump_t *l)
 		out->cluster = LittleShort (in->cluster);
 		out->area = LittleShort (in->area);
 
-		out->firstmarksurface = loadmodel->marksurfaces + LittleShort (in->firstleafface);
-		out->nummarksurfaces = LittleShort (in->numleaffaces);
+		out->firstmarksurface = loadmodel->marksurfaces + (unsigned short) LittleShort (in->firstleafface);
+		out->nummarksurfaces = (unsigned short) LittleShort (in->numleaffaces);
 	}
 }
 
@@ -514,9 +514,9 @@ void Mod_LoadMarksurfaces (lump_t *l)
 
 	for (i = 0; i < count; i++)
 	{
-		j = LittleShort (in[i]);
+		j = (unsigned short) LittleShort (in[i]);
 
-		if (j < 0 || j >= loadmodel->numsurfaces)
+		if (j >= loadmodel->numsurfaces)
 			ri.Sys_Error (ERR_DROP, "Mod_ParseMarksurfaces: bad surface number");
 
 		out[i] = loadmodel->surfaces + j;
