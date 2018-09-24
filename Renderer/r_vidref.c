@@ -50,8 +50,6 @@ void R_Register (void)
 	vid_width = ri.Cvar_Get ("vid_width", "640", CVAR_ARCHIVE);
 	vid_height = ri.Cvar_Get ("vid_height", "480", CVAR_ARCHIVE);
 
-	r_fov = ri.Cvar_Get ("fov", "90", CVAR_USERINFO | CVAR_ARCHIVE);
-
 	ri.Cmd_AddCommand ("screenshot", GL_ScreenShot_f);
 	ri.Cmd_AddCommand ("modellist", Mod_Modellist_f);
 }

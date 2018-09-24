@@ -395,7 +395,7 @@ float SCR_CalcFovY (float fov_x, float width, float height)
 }
 
 
-void SCR_SetFOV (refdef_t *rd, float fovvar, int width, int height)
+void SCR_SetFOV (fov_t *fov, float fovvar, int width, int height)
 {
 	float aspect = (float) height / (float) width;
 
@@ -409,16 +409,16 @@ void SCR_SetFOV (refdef_t *rd, float fovvar, int width, int height)
 	if (aspect > (BASELINE_H / BASELINE_W))
 	{
 		// use the same calculation as GLQuake did (horizontal is constant, vertical varies)
-		rd->fov_x = fovvar;
-		rd->fov_y = SCR_CalcFovY (rd->fov_x, width, height);
+		fov->x = fovvar;
+		fov->y = SCR_CalcFovY (fov->x, width, height);
 	}
 	else
 	{
 		// alternate calculation (vertical is constant, horizontal varies)
 		// consistent with http://www.emsai.net/projects/widescreen/fovcalc/
 		// note that the gun always uses this calculation irrespective of the aspect)
-		rd->fov_y = SCR_CalcFovY (fovvar, BASELINE_W, BASELINE_H);
-		rd->fov_x = SCR_CalcFovX (rd->fov_y, width, height);
+		fov->y = SCR_CalcFovY (fovvar, BASELINE_W, BASELINE_H);
+		fov->x = SCR_CalcFovX (fov->y, width, height);
 	}
 }
 
@@ -539,7 +539,12 @@ void V_RenderView (void)
 		cl.refdef.width = viddef.width;
 		cl.refdef.height = viddef.height;
 
-		SCR_SetFOV (&cl.refdef, cl.refdef.fov_x, cl.refdef.width, cl.refdef.height);
+		SCR_SetFOV (&cl.refdef.main_fov, cl.refdef.main_fov.x, cl.refdef.width, cl.refdef.height);
+
+		// compute a separate FOV for the gun so that values > 90 cna be handled without it looking like you're playing Wipeout
+		if (cl.refdef.main_fov.x > 90)
+			SCR_SetFOV (&cl.refdef.gun_fov, 90, cl.refdef.width, cl.refdef.height);
+		else SCR_SetFOV (&cl.refdef.gun_fov, cl.refdef.main_fov.x, cl.refdef.width, cl.refdef.height);
 
 		cl.refdef.time = cl.time * 0.001;
 		cl.refdef.areabits = cl.frame.areabits;

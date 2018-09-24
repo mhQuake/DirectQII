@@ -1288,7 +1288,7 @@ CL_AddViewWeapon
 */
 void CL_AddViewWeapon (player_state_t *ps, player_state_t *ops)
 {
-	entity_t	gun;		// view model
+	static entity_t	gun;		// view model
 	int			i;
 
 	// allow the gun to be completely removed
@@ -1296,15 +1296,15 @@ void CL_AddViewWeapon (player_state_t *ps, player_state_t *ops)
 		return;
 
 	// don't draw gun if in wide angle view
-	if (ps->fov > 90)
-		return;
+	// (removed - this is now fixed by drawing the gun as if FOV were 90)
+	// if (ps->fov > 90) return;
 
 	memset (&gun, 0, sizeof (gun));
 
 	if (gun_model)
 		gun.model = gun_model;	// development tool
-	else
-		gun.model = cl.model_draw[ps->gunindex];
+	else gun.model = cl.model_draw[ps->gunindex];
+
 	if (!gun.model)
 		return;
 
@@ -1326,8 +1326,7 @@ void CL_AddViewWeapon (player_state_t *ps, player_state_t *ops)
 
 		if (gun.currframe == 0)
 			gun.prevframe = 0;	// just changed weapons, don't lerp from old
-		else
-			gun.prevframe = ops->gunframe;
+		else gun.prevframe = ops->gunframe;
 	}
 
 	gun.flags = RF_MINLIGHT | RF_DEPTHHACK | RF_WEAPONMODEL;
@@ -1411,7 +1410,7 @@ void CL_CalcViewValues (void)
 	AngleVectors (cl.refdef.viewangles, cl.v_forward, cl.v_right, cl.v_up);
 
 	// interpolate field of view
-	cl.refdef.fov_x = ops->fov + lerp * (ps->fov - ops->fov);
+	cl.refdef.main_fov.x = ops->fov + lerp * (ps->fov - ops->fov);
 
 	// don't interpolate blend color
 	for (i = 0; i < 4; i++)

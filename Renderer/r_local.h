@@ -206,7 +206,6 @@ extern	cvar_t	*vid_width;
 extern	cvar_t	*vid_height;
 
 extern	cvar_t	*intensity;
-extern	cvar_t	*r_fov;
 
 void R_TranslatePlayerSkin (int playernum);
 void GL_TexEnv (int value);

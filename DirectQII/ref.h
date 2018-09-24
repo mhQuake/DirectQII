@@ -97,10 +97,15 @@ typedef struct particle_s
 	int		alphaval;
 } particle_t;
 
+typedef struct fov_s
+{
+	float x, y;
+} fov_t;
+
 typedef struct refdef_s
 {
-	int			x, y, width, height;// in virtual screen coordinates
-	float		fov_x, fov_y;
+	int			x, y, width, height; // in virtual screen coordinates
+	fov_t		main_fov, gun_fov;
 	float		vieworg[3];
 	float		viewangles[3];
 	float		blend[4];			// rgba 0-1 full screen blend

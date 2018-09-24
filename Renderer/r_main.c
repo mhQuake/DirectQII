@@ -109,6 +109,7 @@ float		v_blend[4];			// final blending color
 // world transforms
 QMATRIX	r_view_matrix;
 QMATRIX	r_proj_matrix;
+QMATRIX	r_gun_matrix;
 QMATRIX	r_mvp_matrix;
 
 // view origin
@@ -145,8 +146,6 @@ cvar_t	*vid_ref;
 cvar_t	*vid_width;
 cvar_t	*vid_height;
 
-cvar_t	*r_fov;
-
 
 void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, float alphaval, int rflags)
 {
@@ -165,11 +164,9 @@ void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, float alphaval
 		// scale the matrix to provide the depthrange hack (so that we don't need to set a new VP with the modified range)
 		if (rflags & RF_DEPTHHACK) R_MatrixScale (&flipmatrix, 1.0f, 1.0f, 0.3f);
 
-		// multiply by MVP for the final matrix
-		if (r_fov->value > 90)
-		{
-			// to do - using a separate FOV for the gun if > 90
-		}
+		// multiply by MVP for the final matrix, using a separate FOV for the gun if > 90
+		if (rflags & RF_WEAPONMODEL)
+			R_MatrixMultiply (&flipmatrix, &r_gun_matrix, &flipmatrix);
 		else R_MatrixMultiply (&flipmatrix, &r_mvp_matrix, &flipmatrix);
 
 		R_MatrixMultiply (&consts.localMatrix, localMatrix, &flipmatrix);
@@ -458,14 +455,18 @@ void R_SetupGL (void)
 
 	// the projection matrix may be only updated when the refdef changes but we do it every frame so that we can do waterwarp
 	R_MatrixIdentity (&r_proj_matrix);
-	R_MatrixFrustum (&r_proj_matrix, r_newrefdef.fov_x, r_newrefdef.fov_y, 4.0f, R_GetFarClip ());
+	R_MatrixFrustum (&r_proj_matrix, r_newrefdef.main_fov.x, r_newrefdef.main_fov.y, 4.0f, R_GetFarClip ());
+
+	R_MatrixIdentity (&r_gun_matrix);
+	R_MatrixFrustum (&r_gun_matrix, r_newrefdef.gun_fov.x, r_newrefdef.gun_fov.y, 4.0f, R_GetFarClip ());
 
 	// modelview is updated every frame; done in reverse so that we can use the new sexy rotation on it
 	R_MatrixIdentity (&r_view_matrix);
 	R_MatrixCamera (&r_view_matrix, r_newrefdef.vieworg, r_newrefdef.viewangles);
 
-	// compute the global MVP
+	// compute the global MVP (+ a second for the gun at fov > 90)
 	R_MatrixMultiply (&r_mvp_matrix, &r_view_matrix, &r_proj_matrix);
+	R_MatrixMultiply (&r_gun_matrix, &r_view_matrix, &r_gun_matrix);
 
 	// and extract the frustum from it
 	R_ExtractFrustum (frustum, &r_mvp_matrix);

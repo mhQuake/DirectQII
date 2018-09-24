@@ -445,7 +445,7 @@ qboolean PlayerConfig_MenuInit (void)
 
 void PlayerConfig_MenuDraw (void)
 {
-	void SCR_SetFOV (refdef_t *rd, float fovvar, int width, int height);
+	void SCR_SetFOV (fov_t *fov, float fovvar, int width, int height);
 	refdef_t refdef;
 	char scratch[MAX_QPATH];
 	playermodelinfo_s *pmi = &s_pmi[s_player_model_box.curvalue];
@@ -461,7 +461,7 @@ void PlayerConfig_MenuDraw (void)
 	refdef.width = ((RDWIDTH) * viddef.width) / viddef.conwidth;
 	refdef.height = ((RDHEIGHT) * viddef.height) / viddef.conheight;
 
-	SCR_SetFOV (&refdef, 40, RDWIDTH, RDHEIGHT);
+	SCR_SetFOV (&refdef.main_fov, 40, RDWIDTH, RDHEIGHT);
 	refdef.time = cls.realtime * 0.001;
 
 	if (pmi->skindisplaynames)
