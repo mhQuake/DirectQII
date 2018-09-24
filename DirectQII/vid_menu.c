@@ -40,8 +40,8 @@ MENU INTERACTION
 
 ====================================================================
 */
-#define WINDOWED_MENU 0
-#define FULLSCREEN_MENU   1
+#define WINDOWED_MENU		0
+#define FULLSCREEN_MENU		1
 
 static menuframework_s  s_windowed_menu;
 static menuframework_s	s_fullscreen_menu;
@@ -49,6 +49,8 @@ static menuframework_s *s_current_menu;
 static int				s_current_menu_index;
 
 static menulist_s		s_mode_list;
+static menunumberlist_s	s_width_list;
+static menunumberlist_s	s_height_list;
 static menuslider_s		s_screensize_slider;
 static menuslider_s		s_brightness_slider;
 static menulist_s  		s_fs_box;
@@ -59,6 +61,10 @@ static menuaction_s		s_apply_action;
 static menuaction_s		s_cancel_action;
 static menuaction_s		s_defaults_action;
 static menuaction_s		s_apply_action;
+
+
+// mode data passed from the renderer
+vidmenu_t *modedata;
 
 
 static void ScreenSizeCallback (void *s)
@@ -92,6 +98,9 @@ static void ApplyChanges (void *unused)
 	Cvar_SetValue ("vid_mode", s_mode_list.curvalue);
 	Cvar_SetValue ("vid_vsync", s_vsync_box.curvalue);
 
+	Cvar_SetValue ("vid_width", modedata->widths[s_width_list.curvalue]);
+	Cvar_SetValue ("vid_height", modedata->heights[s_height_list.curvalue]);
+
 	// remove the menus
 	//M_ForceMenuOff ();
 
@@ -113,6 +122,8 @@ static void CancelChanges (void *unused)
 */
 void VID_MenuInit (void)
 {
+	int i;
+
 	static const char *resolutions[] =
 	{
 		"[320 240  ]",
@@ -157,6 +168,24 @@ void VID_MenuInit (void)
 	s_fullscreen_menu.x = viddef.conwidth * 0.50;
 	s_fullscreen_menu.nitems = 0;
 
+	// see is width in the list
+	for (i = 0; i < modedata->numwidths; i++)
+	{
+		if (modedata->widths[i] < vid_width->value) continue;
+		if (modedata->widths[i] > vid_width->value) continue;
+		s_width_list.curvalue = i;
+		break;
+	}
+
+	// see is height in the list
+	for (i = 0; i < modedata->numheights; i++)
+	{
+		if (modedata->heights[i] < vid_height->value) continue;
+		if (modedata->heights[i] > vid_height->value) continue;
+		s_height_list.curvalue = i;
+		break;
+	}
+
 	s_fs_box.generic.type = MTYPE_SPINCONTROL;
 	s_fs_box.generic.x = 0;
 	s_fs_box.generic.y = 0;
@@ -169,6 +198,20 @@ void VID_MenuInit (void)
 	s_mode_list.generic.x = 0;
 	s_mode_list.generic.y = 20;
 	s_mode_list.itemnames = resolutions;
+
+	s_width_list.generic.type = MTYPE_NUMBERLIST;
+	s_width_list.generic.name = "width";
+	s_width_list.generic.x = 0;
+	s_width_list.generic.y = 20;
+	s_width_list.values = modedata->widths;
+	s_width_list.numvalues = modedata->numwidths;
+
+	s_height_list.generic.type = MTYPE_NUMBERLIST;
+	s_height_list.generic.name = "height";
+	s_height_list.generic.x = 0;
+	s_height_list.generic.y = 30;
+	s_height_list.values = modedata->heights;
+	s_height_list.numvalues = modedata->numheights;
 
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
 	s_screensize_slider.generic.x = 0;
@@ -220,6 +263,8 @@ void VID_MenuInit (void)
 	s_apply_action.generic.callback = ApplyChanges;
 
 	Menu_AddItem (&s_windowed_menu, (void *) &s_fs_box);
+	Menu_AddItem (&s_windowed_menu, (void *) &s_width_list);
+	Menu_AddItem (&s_windowed_menu, (void *) &s_height_list);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_brightness_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_vsync_box);
@@ -327,5 +372,56 @@ void M_Menu_Video_f (void)
 {
 	VID_MenuInit ();
 	M_PushMenu (VID_MenuDraw, VID_MenuKey);
+}
+
+
+int M_ModeSortFunc (int *a, int *b)
+{
+	return *a - *b;
+}
+
+
+void VID_PrepVideoMenu (vidmenu_t *md)
+{
+	int i;
+
+	// get width and height cvars
+	if (!vid_width) vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
+	if (!vid_height) vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
+
+	// see is width in the list
+	for (i = 0; i < md->numwidths; i++)
+	{
+		if (md->widths[i] < vid_width->value) continue;
+		if (md->widths[i] > vid_width->value) continue;
+		break;
+	}
+
+	// add it if not; the list was deliberately sized one-bigger so we could do this
+	if (i == md->numwidths)
+	{
+		md->widths[i] = vid_width->value;
+		md->numwidths++;
+		qsort (md->widths, md->numwidths, sizeof (int), (sortfunc_t) M_ModeSortFunc);
+	}
+
+	// see is height in the list
+	for (i = 0; i < md->numheights; i++)
+	{
+		if (md->heights[i] < vid_height->value) continue;
+		if (md->heights[i] > vid_height->value) continue;
+		break;
+	}
+
+	// add it if not; the list was deliberately sized one-bigger so we could do this
+	if (i == md->numheights)
+	{
+		md->heights[i] = vid_height->value;
+		md->numheights++;
+		qsort (md->heights, md->numheights, sizeof (int), (sortfunc_t) M_ModeSortFunc);
+	}
+
+	// store off the mode data
+	modedata = md;
 }
 

@@ -72,6 +72,9 @@ Video modes are NOT exposed outside of the renderer; if information about a mode
 DXGI_MODE_DESC *d3d_VideoModes;
 int d3d_NumVideoModes = 0;
 
+// version for the menus
+vidmenu_t vid_modedata;
+
 
 int D_TryEnumerateModes (IDXGIOutput *output, DXGI_MODE_DESC **ModeList, DXGI_FORMAT fmt)
 {
@@ -131,7 +134,9 @@ IDXGIOutput *D_GetOutput (IDXGIAdapter *d3d_Adapter)
 
 void D_EnumerateVideoModes (void)
 {
-	int i, j;
+	// fixme - zone allocated stuff should be freed when the reflib shuts down
+	// create a separate heap for the reflib and alloc from that instead!!!
+	int i, j, biggest;
 	IDXGIFactory *pFactory = NULL;
 	IDXGIOutput *d3d_Output = NULL;
 	IDXGIAdapter *d3d_Adapter = NULL;
@@ -222,6 +227,38 @@ void D_EnumerateVideoModes (void)
 
 	if (d3d_NumVideoModes < 1)
 		ri.Sys_Error (ERR_FATAL, "Failed to enumerate any usable video modes!");
+
+	// init the viddeo mode data - add 1 for current values of vid_width and vid_height if required (may not be)
+	vid_modedata.widths = (int *) ri.Zone_Alloc (sizeof (int) * (d3d_NumVideoModes + 1));
+	vid_modedata.heights = (int *) ri.Zone_Alloc (sizeof (int) * (d3d_NumVideoModes + 1));
+	vid_modedata.numwidths = 0;
+	vid_modedata.numheights = 0;
+
+	// set up widths
+	biggest = 0;
+
+	for (i = 0; i < d3d_NumVideoModes; i++)
+	{
+		if (d3d_VideoModes[i].Width > biggest)
+		{
+			vid_modedata.widths[vid_modedata.numwidths] = d3d_VideoModes[i].Width;
+			vid_modedata.numwidths++;
+			biggest = d3d_VideoModes[i].Width;
+		}
+	}
+
+	// set up heights
+	biggest = 0;
+
+	for (i = 0; i < d3d_NumVideoModes; i++)
+	{
+		if (d3d_VideoModes[i].Height > biggest)
+		{
+			vid_modedata.heights[vid_modedata.numheights] = d3d_VideoModes[i].Height;
+			vid_modedata.numheights++;
+			biggest = d3d_VideoModes[i].Height;
+		}
+	}
 
 	ri.Load_FreeMemory ();
 }

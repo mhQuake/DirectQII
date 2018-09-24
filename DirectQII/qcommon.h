@@ -23,6 +23,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "q_shared.h"
 #include "qfiles.h"
 
+// make qsort prettier
+typedef int (*sortfunc_t) (const void *, const void *);
+
 // stuff in the renderer should not access these functions
 #ifndef RENDERER_LIBRARY
 

@@ -31,6 +31,18 @@ typedef struct viddef_s
 	int		conheight;
 } viddef_t;
 
+
+// for passing video mode stuff to the video menu
+typedef struct vidmenu_s
+{
+	int *widths;
+	int numwidths;
+
+	int *heights;
+	int numheights;
+} vidmenu_t;
+
+
 #define	MAX_DLIGHTS		64
 #define	MAX_ENTITIES	256
 #define	MAX_PARTICLES	32768
@@ -231,6 +243,7 @@ typedef struct refimport_s
 	void (*Cvar_SetValue)(char *name, float value);
 
 	void (*Vid_MenuInit)(void);
+	void (*Vid_PrepVideoMenu) (vidmenu_t *md);
 	void (*Vid_NewWindow)(viddef_t *vd);
 } refimport_t;
 

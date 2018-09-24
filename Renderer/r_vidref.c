@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 
 void VID_ScaleVidDef (viddef_t *vd, int w, int h);
-
+extern vidmenu_t vid_modedata;
 
 void R_Register (void)
 {
@@ -143,6 +143,7 @@ int R_Init (void *hinstance, void *wndproc)
 		return -1;
 	}
 
+	ri.Vid_PrepVideoMenu (&vid_modedata);
 	ri.Vid_MenuInit ();
 
 	// this sets up state objects and NULLs-out cached state

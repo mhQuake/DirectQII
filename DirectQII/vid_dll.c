@@ -353,6 +353,7 @@ qboolean VID_LoadRefresh (void)
 	ri.Cvar_Set = Cvar_Set;
 	ri.Cvar_SetValue = Cvar_SetValue;
 	ri.Vid_MenuInit = VID_MenuInit;
+	ri.Vid_PrepVideoMenu = VID_PrepVideoMenu;
 	ri.Vid_NewWindow = VID_NewWindow;
 
 	Sys_SetupMemoryRefImports (&ri);

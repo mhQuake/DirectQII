@@ -26,4 +26,5 @@ extern	viddef_t	viddef;				// global video state
 void VID_Init (void);
 void VID_Shutdown (void);
 void VID_MenuInit (void);
+void VID_PrepVideoMenu (vidmenu_t *md);
 

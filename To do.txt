@@ -10,17 +10,19 @@ models/monsters/tank/../ctank/pain.pcx
 
 Find out where they're coming from and either fix it or put in a workaround.
 these are stored in the model skins and can't be removed without editing the model; content bug.
+they could be removed at load-time however...
 
 dropped frames in cinematics (it's 2018, this shouldn't happen)
 implement ri.Set2D/ri.End2D and bring on framework for vid.conwidth/vid.conheight
 
-gun at fov > 90
-
 upscale pics/charset/numbers (but NOT conback) so that they'll look good at zoomed ortho views
-negative dlights
 
 GLimp_AppActivate - does DXGI not do this for us????
 
 Test video mode stuff with a clean config.
 Link directly to DirectSound instead of using GPA
-Make VirtualAlloc operate on page size granularity
+
+fixme - zone allocated stuff should be freed when the reflib shuts down
+create a separate heap for the reflib and alloc from that instead!!!
+then just destroy that heap when the reflib is destroyed, recreate it when the reflib is recreated
+
