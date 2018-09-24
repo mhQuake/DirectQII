@@ -136,23 +136,11 @@ void V_AddLight (vec3_t org, float intensity, float r, float g, float b)
 		dlight_t *dl = &r_dlights[r_numdlights];
 
 		VectorCopy (org, dl->origin);
+		dl->intensity = intensity;
 
-		if (r < 0 || g < 0 || b < 0)
-		{
-			// anti-light; flip intensity to negative so that we can catch it in the renderer
-			dl->intensity = -intensity;
-			dl->color[0] = -r;
-			dl->color[1] = -g;
-			dl->color[2] = -b;
-		}
-		else
-		{
-			// normal light
-			dl->intensity = intensity;
-			dl->color[0] = r > 0 ? r : 0;
-			dl->color[1] = g > 0 ? g : 0;
-			dl->color[2] = b > 0 ? b : 0;
-		}
+		dl->color[0] = r;
+		dl->color[1] = g;
+		dl->color[2] = b;
 
 		// normalize lighting to 1, 1, 1 scale
 		VectorNormalize (dl->color);

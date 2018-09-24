@@ -514,10 +514,13 @@ void R_BindLightmaps (void)
 
 void D_SetupDynamicLight (dlight_t *dl)
 {
-	if (dl->intensity < 0)
+	if (dl->color[0] < 0 || dl->color[1] < 0 || dl->color[2] < 0)
 	{
-		// flip intensity back to positive and set the appropriate state
-		dl->intensity = -dl->intensity;
+		// anti-light - flip back to positive and set the appropriate state
+		dl->color[0] = -dl->color[0];
+		dl->color[1] = -dl->color[1];
+		dl->color[2] = -dl->color[2];
+
 		D_SetRenderStates (d3d_BSSubtractive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
 	}
 	else D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
