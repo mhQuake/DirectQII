@@ -34,6 +34,8 @@ static void  Slider_Draw (menuslider_s *s);
 static void  SpinControl_DoEnter (menulist_s *s);
 static void  SpinControl_Draw (menulist_s *s);
 static void  SpinControl_DoSlide (menulist_s *s, int dir);
+static void MenuNumberList_Draw (menunumberlist_s *l);
+static void NumberList_DoSlide (menunumberlist_s *l, int dir);
 
 #define RCOLUMN_OFFSET  16
 #define LCOLUMN_OFFSET -16
@@ -375,6 +377,9 @@ void Menu_Draw (menuframework_s *menu)
 		case MTYPE_SEPARATOR:
 			Separator_Draw ((menuseparator_s *) menu->items[i]);
 			break;
+		case MTYPE_NUMBERLIST:
+			MenuNumberList_Draw ((menunumberlist_s *) menu->items[i]);
+			break;
 		}
 	}
 
@@ -481,17 +486,25 @@ qboolean Menu_SelectItem (menuframework_s *s)
 		{
 		case MTYPE_FIELD:
 			return Field_DoEnter ((menufield_s *) item);
+
 		case MTYPE_ACTION:
 			Action_DoEnter ((menuaction_s *) item);
 			return true;
+
 		case MTYPE_LIST:
-			//			Menulist_DoEnter( ( menulist_s * ) item );
+			// Menulist_DoEnter(( menulist_s * ) item );
 			return false;
+
+		case MTYPE_NUMBERLIST:
+			// Menulist_DoEnter(( menulist_s * ) item );
+			return false;
+
 		case MTYPE_SPINCONTROL:
-			//			SpinControl_DoEnter( ( menulist_s * ) item );
+			// SpinControl_DoEnter(( menulist_s * ) item );
 			return false;
 		}
 	}
+
 	return false;
 }
 
@@ -511,6 +524,11 @@ void Menu_SlideItem (menuframework_s *s, int dir)
 		case MTYPE_SLIDER:
 			Slider_DoSlide ((menuslider_s *) item, dir);
 			break;
+
+		case MTYPE_NUMBERLIST:
+			NumberList_DoSlide ((menunumberlist_s *) item, dir);
+			break;
+
 		case MTYPE_SPINCONTROL:
 			SpinControl_DoSlide ((menulist_s *) item, dir);
 			break;
@@ -554,6 +572,12 @@ void Menulist_DoEnter (menulist_s *l)
 
 	if (l->generic.callback)
 		l->generic.callback (l);
+}
+
+void MenuNumberList_Draw (menunumberlist_s *l)
+{
+	Menu_DrawStringR2LDark (l->generic.x + l->generic.parent->x + LCOLUMN_OFFSET, l->generic.y + l->generic.parent->y, l->generic.name);
+	Menu_DrawString (RCOLUMN_OFFSET + l->generic.x + l->generic.parent->x, l->generic.y + l->generic.parent->y, va ("%i", l->values[l->curvalue]));
 }
 
 void MenuList_Draw (menulist_s *l)
@@ -627,6 +651,18 @@ void SpinControl_DoEnter (menulist_s *s)
 
 	if (s->generic.callback)
 		s->generic.callback (s);
+}
+
+void NumberList_DoSlide (menunumberlist_s *l, int dir)
+{
+	l->curvalue += dir;
+
+	// wrap, don't clamp
+	if (l->curvalue < 0) l->curvalue = l->numvalues - 1;
+	if (l->curvalue >= l->numvalues) l->curvalue = 0;
+
+	if (l->generic.callback)
+		l->generic.callback (l);
 }
 
 void SpinControl_DoSlide (menulist_s *s, int dir)

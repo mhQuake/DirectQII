@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MTYPE_SPINCONTROL	3
 #define MTYPE_SEPARATOR  	4
 #define MTYPE_FIELD			5
+#define MTYPE_NUMBERLIST	6
 
 #define	K_TAB			9
 #define	K_ENTER			13
@@ -109,6 +110,16 @@ typedef struct _menulist_s
 
 	const char **itemnames;
 } menulist_s;
+
+typedef struct _menunumberlist_s
+{
+	menucommon_s generic;
+
+	int curvalue;
+
+	const int *values;
+	int numvalues;
+} menunumberlist_s;
 
 typedef struct _menuaction_s
 {
