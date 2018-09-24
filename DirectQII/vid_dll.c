@@ -63,6 +63,7 @@ DLL GLUE
 */
 
 #define	MAXPRINTMSG	4096
+
 void VID_Printf (int print_level, char *fmt, ...)
 {
 	va_list		argptr;
@@ -100,6 +101,7 @@ void VID_Error (int err_level, char *fmt, ...)
 
 	Com_Error (err_level, "%s", msg);
 }
+
 
 //==========================================================================
 
@@ -259,6 +261,28 @@ void VID_Front_f (void)
 	SetWindowLong (cl_hwnd, GWL_EXSTYLE, WS_EX_TOPMOST);
 	SetForegroundWindow (cl_hwnd);
 }
+
+int RectWidth (const RECT *r) { return r->right - r->left; }
+int RectHeight (const RECT *r) { return r->bottom - r->top; }
+
+void VID_CenterWindow_f (void)
+{
+	RECT windowrect;
+	RECT workarea;
+
+	GetWindowRect (cl_hwnd, &windowrect);
+	SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea, 0);
+
+	MoveWindow (
+		cl_hwnd,
+		workarea.left + (RectWidth (&workarea) - RectWidth (&windowrect)) / 2,
+		workarea.top + (RectHeight (&workarea) - RectHeight (&windowrect)) / 2,
+		RectWidth (&windowrect),
+		RectHeight (&windowrect),
+		TRUE
+	);
+}
+
 
 /*
 ** VID_GetModeInfo
@@ -489,6 +513,7 @@ void VID_Init (void)
 	/* Add some console commands that we want to handle */
 	Cmd_AddCommand ("vid_restart", VID_Restart_f);
 	Cmd_AddCommand ("vid_front", VID_Front_f);
+	Cmd_AddCommand ("centerwindow", VID_CenterWindow_f);
 
 	/* Start the graphics mode and load refresh DLL */
 	vid_ref->modified = true;

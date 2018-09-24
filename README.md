@@ -3,7 +3,7 @@ Readme
 
 
 HOW VIDEO MODES WORK
-==================================================================================================================================
+====================
 Set vid_fullscreen 0 for a windowed mode or vid_fullscreen 1 for a fullscreen mode.  I don't currently offer a borderless-windowed mode, but if I ever add one it will be vid_fullscreen -1.
 
 In a windowed mode set vid_width and vid_height to your desired width and height, followed by vid_restart to apply the changes.
