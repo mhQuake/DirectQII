@@ -202,11 +202,13 @@ int		hunkcount;
 byte	*membase;
 int		hunkmaxsize;
 int		cursize;
+int		currPageBoundary;
 
 void *Hunk_Begin (int maxsize)
 {
 	// reserve a huge chunk of memory, but don't commit any yet
 	cursize = 0;
+	currPageBoundary = 0;
 	hunkmaxsize = maxsize;
 	membase = VirtualAlloc (NULL, maxsize, MEM_RESERVE, PAGE_NOACCESS);
 
@@ -217,43 +219,30 @@ void *Hunk_Begin (int maxsize)
 
 void *Hunk_Alloc (int size)
 {
-	void *buf;
+	byte *buf = NULL;
 
 	// round to cacheline
 	size = (size + 31) & ~31;
 
-	// commit pages as needed
-	//buf = VirtualAlloc (membase, cursize + size, MEM_COMMIT, PAGE_READWRITE);
-	// fixme - alloc in batches of the 4k page size rather than doing it this way
-	buf = VirtualAlloc (&membase[cursize], size, MEM_COMMIT, PAGE_READWRITE);
-
-	if (!buf)
+	// Make VirtualAlloc operate on page size granularity
+	while (cursize + size > currPageBoundary)
 	{
-		FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError (), MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &buf, 0, NULL);
-		Sys_Error ("VirtualAlloc commit failed.\n%s", buf);
+		VirtualAlloc (&membase[currPageBoundary], 4096, MEM_COMMIT, PAGE_READWRITE);
+		currPageBoundary += 4096;
 	}
 
+	buf = &membase[cursize];
 	cursize += size;
+
 	if (cursize > hunkmaxsize)
 		Sys_Error ("Hunk_Alloc overflow");
 
-	return (void *) (membase + cursize - size);
+	return (void *) buf;
 }
 
 int Hunk_End (void)
 {
-	// free the remaining unused virtual memory
-#if 0
-	void *buf;
-
-	// write protect it
-	buf = VirtualAlloc (membase, cursize, MEM_COMMIT, PAGE_READONLY);
-	if (!buf)
-		Sys_Error ("VirtualAlloc commit failed");
-#endif
-
 	hunkcount++;
-	//Com_Printf ("hunkcount: %i\n", hunkcount);
 	return cursize;
 }
 
