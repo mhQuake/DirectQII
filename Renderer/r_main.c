@@ -144,6 +144,7 @@ cvar_t	*vid_gamma;
 
 cvar_t	*vid_width;
 cvar_t	*vid_height;
+cvar_t	*vid_vsync;
 
 
 void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, float alphaval, int rflags)

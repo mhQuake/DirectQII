@@ -204,8 +204,10 @@ extern	cvar_t	*vid_gamma;
 
 extern	cvar_t	*vid_width;
 extern	cvar_t	*vid_height;
+extern	cvar_t	*vid_vsync;
 
 extern	cvar_t	*intensity;
+
 
 void R_TranslatePlayerSkin (int playernum);
 void GL_TexEnv (int value);
@@ -312,7 +314,7 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 */
 
 void GLimp_BeginFrame (void);
-void GLimp_EndFrame (int syncinterval);
+void GLimp_EndFrame (qboolean allowvsync);
 int GLimp_Init (void *hinstance, void *wndproc);
 void GLimp_Shutdown (void);
 int GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen);

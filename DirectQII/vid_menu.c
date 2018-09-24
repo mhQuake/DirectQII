@@ -53,6 +53,7 @@ static menuslider_s		s_screensize_slider;
 static menuslider_s		s_brightness_slider;
 static menulist_s  		s_fs_box;
 static menulist_s  		s_finish_box;
+static menulist_s  		s_vsync_box;
 
 static menuaction_s		s_apply_action;
 static menuaction_s		s_cancel_action;
@@ -89,6 +90,7 @@ static void ApplyChanges (void *unused)
 	Cvar_SetValue ("vid_fullscreen", s_fs_box.curvalue);
 	Cvar_SetValue ("gl_finish", s_finish_box.curvalue);
 	Cvar_SetValue ("vid_mode", s_mode_list.curvalue);
+	Cvar_SetValue ("vid_vsync", s_vsync_box.curvalue);
 
 	// remove the menus
 	//M_ForceMenuOff ();
@@ -147,10 +149,11 @@ void VID_MenuInit (void)
 
 	if (vid_fullscreen->value)
 		s_current_menu_index = FULLSCREEN_MENU;
-	else  s_current_menu_index = WINDOWED_MENU;
+	else s_current_menu_index = WINDOWED_MENU;
 
 	s_windowed_menu.x = viddef.conwidth * 0.50;
 	s_windowed_menu.nitems = 0;
+
 	s_fullscreen_menu.x = viddef.conwidth * 0.50;
 	s_fullscreen_menu.nitems = 0;
 
@@ -164,12 +167,12 @@ void VID_MenuInit (void)
 	s_mode_list.generic.type = MTYPE_SPINCONTROL;
 	s_mode_list.generic.name = "video mode";
 	s_mode_list.generic.x = 0;
-	s_mode_list.generic.y = 10;
+	s_mode_list.generic.y = 20;
 	s_mode_list.itemnames = resolutions;
 
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
 	s_screensize_slider.generic.x = 0;
-	s_screensize_slider.generic.y = 20;
+	s_screensize_slider.generic.y = 50;
 	s_screensize_slider.generic.name = "screen size";
 	s_screensize_slider.minvalue = 3;
 	s_screensize_slider.maxvalue = 12;
@@ -177,12 +180,19 @@ void VID_MenuInit (void)
 
 	s_brightness_slider.generic.type = MTYPE_SLIDER;
 	s_brightness_slider.generic.x = 0;
-	s_brightness_slider.generic.y = 30;
+	s_brightness_slider.generic.y = 60;
 	s_brightness_slider.generic.name = "brightness";
 	s_brightness_slider.generic.callback = BrightnessCallback;
 	s_brightness_slider.minvalue = 5;
 	s_brightness_slider.maxvalue = 13;
 	s_brightness_slider.curvalue = (1.3 - vid_gamma->value + 0.5) * 10;
+
+	s_vsync_box.generic.type = MTYPE_SPINCONTROL;
+	s_vsync_box.generic.x = 0;
+	s_vsync_box.generic.y = 70;
+	s_vsync_box.generic.name = "vertical sync";
+	s_vsync_box.curvalue = vid_vsync->value;
+	s_vsync_box.itemnames = yesno_names;
 
 	s_finish_box.generic.type = MTYPE_SPINCONTROL;
 	s_finish_box.generic.x = 0;
@@ -194,24 +204,25 @@ void VID_MenuInit (void)
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to defaults";
 	s_defaults_action.generic.x = 0;
-	s_defaults_action.generic.y = 90;
+	s_defaults_action.generic.y = 100;
 	s_defaults_action.generic.callback = ResetDefaults;
 
 	s_cancel_action.generic.type = MTYPE_ACTION;
 	s_cancel_action.generic.name = "cancel";
 	s_cancel_action.generic.x = 0;
-	s_cancel_action.generic.y = 100;
+	s_cancel_action.generic.y = 110;
 	s_cancel_action.generic.callback = CancelChanges;
 
 	s_apply_action.generic.type = MTYPE_ACTION;
-	s_apply_action.generic.name = "apply";
+	s_apply_action.generic.name = "apply changes";
 	s_apply_action.generic.x = 0;
-	s_apply_action.generic.y = 110;
+	s_apply_action.generic.y = 120;
 	s_apply_action.generic.callback = ApplyChanges;
 
 	Menu_AddItem (&s_windowed_menu, (void *) &s_fs_box);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_brightness_slider);
+	Menu_AddItem (&s_windowed_menu, (void *) &s_vsync_box);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_finish_box);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_defaults_action);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_cancel_action);
@@ -222,6 +233,7 @@ void VID_MenuInit (void)
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_mode_list);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_brightness_slider);
+	Menu_AddItem (&s_fullscreen_menu, (void *) &s_vsync_box);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_finish_box);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_defaults_action);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_cancel_action);
@@ -242,10 +254,10 @@ void VID_MenuDraw (void)
 	int w, h;
 
 	if (s_fs_box.curvalue)
-		s_current_menu_index = 1;
-	else s_current_menu_index = 0;
+		s_current_menu_index = FULLSCREEN_MENU;
+	else s_current_menu_index = WINDOWED_MENU;
 
-	if (s_current_menu_index == 0)
+	if (s_current_menu_index == WINDOWED_MENU)
 		s_current_menu = &s_windowed_menu;
 	else s_current_menu = &s_fullscreen_menu;
 

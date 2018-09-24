@@ -182,7 +182,7 @@ typedef struct refexport_s
 	*/
 	void (*CinematicSetPalette)(const unsigned char *palette);	// NULL = game palette
 	void (*BeginFrame)(void);
-	void (*EndFrame) (int syncinterval);
+	void (*EndFrame) (qboolean allowvsync);
 
 	void (*AppActivate)(qboolean activate);
 	void (*EnumerateVideoModes) (void);

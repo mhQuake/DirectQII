@@ -175,7 +175,7 @@ static void UpdateSoundQualityFunc (void *unused)
 	M_Print (16 + 16, 120 - 48 + 24, "please be patient.");
 
 	// the text box won't show up unless we do a buffer swap
-	re.EndFrame (0);
+	re.EndFrame (true);
 
 	CL_Snd_Restart_f ();
 }

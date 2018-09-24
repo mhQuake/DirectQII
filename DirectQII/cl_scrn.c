@@ -611,7 +611,7 @@ void SCR_TimeRefresh_f (void)
 
 		re.BeginFrame ();
 		re.RenderFrame (&cl.refdef);
-		re.EndFrame (0);
+		re.EndFrame (false);
 
 		if ((time = Sys_Milliseconds () - start) >= timeRefreshTime) break;
 	}
@@ -1090,8 +1090,6 @@ void SCR_UpdateScreen (void)
 		scr_draw_loading = false;
 		re.DrawGetPicSize (&w, &h, "loading");
 		re.DrawPic ((viddef.conwidth - w) / 2, (viddef.conheight - h) / 2, "loading");
-		//			re.EndFrame();
-		//			return;
 	}
 	// if a cinematic is supposed to be running, handle menus
 	// and console specially
@@ -1105,8 +1103,6 @@ void SCR_UpdateScreen (void)
 				cl.cinematicpalette_active = false;
 			}
 			M_Draw ();
-			//				re.EndFrame();
-			//				return;
 		}
 		else if (cls.key_dest == key_console)
 		{
@@ -1117,14 +1113,10 @@ void SCR_UpdateScreen (void)
 			}
 
 			SCR_DrawConsole ();
-			//				re.EndFrame();
-			//				return;
 		}
 		else
 		{
 			SCR_DrawCinematic ();
-			//				re.EndFrame();
-			//				return;
 		}
 	}
 	else
@@ -1166,7 +1158,7 @@ void SCR_UpdateScreen (void)
 
 	// never vsync if we're in a timedemo
 	if (cl_timedemo->value)
-		re.EndFrame (0);
-	else re.EndFrame (0); // to do
+		re.EndFrame (false);
+	else re.EndFrame (true);
 }
 

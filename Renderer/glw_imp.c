@@ -755,11 +755,19 @@ void GLimp_BeginFrame (void)
 ** as yet to be determined.  Probably better not to make this a GLimp
 ** function and instead do a call to GLimp_SwapBuffers.
 */
-void GLimp_EndFrame (int syncinterval)
+void GLimp_EndFrame (qboolean allowvsync)
 {
 	// free any loading memory that may have been used during the frame
 	ri.Load_FreeMemory ();
-	d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, syncinterval, 0);
+
+	// perform the buffer swap with or without vsync as appropriate
+	if (allowvsync)
+	{
+		if (vid_vsync->value)
+			d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 1, 0);
+		else d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
+	}
+	else d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
 }
 
 
