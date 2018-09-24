@@ -334,10 +334,12 @@ Con_Linefeed
 void Con_Linefeed (void)
 {
 	con.x = 0;
+
 	if (con.display == con.current)
 		con.display++;
+
 	con.current++;
-	memset (&con.text[(con.current%con.totallines)*con.linewidth], ' ', con.linewidth);
+	memset (&con.text[(con.current % con.totallines) * con.linewidth], ' ', con.linewidth);
 }
 
 

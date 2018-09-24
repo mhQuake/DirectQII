@@ -110,8 +110,8 @@ void CL_ParseProjectiles (void)
 		bits[1] = MSG_ReadByte (&net_message);
 		bits[2] = MSG_ReadByte (&net_message);
 
-		pr.angles[0] = 360*bits[0]/256;
-		pr.angles[1] = 360*bits[1]/256;
+		pr.angles[0] = 360 * bits[0] / 256;
+		pr.angles[1] = 360 * bits[1] / 256;
 		pr.modelindex = bits[2];
 
 		b = MSG_ReadByte (&net_message);
@@ -595,12 +595,12 @@ void CL_ParsePlayerstate (frame_t *oldframe, frame_t *newframe)
 	if (flags & PS_WEAPONFRAME)
 	{
 		state->gunframe = MSG_ReadByte (&net_message);
-		state->gunoffset[0] = MSG_ReadChar (&net_message)*0.25;
-		state->gunoffset[1] = MSG_ReadChar (&net_message)*0.25;
-		state->gunoffset[2] = MSG_ReadChar (&net_message)*0.25;
-		state->gunangles[0] = MSG_ReadChar (&net_message)*0.25;
-		state->gunangles[1] = MSG_ReadChar (&net_message)*0.25;
-		state->gunangles[2] = MSG_ReadChar (&net_message)*0.25;
+		state->gunoffset[0] = MSG_ReadChar (&net_message) * 0.25;
+		state->gunoffset[1] = MSG_ReadChar (&net_message) * 0.25;
+		state->gunoffset[2] = MSG_ReadChar (&net_message) * 0.25;
+		state->gunangles[0] = MSG_ReadChar (&net_message) * 0.25;
+		state->gunangles[1] = MSG_ReadChar (&net_message) * 0.25;
+		state->gunangles[2] = MSG_ReadChar (&net_message) * 0.25;
 	}
 
 	if (flags & PS_BLEND)

@@ -67,9 +67,9 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 		return RecursiveLightPoint (node->children[side], start, end);
 
 	frac = front / (front - back);
-	mid[0] = start[0] + (end[0] - start[0])*frac;
-	mid[1] = start[1] + (end[1] - start[1])*frac;
-	mid[2] = start[2] + (end[2] - start[2])*frac;
+	mid[0] = start[0] + (end[0] - start[0]) * frac;
+	mid[1] = start[1] + (end[1] - start[1]) * frac;
+	mid[2] = start[2] + (end[2] - start[2]) * frac;
 
 	// go down front side	
 	if ((r = RecursiveLightPoint (node->children[side], start, mid)) >= 0)

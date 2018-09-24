@@ -1292,15 +1292,15 @@ void CM_RecursiveHullCheck (int num, float p1f, float p2f, vec3_t p1, vec3_t p2)
 	{
 		idist = 1.0 / (t1 - t2);
 		side = 1;
-		frac2 = (t1 + offset + DIST_EPSILON)*idist;
-		frac = (t1 - offset + DIST_EPSILON)*idist;
+		frac2 = (t1 + offset + DIST_EPSILON) * idist;
+		frac = (t1 - offset + DIST_EPSILON) * idist;
 	}
 	else if (t1 > t2)
 	{
 		idist = 1.0 / (t1 - t2);
 		side = 0;
-		frac2 = (t1 - offset - DIST_EPSILON)*idist;
-		frac = (t1 + offset + DIST_EPSILON)*idist;
+		frac2 = (t1 - offset - DIST_EPSILON) * idist;
+		frac = (t1 + offset + DIST_EPSILON) * idist;
 	}
 	else
 	{
@@ -1315,9 +1315,10 @@ void CM_RecursiveHullCheck (int num, float p1f, float p2f, vec3_t p1, vec3_t p2)
 	if (frac > 1)
 		frac = 1;
 
-	midf = p1f + (p2f - p1f)*frac;
+	midf = p1f + (p2f - p1f) * frac;
+
 	for (i = 0; i < 3; i++)
-		mid[i] = p1[i] + frac*(p2[i] - p1[i]);
+		mid[i] = p1[i] + frac * (p2[i] - p1[i]);
 
 	CM_RecursiveHullCheck (node->children[side], p1f, midf, p1, mid);
 
@@ -1328,9 +1329,10 @@ void CM_RecursiveHullCheck (int num, float p1f, float p2f, vec3_t p1, vec3_t p2)
 	if (frac2 > 1)
 		frac2 = 1;
 
-	midf = p1f + (p2f - p1f)*frac2;
+	midf = p1f + (p2f - p1f) * frac2;
+
 	for (i = 0; i < 3; i++)
-		mid[i] = p1[i] + frac2*(p2[i] - p1[i]);
+		mid[i] = p1[i] + frac2 * (p2[i] - p1[i]);
 
 	CM_RecursiveHullCheck (node->children[side ^ 1], midf, p2f, mid, p2);
 }

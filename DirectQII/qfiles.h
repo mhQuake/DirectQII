@@ -31,7 +31,7 @@ The .pak files are just a linear collapse of a directory tree
 ========================================================================
 */
 
-#define IDPAKHEADER		(('K'<<24)+('C'<<16)+('A'<<8)+'P')
+#define IDPAKHEADER		(('K' << 24) | ('C' << 16) | ('A' << 8) | 'P')
 
 typedef struct dpackfile_s
 {
@@ -83,7 +83,7 @@ typedef struct pcx_s
 ========================================================================
 */
 
-#define IDALIASHEADER		(('2'<<24)+('P'<<16)+('D'<<8)+'I')
+#define IDALIASHEADER		(('2' << 24) + ('P' << 16) + ('D' << 8) + 'I')
 #define ALIAS_VERSION	8
 
 #define	MAX_TRIANGLES	4096
@@ -167,8 +167,9 @@ typedef struct dmdl_s
 ========================================================================
 */
 
-#define IDSPRITEHEADER	(('2'<<24)+('S'<<16)+('D'<<8)+'I')
+#define IDSPRITEHEADER	(('2' << 24) + ('S' << 16) + ('D' << 8) + 'I')
 // little-endian "IDS2"
+
 #define SPRITE_VERSION	2
 
 typedef struct dsprframe_s
@@ -217,7 +218,7 @@ typedef struct miptex_s
 ==============================================================================
 */
 
-#define IDBSPHEADER	(('P'<<24)+('S'<<16)+('B'<<8)+'I')
+#define IDBSPHEADER	(('P' << 24) + ('S' << 16) + ('B' << 8) + 'I')
 // little-endian "IBSP"
 
 #define BSPVERSION	38
@@ -314,8 +315,7 @@ typedef struct dvertex_s
 #define	PLANE_ANYY		4
 #define	PLANE_ANYZ		5
 
-// planes (x&~1) and (x&~1)+1 are always opposites
-
+// planes (x & ~1) and (x & ~1) + 1 are always opposites
 typedef struct dplane_s
 {
 	float	normal[3];
@@ -382,7 +382,7 @@ typedef struct dplane_s
 typedef struct dnode_s
 {
 	int			planenum;
-	int			children[2];	// negative numbers are -(leafs+1), not nodes
+	int			children[2];	// negative numbers are -(leafs + 1), not nodes
 	short		mins[3];		// for frustom culling
 	short		maxs[3];
 	unsigned short	firstface;
@@ -420,7 +420,7 @@ typedef struct dface_s
 
 	// lighting info
 	byte		styles[MAXLIGHTMAPS];
-	int			lightofs;		// start of [numstyles*surfsize] samples
+	int			lightofs;		// start of [numstyles * surfsize] samples
 } dface_t;
 
 typedef struct dleaf_s

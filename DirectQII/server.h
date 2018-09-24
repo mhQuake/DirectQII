@@ -68,8 +68,8 @@ typedef struct server_s
 	qboolean	timedemo;		// don't time sync
 } server_t;
 
-#define EDICT_NUM(n) ((edict_t *)((byte *)ge->edicts + ge->edict_size*(n)))
-#define NUM_FOR_EDICT(e) ( ((byte *)(e)-(byte *)ge->edicts ) / ge->edict_size)
+#define EDICT_NUM(n) ((edict_t *) ((byte *) ge->edicts + ge->edict_size * (n)))
+#define NUM_FOR_EDICT(e) (((byte *) (e) - (byte *) ge->edicts) / ge->edict_size)
 
 
 typedef enum _client_state_t
@@ -112,7 +112,7 @@ typedef struct client_s
 	int				rate;
 	int				surpressCount;		// number of messages rate supressed
 
-	edict_t			*edict;				// EDICT_NUM(clientnum+1)
+	edict_t			*edict;				// EDICT_NUM(clientnum + 1)
 	char			name[32];			// extracted from userinfo, high bits masked
 	int				messagelevel;		// for filtering printed messages
 
@@ -161,13 +161,13 @@ typedef struct server_static_s
 	qboolean	initialized;				// sv_init has completed
 	int			realtime;					// always increasing, no clamping, etc
 
-	char		mapcmd[MAX_TOKEN_CHARS];	// ie: *intro.cin+base 
+	char		mapcmd[MAX_TOKEN_CHARS];	// ie: *intro.cin + base 
 
 	int			spawncount;					// incremented each server start
 	// used to check late spawns
 
 	client_t	*clients;					// [maxclients->value];
-	int			num_client_entities;		// maxclients->value*UPDATE_BACKUP*MAX_PACKET_ENTITIES
+	int			num_client_entities;		// maxclients->value * UPDATE_BACKUP * MAX_PACKET_ENTITIES
 	int			next_client_entities;		// next client_entity to use
 	entity_state_t	*client_entities;		// [num_client_entities]
 

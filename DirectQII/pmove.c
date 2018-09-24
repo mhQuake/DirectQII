@@ -316,10 +316,8 @@ void PM_StepSlideMove (void)
 	VectorCopy (pml.origin, up);
 
 	// decide which one went farther
-	down_dist = (down_o[0] - start_o[0])*(down_o[0] - start_o[0])
-		+ (down_o[1] - start_o[1])*(down_o[1] - start_o[1]);
-	up_dist = (up[0] - start_o[0])*(up[0] - start_o[0])
-		+ (up[1] - start_o[1])*(up[1] - start_o[1]);
+	down_dist = (down_o[0] - start_o[0]) * (down_o[0] - start_o[0]) + (down_o[1] - start_o[1]) * (down_o[1] - start_o[1]);
+	up_dist = (up[0] - start_o[0]) * (up[0] - start_o[0]) + (up[1] - start_o[1]) * (up[1] - start_o[1]);
 #endif
 
 	if (down_dist > up_dist || trace.plane.normal[2] < MIN_STEP_NORMAL)
@@ -365,12 +363,12 @@ void PM_Friction (void)
 	{
 		friction = pm_friction;
 		control = speed < pm_stopspeed ? pm_stopspeed : speed;
-		drop += control*friction*pml.frametime;
+		drop += control * friction * pml.frametime;
 	}
 
 	// apply water friction
 	if (pm->waterlevel && !pml.ladder)
-		drop += speed*pm_waterfriction*pm->waterlevel*pml.frametime;
+		drop += speed * pm_waterfriction * pm->waterlevel * pml.frametime;
 
 	// scale the velocity
 	newspeed = speed - drop;
@@ -402,12 +400,12 @@ void PM_Accelerate (vec3_t wishdir, float wishspeed, float accel)
 	addspeed = wishspeed - currentspeed;
 	if (addspeed <= 0)
 		return;
-	accelspeed = accel*pml.frametime*wishspeed;
+	accelspeed = accel * pml.frametime * wishspeed;
 	if (accelspeed > addspeed)
 		accelspeed = addspeed;
 
 	for (i = 0; i < 3; i++)
-		pml.velocity[i] += accelspeed*wishdir[i];
+		pml.velocity[i] += accelspeed * wishdir[i];
 }
 
 void PM_AirAccelerate (vec3_t wishdir, float wishspeed, float accel)
@@ -426,7 +424,7 @@ void PM_AirAccelerate (vec3_t wishdir, float wishspeed, float accel)
 		accelspeed = addspeed;
 
 	for (i = 0; i < 3; i++)
-		pml.velocity[i] += accelspeed*wishdir[i];
+		pml.velocity[i] += accelspeed * wishdir[i];
 }
 
 /*
@@ -893,9 +891,9 @@ void PM_FlyMove (qboolean doclip)
 	{
 		drop = 0;
 
-		friction = pm_friction*1.5;	// extra friction
+		friction = pm_friction * 1.5;	// extra friction
 		control = speed < pm_stopspeed ? pm_stopspeed : speed;
-		drop += control*friction*pml.frametime;
+		drop += control * friction * pml.frametime;
 
 		// scale the velocity
 		newspeed = speed - drop;
@@ -931,12 +929,12 @@ void PM_FlyMove (qboolean doclip)
 	addspeed = wishspeed - currentspeed;
 	if (addspeed <= 0)
 		return;
-	accelspeed = pm_accelerate*pml.frametime*wishspeed;
+	accelspeed = pm_accelerate * pml.frametime * wishspeed;
 	if (accelspeed > addspeed)
 		accelspeed = addspeed;
 
 	for (i = 0; i < 3; i++)
-		pml.velocity[i] += accelspeed*wishdir[i];
+		pml.velocity[i] += accelspeed * wishdir[i];
 
 	if (doclip)
 	{
@@ -1137,9 +1135,9 @@ void PM_InitialSnapPosition (void)
 				pm->s.origin[0] = base[0] + x;
 				if (PM_GoodPosition ())
 				{
-					pml.origin[0] = pm->s.origin[0]*0.125;
-					pml.origin[1] = pm->s.origin[1]*0.125;
-					pml.origin[2] = pm->s.origin[2]*0.125;
+					pml.origin[0] = pm->s.origin[0] * 0.125;
+					pml.origin[1] = pm->s.origin[1] * 0.125;
+					pml.origin[2] = pm->s.origin[2] * 0.125;
 					VectorCopy (pm->s.origin, pml.previous_origin);
 					return;
 				}

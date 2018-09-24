@@ -1078,7 +1078,7 @@ For proxy protecting
 
 ====================
 */
-byte	COM_BlockSequenceCheckByte (byte *base, int length, int sequence, int challenge)
+byte COM_BlockSequenceCheckByte (byte *base, int length, int sequence, int challenge)
 {
 	Sys_Error ("COM_BlockSequenceCheckByte called\n");
 
@@ -1098,18 +1098,18 @@ byte	COM_BlockSequenceCheckByte (byte *base, int length, int sequence, int chall
 	memcpy (buf, base, length);
 
 	buf[length] = (sequence & 0xff) ^ p[0];
-	buf[length+1] = p[1];
-	buf[length+2] = ((sequence>>8) & 0xff) ^ p[2];
-	buf[length+3] = p[3];
+	buf[length + 1] = p[1];
+	buf[length + 2] = ((sequence>>8) & 0xff) ^ p[2];
+	buf[length + 3] = p[3];
 
-	temp = bytedirs[((sequence+challenge)/3) % NUMVERTEXNORMALS][(sequence+challenge) % 3];
+	temp = bytedirs[((sequence + challenge)/3) % NUMVERTEXNORMALS][(sequence + challenge) % 3];
 	temp = LittleFloat(temp);
 	p = ((byte *)&temp);
 
-	buf[length+4] = (sequence & 0xff) ^ p[3];
-	buf[length+5] = (challenge & 0xff) ^ p[2];
-	buf[length+6] = ((sequence>>8) & 0xff) ^ p[1];
-	buf[length+7] = ((challenge >> 7) & 0xff) ^ p[0];
+	buf[length + 4] = (sequence & 0xff) ^ p[3];
+	buf[length + 5] = (challenge & 0xff) ^ p[2];
+	buf[length + 6] = ((sequence>>8) & 0xff) ^ p[1];
+	buf[length + 7] = ((challenge >> 7) & 0xff) ^ p[0];
 
 	length += 8;
 

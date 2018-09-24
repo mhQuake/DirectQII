@@ -48,38 +48,37 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 
 	outcount = sc->length / stepscale;
 	sc->length = outcount;
+
 	if (sc->loopstart != -1)
 		sc->loopstart = sc->loopstart / stepscale;
 
 	sc->speed = dma.speed;
-	if (s_loadas8bit->value)
-		sc->width = 1;
-	else
-		sc->width = inwidth;
+	sc->width = inwidth;
 	sc->stereo = 0;
 
 	// resample / decimate to the current source rate
-
 	if (stepscale == 1 && inwidth == 1 && sc->width == 1)
 	{
 		// fast special case
 		for (i = 0; i < outcount; i++)
-			((signed char *) sc->data)[i]
-			= (int) ((unsigned char) (data[i]) - 128);
+			((signed char *) sc->data)[i] = (int) ((unsigned char) (data[i]) - 128);
 	}
 	else
 	{
 		// general case
 		samplefrac = 0;
 		fracstep = stepscale * 256;
+
 		for (i = 0; i < outcount; i++)
 		{
 			srcsample = samplefrac >> 8;
 			samplefrac += fracstep;
+
 			if (inwidth == 2)
 				sample = LittleShort (((short *) data)[srcsample]);
 			else
 				sample = (int) ((unsigned char) (data[srcsample]) - 128) << 8;
+
 			if (sc->width == 2)
 				((short *) sc->data)[i] = sample;
 			else
@@ -227,7 +226,7 @@ void FindNextChunk (char *name)
 			data_p = NULL;
 			return;
 		}
-		//		if (iff_chunk_len > 1024*1024)
+		//		if (iff_chunk_len > 1024 * 1024)
 		//			Sys_Error ("FindNextChunk: %i length is past the 1 meg sanity limit", iff_chunk_len);
 		data_p -= 8;
 		last_chunk = data_p + 8 + ((iff_chunk_len + 1) & ~1);

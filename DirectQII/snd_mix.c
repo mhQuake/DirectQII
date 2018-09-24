@@ -160,9 +160,8 @@ void S_TransferPaintBuffer (int endtime)
 		// write a fixed sine wave
 		count = (endtime - paintedtime);
 		for (i = 0; i < count; i++)
-			paintbuffer[i].left = paintbuffer[i].right = sin ((paintedtime + i)*0.1) * 20000 * 256;
+			paintbuffer[i].left = paintbuffer[i].right = sin ((paintedtime + i) * 0.1) * 20000 * 256;
 	}
-
 
 	if (dma.samplebits == 16 && dma.channels == 2)
 	{
@@ -482,11 +481,12 @@ void S_PaintChannelFrom16 (channel_t *ch, sfxcache_t *sc, int count, int offset)
 	int	i;
 	portable_samplepair_t	*samp;
 
-	leftvol = ch->leftvol*snd_vol;
-	rightvol = ch->rightvol*snd_vol;
+	leftvol = ch->leftvol * snd_vol;
+	rightvol = ch->rightvol * snd_vol;
 	sfx = (signed short *) sc->data + ch->pos;
 
 	samp = &paintbuffer[offset];
+
 	for (i = 0; i < count; i++, samp++)
 	{
 		data = sfx[i];

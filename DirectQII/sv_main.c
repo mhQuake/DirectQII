@@ -547,11 +547,7 @@ void SV_CalcPings (void)
 		if (!count)
 			cl->ping = 0;
 		else
-#if 0
-			cl->ping = total*100/count - 100;
-#else
 			cl->ping = total / count;
-#endif
 
 		// let the game dll know about the ping
 		cl->edict->client->ping = cl->ping;

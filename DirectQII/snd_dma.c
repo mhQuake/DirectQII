@@ -60,7 +60,7 @@ int   		paintedtime; 	// sample PAIRS
 // than could actually be referenced during gameplay,
 // because we don't want to free anything until we are
 // sure we won't need it.
-#define		MAX_SFX		(MAX_SOUNDS*2)
+#define		MAX_SFX		(MAX_SOUNDS * 2)
 sfx_t		known_sfx[MAX_SFX];
 int			num_sfx;
 
@@ -73,7 +73,6 @@ int			s_beginofs;
 
 cvar_t		*s_volume;
 cvar_t		*s_testsound;
-cvar_t		*s_loadas8bit;
 cvar_t		*s_khz;
 cvar_t		*s_show;
 cvar_t		*s_mixahead;
@@ -124,7 +123,6 @@ void S_Init (void)
 	{
 		s_volume = Cvar_Get ("s_volume", "0.7", CVAR_ARCHIVE);
 		s_khz = Cvar_Get ("s_khz", "11", CVAR_ARCHIVE);
-		s_loadas8bit = Cvar_Get ("s_loadas8bit", "1", CVAR_ARCHIVE);
 		s_mixahead = Cvar_Get ("s_mixahead", "0.2", CVAR_ARCHIVE);
 		s_show = Cvar_Get ("s_show", "0", 0);
 		s_testsound = Cvar_Get ("s_testsound", "0", 0);
@@ -443,7 +441,7 @@ void S_SpatializeOrigin (vec3_t origin, float master_vol, float dist_mult, int *
 	else
 	{
 		rscale = 0.5 * (1.0 + dot);
-		lscale = 0.5*(1.0 - dot);
+		lscale = 0.5 * (1.0 - dot);
 	}
 
 	// add in distance effect
@@ -1097,7 +1095,7 @@ void GetSoundtime (void)
 	}
 	oldsamplepos = samplepos;
 
-	soundtime = buffers*fullsamples + samplepos / dma.channels;
+	soundtime = buffers * fullsamples + samplepos / dma.channels;
 }
 
 
@@ -1185,12 +1183,14 @@ void S_SoundList (void)
 		sc = sfx->cache;
 		if (sc)
 		{
-			size = sc->length*sc->width*(sc->stereo + 1);
+			size = sc->length * sc->width * (sc->stereo + 1);
 			total += size;
+
 			if (sc->loopstart >= 0)
 				Com_Printf ("L");
 			else
 				Com_Printf (" ");
+
 			Com_Printf ("(%2db) %6i : %s\n", sc->width * 8, size, sfx->name);
 		}
 		else

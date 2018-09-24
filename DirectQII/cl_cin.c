@@ -444,16 +444,18 @@ byte *SCR_ReadNextFrame (void)
 	// decompress the next frame
 	FS_Read (&size, 4, cl.cinematic_file);
 	size = LittleLong (size);
+
 	if (size > sizeof (compressed) || size < 1)
 		Com_Error (ERR_DROP, "Bad compressed frame size");
+
 	FS_Read (compressed, size, cl.cinematic_file);
 
 	// read sound
-	start = cl.cinematicframe*cin.s_rate / 14;
-	end = (cl.cinematicframe + 1)*cin.s_rate / 14;
+	start = cl.cinematicframe * cin.s_rate / 14;
+	end = (cl.cinematicframe + 1) * cin.s_rate / 14;
 	count = end - start;
 
-	FS_Read (samples, count*cin.s_width*cin.s_channels, cl.cinematic_file);
+	FS_Read (samples, count * cin.s_width * cin.s_channels, cl.cinematic_file);
 
 	S_RawSamples (count, cin.s_rate, cin.s_width, cin.s_channels, samples);
 
@@ -496,7 +498,7 @@ void SCR_RunCinematic (void)
 		return;
 	}
 
-	frame = (cls.realtime - cl.cinematictime)*14.0 / 1000;
+	frame = (cls.realtime - cl.cinematictime) * 14.0 / 1000;
 	if (frame <= cl.cinematicframe)
 		return;
 	if (frame > cl.cinematicframe + 1)
@@ -627,6 +629,7 @@ void SCR_PlayCinematic (char *arg)
 
 	// switch up to 22 khz sound if necessary
 	old_khz = Cvar_VariableValue ("s_khz");
+
 	if (old_khz != cin.s_rate / 1000)
 	{
 		cin.restart_sound = true;

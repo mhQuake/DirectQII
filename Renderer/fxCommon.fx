@@ -129,9 +129,9 @@ float4 GenericDynamicPS (PS_DYNAMICLIGHT ps_in) : SV_TARGET0
 	https://github.com/id-Software/Quake-Tools/blob/c0d1b91c74eb654365ac7755bc837e497caaca73/qutils/LIGHT/LTFACE.C#L410
 	https://github.com/id-Software/Quake-Tools/blob/c0d1b91c74eb654365ac7755bc837e497caaca73/qutils/LIGHT/LIGHT.C#L13
 	nitpickers corner
-	(hello tomaz! "What codebase is this based on? ... Thats NOT from the original quake code"): angle = (1.0-scalecos) + scalecos*angle;
-	but scalecos is 0.5, so substituting: angle = (1.0-0.5) + 0.5*angle;
-	and evaluate (1.0-0.5): angle = 0.5 + 0.5*angle;
+	(hello tomaz! "What codebase is this based on? ... Thats NOT from the original quake code"): angle = (1.0 - scalecos) + scalecos * angle;
+	but scalecos is 0.5, so substituting: angle = (1.0 - 0.5) + 0.5 * angle;
+	and evaluate (1.0 - 0.5): angle = 0.5 + 0.5 * angle;
 	or (because multiplication and addition are commutative but multiplication takes precedence): angle = angle * 0.5 + 0.5;
 	*/
 	float Angle = dot (normalize (ps_in.Normal), normalize (ps_in.LightVector)) * 0.5f + 0.5f;

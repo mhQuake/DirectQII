@@ -229,7 +229,7 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 			else
 			{
 				// case where a sky face may be omitted due to some misguided attempt to "save memory"
-				sky_pic[i] = ri.Load_AllocMemory (max_size * max_size * 4);
+				sky_pic[i] = (byte *) ri.Load_AllocMemory (max_size * max_size * 4);
 				memset (sky_pic[i], 0, max_size * max_size * 4);
 			}
 

@@ -185,11 +185,11 @@ idnewt:28000
 192.246.40.70:28000
 =============
 */
-#define DO(src,dest)	\
+#define DO(src, dest)	\
 	copy[0] = s[src];	\
 	copy[1] = s[src + 1];	\
 	sscanf (copy, "%x", &val);	\
-	((struct sockaddr_ipx *)sadr)->dest = val
+	((struct sockaddr_ipx *) sadr)->dest = val
 
 qboolean	NET_StringToSockaddr (char *s, struct sockaddr *sadr)
 {

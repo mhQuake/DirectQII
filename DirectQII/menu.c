@@ -236,8 +236,7 @@ const char *Default_MenuKey (menuframework_s *m, int key)
 M_DrawCharacter
 
 Draws one solid graphics character
-cx and cy are in 320*240 coordinates, and will be centered on
-higher res screens.
+cx and cy are in 320 * 240 coordinates, and will be centered on higher res screens.
 ================
 */
 void M_DrawCharacter (int cx, int cy, int num)
@@ -279,9 +278,7 @@ void M_DrawPic (int x, int y, char *pic)
 =============
 M_DrawCursor
 
-Draws an animating cursor with the point at
-x,y.  The pic will extend to the left of x,
-and both above and below y.
+Draws an animating cursor with the point at x, y.  The pic will extend to the left of x, and both above and below y.
 =============
 */
 void M_DrawCursor (int x, int y, int f)

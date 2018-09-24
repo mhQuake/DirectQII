@@ -328,7 +328,7 @@ void SV_StartSound (vec3_t origin, edict_t *entity, int channel,
 		if (entity->solid == SOLID_BSP)
 		{
 			for (i = 0; i < 3; i++)
-				origin_v[i] = entity->s.origin[i] + 0.5*(entity->mins[i] + entity->maxs[i]);
+				origin_v[i] = entity->s.origin[i] + 0.5 * (entity->mins[i] + entity->maxs[i]);
 		}
 		else
 		{
@@ -353,7 +353,7 @@ void SV_StartSound (vec3_t origin, edict_t *entity, int channel,
 	if (flags & SND_POS)
 		MSG_WritePos (&sv.multicast, origin);
 
-	// if the sound doesn't attenuate,send it to everyone
+	// if the sound doesn't attenuate, send it to everyone
 	// (global radio chatter, voiceovers, etc)
 	if (attenuation == ATTN_NONE)
 		use_phs = false;

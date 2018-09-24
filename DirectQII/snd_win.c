@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "snd_loc.h"
 #include "winquake.h"
 
-#define iDirectSoundCreate(a,b,c)	pDirectSoundCreate(a,b,c)
+#define iDirectSoundCreate(a, b, c)	pDirectSoundCreate(a, b, c)
 
 HRESULT (WINAPI *pDirectSoundCreate)(GUID FAR *lpGUID, LPDIRECTSOUND FAR *lplpDS, IUnknown FAR *pUnkOuter);
 
@@ -111,7 +111,7 @@ static qboolean DS_CreateBuffers (void)
 	format.nSamplesPerSec = dma.speed;
 	format.nBlockAlign = format.nChannels * format.wBitsPerSample / 8;
 	format.cbSize = 0;
-	format.nAvgBytesPerSec = format.nSamplesPerSec*format.nBlockAlign;
+	format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
 
 	Com_Printf ("Creating DS buffers\n");
 
@@ -481,7 +481,7 @@ qboolean SNDDMA_InitWav (void)
 
 	 */
 	Com_DPrintf ("...allocating waveform buffer: ");
-	gSndBufSize = WAV_BUFFERS*WAV_BUFFER_SIZE;
+	gSndBufSize = WAV_BUFFERS * WAV_BUFFER_SIZE;
 	hData = GlobalAlloc (GMEM_MOVEABLE | GMEM_SHARE, gSndBufSize);
 	if (!hData)
 	{
@@ -536,10 +536,9 @@ qboolean SNDDMA_InitWav (void)
 	for (i = 0; i < WAV_BUFFERS; i++)
 	{
 		lpWaveHdr[i].dwBufferLength = WAV_BUFFER_SIZE;
-		lpWaveHdr[i].lpData = lpData + i*WAV_BUFFER_SIZE;
+		lpWaveHdr[i].lpData = lpData + i * WAV_BUFFER_SIZE;
 
-		if (waveOutPrepareHeader (hWaveOut, lpWaveHdr + i, sizeof (WAVEHDR)) !=
-			MMSYSERR_NOERROR)
+		if (waveOutPrepareHeader (hWaveOut, lpWaveHdr + i, sizeof (WAVEHDR)) != MMSYSERR_NOERROR)
 		{
 			Com_Printf ("failed\n");
 			FreeSound ();

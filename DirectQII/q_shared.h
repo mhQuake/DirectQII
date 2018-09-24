@@ -76,7 +76,7 @@ typedef enum { false, true }	qboolean;
 #define	MAX_SOUNDS			256		// so they cannot be blindly increased
 #define	MAX_IMAGES			256
 #define	MAX_ITEMS			256
-#define MAX_GENERAL			(MAX_CLIENTS*2)	// general config strings
+#define MAX_GENERAL			(MAX_CLIENTS * 2)	// general config strings
 
 
 // game print flags
@@ -151,13 +151,13 @@ extern long Q_ftol (float f);
 #define Q_ftol( f ) ( long ) (f)
 #endif
 
-#define DotProduct(x,y)			(x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
-#define VectorSubtract(a,b,c)	(c[0]=a[0]-b[0],c[1]=a[1]-b[1],c[2]=a[2]-b[2])
-#define VectorAdd(a,b,c)		(c[0]=a[0]+b[0],c[1]=a[1]+b[1],c[2]=a[2]+b[2])
-#define VectorCopy(a,b)			(b[0]=a[0],b[1]=a[1],b[2]=a[2])
-#define VectorClear(a)			(a[0]=a[1]=a[2]=0)
-#define VectorNegate(a,b)		(b[0]=-a[0],b[1]=-a[1],b[2]=-a[2])
-#define VectorSet(v, x, y, z)	(v[0]=(x), v[1]=(y), v[2]=(z))
+#define DotProduct(x, y)		(x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
+#define VectorSubtract(a, b, c)	(c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] = a[2] - b[2])
+#define VectorAdd(a, b, c)		(c[0] = a[0] + b[0], c[1] = a[1] + b[1], c[2] = a[2] + b[2])
+#define VectorCopy(a, b)		(b[0] = a[0], b[1] = a[1], b[2] = a[2])
+#define VectorClear(a)			(a[0] = a[1] = a[2] = 0)
+#define VectorNegate(a, b)		(b[0] = -a[0], b[1] = -a[1], b[2] = -a[2])
+#define VectorSet(v, x, y, z)	(v[0] = (x), v[1] = (y), v[2] = (z))
 
 void VectorMA (vec3_t veca, float scale, vec3_t vecb, vec3_t vecc);
 
@@ -1055,8 +1055,8 @@ ELEMENTS COMMUNICATED ACROSS THE NET
 ==========================================================
 */
 
-#define	ANGLE2SHORT(x)	((int)((x)*65536/360) & 65535)
-#define	SHORT2ANGLE(x)	((x)*(360.0/65536))
+#define	ANGLE2SHORT(x)	((int) ((x) * 65536 / 360) & 65535)
+#define	SHORT2ANGLE(x)	((x) * (360.0 / 65536))
 
 
 //
@@ -1076,13 +1076,13 @@ ELEMENTS COMMUNICATED ACROSS THE NET
 #define	CS_MAPCHECKSUM		31		// for catching cheater maps
 
 #define	CS_MODELS			32
-#define	CS_SOUNDS			(CS_MODELS+MAX_MODELS)
-#define	CS_IMAGES			(CS_SOUNDS+MAX_SOUNDS)
-#define	CS_LIGHTS			(CS_IMAGES+MAX_IMAGES)
-#define	CS_ITEMS			(CS_LIGHTS+MAX_LIGHTSTYLES)
-#define	CS_PLAYERSKINS		(CS_ITEMS+MAX_ITEMS)
-#define CS_GENERAL			(CS_PLAYERSKINS+MAX_CLIENTS)
-#define	MAX_CONFIGSTRINGS	(CS_GENERAL+MAX_GENERAL)
+#define	CS_SOUNDS			(CS_MODELS + MAX_MODELS)
+#define	CS_IMAGES			(CS_SOUNDS + MAX_SOUNDS)
+#define	CS_LIGHTS			(CS_IMAGES + MAX_IMAGES)
+#define	CS_ITEMS			(CS_LIGHTS + MAX_LIGHTSTYLES)
+#define	CS_PLAYERSKINS		(CS_ITEMS + MAX_ITEMS)
+#define CS_GENERAL			(CS_PLAYERSKINS + MAX_CLIENTS)
+#define	MAX_CONFIGSTRINGS	(CS_GENERAL + MAX_GENERAL)
 
 
 //==============================================
@@ -1121,9 +1121,9 @@ typedef struct entity_state_s
 	int		skinnum;
 	unsigned int		effects;		// PGM - we're filling it, so it needs to be unsigned
 	int		renderfx;
-	int		solid;			// for client side prediction, 8*(bits 0-4) is x/y radius
-	// 8*(bits 5-9) is z down distance, 8(bits10-15) is z up
-	// gi.linkentity sets this properly
+	int		solid;			// for client side prediction, 8 * (bits 0-4) is x/y radius
+							// 8 * (bits 5-9) is z down distance, 8 * (bits10-15) is z up
+							// gi.linkentity sets this properly
 	int		sound;			// for looping sounds, to guarantee shutoff
 	int		event;			// impulse events -- muzzle flashes, footsteps, etc
 	// events only go out for a single frame, they

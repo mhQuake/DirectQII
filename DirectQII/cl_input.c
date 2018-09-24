@@ -251,20 +251,20 @@ void CL_AdjustAngles (void)
 
 	if (!(in_strafe.state & 1))
 	{
-		cl.viewangles[1] -= speed*cl_yawspeed->value*CL_KeyState (&in_right);
-		cl.viewangles[1] += speed*cl_yawspeed->value*CL_KeyState (&in_left);
+		cl.viewangles[1] -= speed * cl_yawspeed->value * CL_KeyState (&in_right);
+		cl.viewangles[1] += speed * cl_yawspeed->value * CL_KeyState (&in_left);
 	}
 	if (in_klook.state & 1)
 	{
-		cl.viewangles[0] -= speed*cl_pitchspeed->value * CL_KeyState (&in_forward);
-		cl.viewangles[0] += speed*cl_pitchspeed->value * CL_KeyState (&in_back);
+		cl.viewangles[0] -= speed * cl_pitchspeed->value * CL_KeyState (&in_forward);
+		cl.viewangles[0] += speed * cl_pitchspeed->value * CL_KeyState (&in_back);
 	}
 
 	up = CL_KeyState (&in_lookup);
 	down = CL_KeyState (&in_lookdown);
 
-	cl.viewangles[0] -= speed*cl_pitchspeed->value * up;
-	cl.viewangles[0] += speed*cl_pitchspeed->value * down;
+	cl.viewangles[0] -= speed * cl_pitchspeed->value * up;
+	cl.viewangles[0] += speed * cl_pitchspeed->value * down;
 }
 
 /*

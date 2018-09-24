@@ -618,12 +618,10 @@ void CL_Disconnect (void)
 
 	if (cl_timedemo && cl_timedemo->value)
 	{
-		int	time;
+		int	time = Sys_Milliseconds () - cl.timedemo_start;
 
-		time = Sys_Milliseconds () - cl.timedemo_start;
 		if (time > 0)
-			Com_Printf ("%i frames, %3.1f seconds: %3.1f fps\n", cl.timedemo_frames,
-			time / 1000.0, cl.timedemo_frames*1000.0 / time);
+			Com_Printf ("%i frames, %3.1f seconds: %3.1f fps\n", cl.timedemo_frames, time / 1000.0, cl.timedemo_frames * 1000.0 / time);
 	}
 
 	VectorClear (cl.refdef.blend);
@@ -1104,9 +1102,9 @@ byte *precache_model; // used for skin checking in alias models
 
 #define PLAYER_MULT 5
 
-// ENV_CNT is map load, ENV_CNT+1 is first env map
+// ENV_CNT is map load, ENV_CNT + 1 is first env map
 #define ENV_CNT (CS_PLAYERSKINS + MAX_CLIENTS * PLAYER_MULT)
-#define TEXTURE_CNT (ENV_CNT+13)
+#define TEXTURE_CNT (ENV_CNT + 13)
 
 static const char *env_suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
@@ -1186,9 +1184,7 @@ void CL_RequestNextDownload (void)
 
 				while (precache_model_skin - 1 < LittleLong (pheader->num_skins))
 				{
-					if (!CL_CheckOrDownloadFile ((char *) precache_model +
-						LittleLong (pheader->ofs_skins) +
-						(precache_model_skin - 1)*MAX_SKINNAME))
+					if (!CL_CheckOrDownloadFile ((char *) precache_model + LittleLong (pheader->ofs_skins) + (precache_model_skin - 1) * MAX_SKINNAME))
 					{
 						precache_model_skin++;
 						return; // started a download
@@ -1206,14 +1202,15 @@ void CL_RequestNextDownload (void)
 		}
 		precache_check = CS_SOUNDS;
 	}
+
 	if (precache_check >= CS_SOUNDS && precache_check < CS_SOUNDS + MAX_SOUNDS)
 	{
 		if (allow_download_sounds->value)
 		{
 			if (precache_check == CS_SOUNDS)
 				precache_check++; // zero is blank
-			while (precache_check < CS_SOUNDS + MAX_SOUNDS &&
-				cl.configstrings[precache_check][0])
+
+			while (precache_check < CS_SOUNDS + MAX_SOUNDS && cl.configstrings[precache_check][0])
 			{
 				if (cl.configstrings[precache_check][0] == '*')
 				{

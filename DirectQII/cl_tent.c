@@ -1287,8 +1287,6 @@ void CL_AddBeams (void)
 			VectorCopy (b->end, ent.currorigin);
 			// offset to push beam outside of tesla model (negative because dist is from end to start
 			// for this beam)
-			//			for (j=0 ; j<3 ; j++)
-			//				ent.currorigin[j] -= dist[j]*10.0;
 			ent.model = b->model;
 			ent.flags = RF_FULLBRIGHT;
 			ent.angles[0] = pitch;
@@ -1488,7 +1486,6 @@ void CL_AddPlayerBeams (void)
 				ent.angles[0] = -pitch;
 				ent.angles[1] = yaw + 180.0;
 				ent.angles[2] = 0;
-				//				Com_Printf ("%f %f - %f %f %f\n", -pitch, yaw+180.0, b->offset[0], b->offset[1], b->offset[2]);
 				AngleVectors (ent.angles, f, r, u);
 
 				// if it's a non-origin offset, it's a player, so use the hardcoded player offset
@@ -1545,8 +1542,6 @@ void CL_AddPlayerBeams (void)
 			VectorCopy (b->end, ent.currorigin);
 			// offset to push beam outside of tesla model (negative because dist is from end to start
 			// for this beam)
-			//			for (j=0 ; j<3 ; j++)
-			//				ent.currorigin[j] -= dist[j]*10.0;
 			ent.model = b->model;
 			ent.flags = RF_FULLBRIGHT;
 			ent.angles[0] = pitch;

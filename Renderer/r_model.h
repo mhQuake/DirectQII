@@ -107,7 +107,7 @@ typedef struct msurface_s
 
 	int			lightmaptexturenum;
 	byte		styles[MAXLIGHTMAPS];
-	byte		*samples;		// [numstyles*surfsize]
+	byte		*samples;		// [numstyles * surfsize]
 } msurface_t;
 
 typedef struct mnode_s

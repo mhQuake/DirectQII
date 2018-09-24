@@ -223,8 +223,10 @@ void *Hunk_Alloc (int size)
 	size = (size + 31) & ~31;
 
 	// commit pages as needed
-	//	buf = VirtualAlloc (membase+cursize, size, MEM_COMMIT, PAGE_READWRITE);
-	buf = VirtualAlloc (membase, cursize + size, MEM_COMMIT, PAGE_READWRITE);
+	//buf = VirtualAlloc (membase, cursize + size, MEM_COMMIT, PAGE_READWRITE);
+	// fixme - alloc in batches of the 4k page size rather than doing it this way
+	buf = VirtualAlloc (&membase[cursize], size, MEM_COMMIT, PAGE_READWRITE);
+
 	if (!buf)
 	{
 		FormatMessage (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError (), MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &buf, 0, NULL);
