@@ -27,10 +27,11 @@ extern cvar_t *scr_viewsize;
 static cvar_t *vid_mode;
 static cvar_t *vid_width;
 static cvar_t *vid_height;
-
+static cvar_t *vid_vsync;
 static cvar_t *gl_finish;
 
-extern void M_ForceMenuOff (void);
+void M_ForceMenuOff (void);
+void VID_ResetMode (void);
 
 /*
 ====================================================================
@@ -52,8 +53,11 @@ static menuslider_s		s_screensize_slider;
 static menuslider_s		s_brightness_slider;
 static menulist_s  		s_fs_box;
 static menulist_s  		s_finish_box;
+
+static menuaction_s		s_apply_action;
 static menuaction_s		s_cancel_action;
 static menuaction_s		s_defaults_action;
+static menuaction_s		s_apply_action;
 
 
 static void ScreenSizeCallback (void *s)
@@ -81,15 +85,16 @@ static void ResetDefaults (void *unused)
 
 static void ApplyChanges (void *unused)
 {
-	// keep consistent
-	BrightnessCallback (&s_brightness_slider);
-
-	// other cvars
+	// set the cvars
 	Cvar_SetValue ("vid_fullscreen", s_fs_box.curvalue);
 	Cvar_SetValue ("gl_finish", s_finish_box.curvalue);
 	Cvar_SetValue ("vid_mode", s_mode_list.curvalue);
 
-	M_ForceMenuOff ();
+	// remove the menus
+	//M_ForceMenuOff ();
+
+	// reset the mode
+	VID_ResetMode ();
 }
 
 
@@ -128,14 +133,16 @@ void VID_MenuInit (void)
 		0
 	};
 
+	// get cvars
 	if (!vid_mode) vid_mode = Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE | CVAR_VIDEO);
+	if (!vid_width) vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
+	if (!vid_height) vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
+	if (!vid_vsync) vid_vsync = Cvar_Get ("vid_vsync", "0", CVAR_ARCHIVE);
 	if (!gl_finish) gl_finish = Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE);
+	if (!scr_viewsize) scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
 
+	// setup current values
 	s_mode_list.curvalue = vid_mode->value;
-
-	if (!scr_viewsize)
-		scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
-
 	s_screensize_slider.curvalue = scr_viewsize->value / 10;
 
 	if (vid_fullscreen->value)
@@ -146,6 +153,19 @@ void VID_MenuInit (void)
 	s_windowed_menu.nitems = 0;
 	s_fullscreen_menu.x = viddef.conwidth * 0.50;
 	s_fullscreen_menu.nitems = 0;
+
+	s_fs_box.generic.type = MTYPE_SPINCONTROL;
+	s_fs_box.generic.x = 0;
+	s_fs_box.generic.y = 0;
+	s_fs_box.generic.name = "fullscreen";
+	s_fs_box.itemnames = yesno_names;
+	s_fs_box.curvalue = vid_fullscreen->value;
+
+	s_mode_list.generic.type = MTYPE_SPINCONTROL;
+	s_mode_list.generic.name = "video mode";
+	s_mode_list.generic.x = 0;
+	s_mode_list.generic.y = 10;
+	s_mode_list.itemnames = resolutions;
 
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
 	s_screensize_slider.generic.x = 0;
@@ -164,6 +184,13 @@ void VID_MenuInit (void)
 	s_brightness_slider.maxvalue = 13;
 	s_brightness_slider.curvalue = (1.3 - vid_gamma->value + 0.5) * 10;
 
+	s_finish_box.generic.type = MTYPE_SPINCONTROL;
+	s_finish_box.generic.x = 0;
+	s_finish_box.generic.y = 80;
+	s_finish_box.generic.name = "sync every frame";
+	s_finish_box.curvalue = gl_finish->value;
+	s_finish_box.itemnames = yesno_names;
+
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to defaults";
 	s_defaults_action.generic.x = 0;
@@ -176,44 +203,29 @@ void VID_MenuInit (void)
 	s_cancel_action.generic.y = 100;
 	s_cancel_action.generic.callback = CancelChanges;
 
-	s_mode_list.generic.type = MTYPE_SPINCONTROL;
-	s_mode_list.generic.name = "video mode";
-	s_mode_list.generic.x = 0;
-	s_mode_list.generic.y = 10;
-	s_mode_list.itemnames = resolutions;
+	s_apply_action.generic.type = MTYPE_ACTION;
+	s_apply_action.generic.name = "apply";
+	s_apply_action.generic.x = 0;
+	s_apply_action.generic.y = 110;
+	s_apply_action.generic.callback = ApplyChanges;
 
-	s_fs_box.generic.type = MTYPE_SPINCONTROL;
-	s_fs_box.generic.x = 0;
-	s_fs_box.generic.y = 40;
-	s_fs_box.generic.name = "fullscreen";
-	s_fs_box.itemnames = yesno_names;
-	s_fs_box.curvalue = vid_fullscreen->value;
-
-	s_finish_box.generic.type = MTYPE_SPINCONTROL;
-	s_finish_box.generic.x = 0;
-	s_finish_box.generic.y = 80;
-	s_finish_box.generic.name = "sync every frame";
-	s_finish_box.curvalue = gl_finish->value;
-	s_finish_box.itemnames = yesno_names;
-
-	Menu_AddItem (&s_windowed_menu, (void *) &s_mode_list);
+	Menu_AddItem (&s_windowed_menu, (void *) &s_fs_box);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_brightness_slider);
-	Menu_AddItem (&s_windowed_menu, (void *) &s_fs_box);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_finish_box);
+	Menu_AddItem (&s_windowed_menu, (void *) &s_defaults_action);
+	Menu_AddItem (&s_windowed_menu, (void *) &s_cancel_action);
+	Menu_AddItem (&s_windowed_menu, (void *) &s_apply_action);
+	Menu_Center (&s_windowed_menu);
 
+	Menu_AddItem (&s_fullscreen_menu, (void *) &s_fs_box);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_mode_list);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_brightness_slider);
-	Menu_AddItem (&s_fullscreen_menu, (void *) &s_fs_box);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_finish_box);
-
-	Menu_AddItem (&s_windowed_menu, (void *) &s_defaults_action);
-	Menu_AddItem (&s_windowed_menu, (void *) &s_cancel_action);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_defaults_action);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_cancel_action);
-
-	Menu_Center (&s_windowed_menu);
+	Menu_AddItem (&s_fullscreen_menu, (void *) &s_apply_action);
 	Menu_Center (&s_fullscreen_menu);
 
 	s_fullscreen_menu.x -= 8;
@@ -229,10 +241,13 @@ void VID_MenuDraw (void)
 {
 	int w, h;
 
+	if (s_fs_box.curvalue)
+		s_current_menu_index = 1;
+	else s_current_menu_index = 0;
+
 	if (s_current_menu_index == 0)
 		s_current_menu = &s_windowed_menu;
-	else
-		s_current_menu = &s_fullscreen_menu;
+	else s_current_menu = &s_fullscreen_menu;
 
 	// draw the banner
 	re.DrawGetPicSize (&w, &h, "m_banner_video");
@@ -252,40 +267,47 @@ VID_MenuKey
 */
 const char *VID_MenuKey (int key)
 {
+#if 1
+	return Default_MenuKey (s_current_menu, key);
+#else
 	menuframework_s *m = s_current_menu;
 	static const char *sound = "misc/menu1.wav";
 
 	switch (key)
 	{
 	case K_ESCAPE:
-		ApplyChanges (NULL);
 		return NULL;
+
 	case K_KP_UPARROW:
 	case K_UPARROW:
 		m->cursor--;
 		Menu_AdjustCursor (m, -1);
 		break;
+
 	case K_KP_DOWNARROW:
 	case K_DOWNARROW:
 		m->cursor++;
 		Menu_AdjustCursor (m, 1);
 		break;
+
 	case K_KP_LEFTARROW:
 	case K_LEFTARROW:
 		Menu_SlideItem (m, -1);
 		break;
+
 	case K_KP_RIGHTARROW:
 	case K_RIGHTARROW:
 		Menu_SlideItem (m, 1);
 		break;
+
 	case K_KP_ENTER:
 	case K_ENTER:
-		if (!Menu_SelectItem (m))
-			ApplyChanges (NULL);
+		Menu_SelectItem (m);
 		break;
 	}
 
 	return sound;
+#endif
 }
 
 
