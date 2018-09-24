@@ -20,15 +20,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "client.h"
 #include "qmenu.h"
 
-#define REF_SOFT	0
-#define REF_OPENGL	1
-
-extern cvar_t *vid_ref;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_gamma;
 extern cvar_t *scr_viewsize;
 
 static cvar_t *vid_mode;
+static cvar_t *vid_width;
+static cvar_t *vid_height;
+
 static cvar_t *gl_finish;
 
 extern void M_ForceMenuOff (void);
@@ -122,13 +121,6 @@ void VID_MenuInit (void)
 		0
 	};
 
-	static const char *vid_refs[] =
-	{
-		"[software      ]",
-		"[default OpenGL]",
-		0
-	};
-
 	static const char *yesno_names[] =
 	{
 		"no",
@@ -136,10 +128,8 @@ void VID_MenuInit (void)
 		0
 	};
 
-	if (!vid_mode)
-		vid_mode = Cvar_Get ("vid_mode", "-1", 0);
-	if (!gl_finish)
-		gl_finish = Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE);
+	if (!vid_mode) vid_mode = Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE | CVAR_VIDEO);
+	if (!gl_finish) gl_finish = Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE);
 
 	s_mode_list.curvalue = vid_mode->value;
 
@@ -148,14 +138,9 @@ void VID_MenuInit (void)
 
 	s_screensize_slider.curvalue = scr_viewsize->value / 10;
 
-	if (strcmp (vid_ref->string, "soft") == 0)
-	{
-		s_current_menu_index = WINDOWED_MENU;
-	}
-	else if (strcmp (vid_ref->string, "gl") == 0)
-	{
+	if (vid_fullscreen->value)
 		s_current_menu_index = FULLSCREEN_MENU;
-	}
+	else  s_current_menu_index = WINDOWED_MENU;
 
 	s_windowed_menu.x = viddef.conwidth * 0.50;
 	s_windowed_menu.nitems = 0;

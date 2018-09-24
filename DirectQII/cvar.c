@@ -30,12 +30,9 @@ Cvar_InfoValidate
 */
 static qboolean Cvar_InfoValidate (char *s)
 {
-	if (strstr (s, "\\"))
-		return false;
-	if (strstr (s, "\""))
-		return false;
-	if (strstr (s, ";"))
-		return false;
+	if (strstr (s, "\\")) return false;
+	if (strstr (s, "\"")) return false;
+	if (strstr (s, ";")) return false;
 	return true;
 }
 
@@ -62,11 +59,11 @@ Cvar_VariableValue
 */
 float Cvar_VariableValue (char *var_name)
 {
-	cvar_t	*var;
+	cvar_t	*var = Cvar_FindVar (var_name);
 
-	var = Cvar_FindVar (var_name);
 	if (!var)
 		return 0;
+
 	return atof (var->string);
 }
 
@@ -78,11 +75,11 @@ Cvar_VariableString
 */
 char *Cvar_VariableString (char *var_name)
 {
-	cvar_t *var;
+	cvar_t *var = Cvar_FindVar (var_name);
 
-	var = Cvar_FindVar (var_name);
 	if (!var)
 		return "";
+
 	return var->string;
 }
 
@@ -95,9 +92,7 @@ Cvar_CompleteVariable
 char *Cvar_CompleteVariable (char *partial)
 {
 	cvar_t		*cvar;
-	int			len;
-
-	len = strlen (partial);
+	int			len = strlen (partial);
 
 	if (!len)
 		return NULL;
@@ -113,6 +108,15 @@ char *Cvar_CompleteVariable (char *partial)
 			return cvar->name;
 
 	return NULL;
+}
+
+
+void Cvar_ModifyVariable (cvar_t *var)
+{
+	if (var->flags & CVAR_VIDEO)
+		Com_Printf ("you must run a \"vid_restart\" after changing the value of \"%s\"\n", var->name);
+
+	var->modified = true;
 }
 
 
@@ -138,6 +142,7 @@ cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 	}
 
 	var = Cvar_FindVar (var_name);
+
 	if (var)
 	{
 		var->flags |= flags;
@@ -178,9 +183,8 @@ Cvar_Set2
 */
 cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 {
-	cvar_t	*var;
+	cvar_t	*var = Cvar_FindVar (var_name);
 
-	var = Cvar_FindVar (var_name);
 	if (!var)
 	{
 		// create it
@@ -227,12 +231,14 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 			{
 				var->string = CopyString (value);
 				var->value = atof (var->string);
+
 				if (!strcmp (var->name, "game"))
 				{
 					FS_SetGamedir (var->string);
 					FS_ExecAutoexec ();
 				}
 			}
+
 			return var;
 		}
 	}
@@ -248,7 +254,7 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 	if (!strcmp (value, var->string))
 		return var;		// not changed
 
-	var->modified = true;
+	Cvar_ModifyVariable (var);
 
 	if (var->flags & CVAR_USERINFO)
 		userinfo_modified = true;	// transmit at next oportunity
@@ -288,16 +294,15 @@ Cvar_FullSet
 */
 cvar_t *Cvar_FullSet (char *var_name, char *value, int flags)
 {
-	cvar_t	*var;
+	cvar_t	*var = Cvar_FindVar (var_name);
 
-	var = Cvar_FindVar (var_name);
 	if (!var)
 	{
 		// create it
 		return Cvar_Get (var_name, value, flags);
 	}
 
-	var->modified = true;
+	Cvar_ModifyVariable (var);
 
 	if (var->flags & CVAR_USERINFO)
 		userinfo_modified = true;	// transmit at next oportunity
@@ -324,6 +329,7 @@ void Cvar_SetValue (char *var_name, float value)
 		Com_sprintf (val, sizeof (val), "%i", (int) value);
 	else
 		Com_sprintf (val, sizeof (val), "%f", value);
+
 	Cvar_Set (var_name, val);
 }
 
@@ -343,10 +349,12 @@ void Cvar_GetLatchedVars (void)
 	{
 		if (!var->latched_string)
 			continue;
+
 		Z_Free (var->string);
 		var->string = var->latched_string;
 		var->latched_string = NULL;
 		var->value = atof (var->string);
+
 		if (!strcmp (var->name, "game"))
 		{
 			FS_SetGamedir (var->string);
@@ -354,6 +362,7 @@ void Cvar_GetLatchedVars (void)
 		}
 	}
 }
+
 
 /*
 ============
@@ -364,10 +373,9 @@ Handles variable inspection and changing from the console
 */
 qboolean Cvar_Command (void)
 {
-	cvar_t			*v;
-
 	// check variables
-	v = Cvar_FindVar (Cmd_Argv (0));
+	cvar_t *v = Cvar_FindVar (Cmd_Argv (0));
+
 	if (!v)
 		return false;
 
@@ -379,6 +387,7 @@ qboolean Cvar_Command (void)
 	}
 
 	Cvar_Set (v->name, Cmd_Argv (1));
+
 	return true;
 }
 
@@ -392,10 +401,9 @@ Allows setting and defining of arbitrary cvars from console
 */
 void Cvar_Set_f (void)
 {
-	int		c;
+	int		c = Cmd_Argc ();
 	int		flags;
 
-	c = Cmd_Argc ();
 	if (c != 3 && c != 4)
 	{
 		Com_Printf ("usage: set <variable> <value> [u / s]\n");
@@ -413,10 +421,10 @@ void Cvar_Set_f (void)
 			Com_Printf ("flags can only be 'u' or 's'\n");
 			return;
 		}
+
 		Cvar_FullSet (Cmd_Argv (1), Cmd_Argv (2), flags);
 	}
-	else
-		Cvar_Set (Cmd_Argv (1), Cmd_Argv (2));
+	else Cvar_Set (Cmd_Argv (1), Cmd_Argv (2));
 }
 
 
@@ -432,9 +440,8 @@ void Cvar_WriteVariables (char *path)
 {
 	cvar_t	*var;
 	char	buffer[1024];
-	FILE	*f;
+	FILE	*f = fopen (path, "a");
 
-	f = fopen (path, "a");
 	for (var = cvar_vars; var; var = var->next)
 	{
 		if (var->flags & CVAR_ARCHIVE)
@@ -443,8 +450,10 @@ void Cvar_WriteVariables (char *path)
 			fprintf (f, "%s", buffer);
 		}
 	}
+
 	fclose (f);
 }
+
 
 /*
 ============
@@ -455,31 +464,31 @@ Cvar_List_f
 void Cvar_List_f (void)
 {
 	cvar_t	*var;
-	int		i;
+	int		i = 0;
 
-	i = 0;
 	for (var = cvar_vars; var; var = var->next, i++)
 	{
 		if (var->flags & CVAR_ARCHIVE)
 			Com_Printf ("*");
-		else
-			Com_Printf (" ");
+		else Com_Printf (" ");
+
 		if (var->flags & CVAR_USERINFO)
 			Com_Printf ("U");
-		else
-			Com_Printf (" ");
+		else Com_Printf (" ");
+
 		if (var->flags & CVAR_SERVERINFO)
 			Com_Printf ("S");
-		else
-			Com_Printf (" ");
+		else Com_Printf (" ");
+
 		if (var->flags & CVAR_NOSET)
 			Com_Printf ("-");
 		else if (var->flags & CVAR_LATCH)
 			Com_Printf ("L");
-		else
-			Com_Printf (" ");
+		else Com_Printf (" ");
+
 		Com_Printf (" %s \"%s\"\n", var->name, var->string);
 	}
+
 	Com_Printf ("%i cvars\n", i);
 }
 
@@ -487,7 +496,7 @@ void Cvar_List_f (void)
 qboolean userinfo_modified;
 
 
-char	*Cvar_BitInfo (int bit)
+char *Cvar_BitInfo (int bit)
 {
 	static char	info[MAX_INFO_STRING];
 	cvar_t	*var;
@@ -495,24 +504,24 @@ char	*Cvar_BitInfo (int bit)
 	info[0] = 0;
 
 	for (var = cvar_vars; var; var = var->next)
-	{
 		if (var->flags & bit)
 			Info_SetValueForKey (info, var->name, var->string);
-	}
+
 	return info;
 }
 
 // returns an info string containing all the CVAR_USERINFO cvars
-char	*Cvar_Userinfo (void)
+char *Cvar_Userinfo (void)
 {
 	return Cvar_BitInfo (CVAR_USERINFO);
 }
 
 // returns an info string containing all the CVAR_SERVERINFO cvars
-char	*Cvar_Serverinfo (void)
+char *Cvar_Serverinfo (void)
 {
 	return Cvar_BitInfo (CVAR_SERVERINFO);
 }
+
 
 /*
 ============
@@ -525,5 +534,5 @@ void Cvar_Init (void)
 {
 	Cmd_AddCommand ("set", Cvar_Set_f);
 	Cmd_AddCommand ("cvarlist", Cvar_List_f);
-
 }
+

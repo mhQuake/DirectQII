@@ -281,6 +281,7 @@ CVARS (console variables)
 #define	CVAR_NOSET		8	// don't allow change from console at all, but can be set from the command line
 #define	CVAR_LATCH		16	// save changes until server restart
 #define CVAR_CHEAT		32	// cheating cvar, disallow sets in MP games
+#define CVAR_VIDEO		64	// cvar needs a vid_restart to take effect
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s

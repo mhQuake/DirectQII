@@ -326,7 +326,6 @@ typedef struct glwstate_s
 glwstate_t glw_state;
 
 extern cvar_t *vid_fullscreen;
-extern cvar_t *vid_ref;
 
 static qboolean VerifyDriver (void)
 {

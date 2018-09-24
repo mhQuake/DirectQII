@@ -141,7 +141,6 @@ cvar_t	*gl_lockpvs;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
-cvar_t	*vid_ref;
 
 cvar_t	*vid_width;
 cvar_t	*vid_height;
@@ -604,25 +603,6 @@ void R_RenderFrame (refdef_t *fd)
 
 	// go back to 2d mode
 	R_Set2DMode ();
-}
-
-
-/*
-===============
-R_BeginFrame
-===============
-*/
-void R_BeginFrame (void)
-{
-	// change modes if necessary
-	if (vid_mode->modified || vid_fullscreen->modified)
-	{
-		// FIXME: only restart if CDS is required
-		cvar_t	*ref = ri.Cvar_Get ("vid_ref", "gl", 0);
-		ref->modified = true;
-	}
-
-	GLimp_BeginFrame ();
 }
 
 

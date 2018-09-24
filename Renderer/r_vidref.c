@@ -22,8 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 void VID_ScaleVidDef (viddef_t *vd, int w, int h);
 
-extern cvar_t *vid_fullscreen;
-extern cvar_t *vid_ref;
 
 void R_Register (void)
 {
@@ -37,18 +35,17 @@ void R_Register (void)
 
 	r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0);
 
-	vid_mode = ri.Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE);
+	vid_mode = ri.Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE | CVAR_VIDEO);
 	gl_finish = ri.Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE);
 	gl_clear = ri.Cvar_Get ("gl_clear", "0", 0);
 	gl_polyblend = ri.Cvar_Get ("gl_polyblend", "1", 0);
 	gl_lockpvs = ri.Cvar_Get ("gl_lockpvs", "0", 0);
 
-	vid_fullscreen = ri.Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);
+	vid_fullscreen = ri.Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE | CVAR_VIDEO);
 	vid_gamma = ri.Cvar_Get ("vid_gamma", "1.0", CVAR_ARCHIVE);
-	vid_ref = ri.Cvar_Get ("vid_ref", "gl", CVAR_ARCHIVE);
 
-	vid_width = ri.Cvar_Get ("vid_width", "640", CVAR_ARCHIVE);
-	vid_height = ri.Cvar_Get ("vid_height", "480", CVAR_ARCHIVE);
+	vid_width = ri.Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
+	vid_height = ri.Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
 
 	ri.Cmd_AddCommand ("screenshot", GL_ScreenShot_f);
 	ri.Cmd_AddCommand ("modellist", Mod_Modellist_f);
@@ -238,7 +235,7 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.Shutdown = R_Shutdown;
 
 	re.CinematicSetPalette = R_SetCinematicPalette;
-	re.BeginFrame = R_BeginFrame;
+	re.BeginFrame = GLimp_BeginFrame;
 	re.EndFrame = GLimp_EndFrame;
 
 	re.AppActivate = GLimp_AppActivate;

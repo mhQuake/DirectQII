@@ -1707,8 +1707,7 @@ void CL_Frame (int msec)
 	// predict all unacknowledged movements
 	CL_PredictMovement ();
 
-	// allow rendering DLL change
-	VID_CheckChanges ();
+	// do one-time stuff if necessary
 	if (!cl.refresh_prepped && cls.state == ca_active)
 		CL_PrepRefresh ();
 

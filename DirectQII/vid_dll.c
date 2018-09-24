@@ -32,7 +32,6 @@ refexport_t	re;
 
 // Console variables that we need to access from this module
 cvar_t		*vid_gamma;
-cvar_t		*vid_ref;			// Name of Refresh DLL loaded
 cvar_t		*vid_xpos;			// X coordinate of window position
 cvar_t		*vid_ypos;			// Y coordinate of window position
 cvar_t		*vid_fullscreen;
@@ -241,20 +240,6 @@ LONG WINAPI MainWndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc (hWnd, uMsg, wParam, lParam);
 }
 
-/*
-============
-VID_Restart_f
-
-Console command to re-start the video mode and refresh DLL. We do this
-simply by setting the modified flag for the vid_ref variable, which will
-cause the entire video mode and refresh DLL to be reset on the next frame.
-============
-*/
-void VID_Restart_f (void)
-{
-	vid_ref->modified = true;
-}
-
 
 void VID_Front_f (void)
 {
@@ -398,42 +383,29 @@ qboolean VID_LoadRefresh (void)
 
 /*
 ============
-VID_CheckChanges
+VID_ResetMode
 
 This function gets called once just before drawing each frame, and it's sole purpose in life
 is to check to see if any of the video mode parameters have changed, and if they have to
 update the rendering DLL and/or video mode to match.
 ============
 */
-void VID_CheckChanges (void)
+void VID_ResetMode (void)
 {
-	if (vid_ref->modified)
+	// can't use a paused refdef
+	cl.force_refdef = true;
+
+	// don't loop sounds while resetting
+	S_StopAllSounds ();
+
+	// refresh has changed
+	cl.refresh_prepped = false;
+	cls.disable_screen = true;
+
+	if (!VID_LoadRefresh ())
 	{
-		cl.force_refdef = true;		// can't use a paused refdef
-		S_StopAllSounds ();
-	}
-
-	while (vid_ref->modified)
-	{
-		// refresh has changed
-		vid_ref->modified = false;
-		vid_fullscreen->modified = true;
-		cl.refresh_prepped = false;
-		cls.disable_screen = true;
-
-		if (!VID_LoadRefresh ())
-		{
-			if (strcmp (vid_ref->string, "soft") == 0)
-				Com_Error (ERR_FATAL, "Couldn't fall back to software refresh!");
-
-			Cvar_Set ("vid_ref", "soft");
-
-			// drop the console if we fail to load a refresh
-			if (cls.key_dest != key_console)
-				Con_ToggleConsole_f ();
-		}
-
-		cls.disable_screen = false;
+		Com_Error (ERR_FATAL, "VID_LoadRefresh failed!");
+		return;
 	}
 
 	// update our window position
@@ -445,6 +417,12 @@ void VID_CheckChanges (void)
 		vid_xpos->modified = false;
 		vid_ypos->modified = false;
 	}
+
+	// bring the screen to topmost, which seems a safe assumption after resetting the mode
+	VID_Front_f ();
+
+	// we can draw on the screen now
+	cls.disable_screen = false;
 }
 
 /*
@@ -454,24 +432,22 @@ VID_Init
 */
 void VID_Init (void)
 {
-	/* Create the video variables so we know how to start the graphics drivers */
-	vid_ref = Cvar_Get ("vid_ref", "gl", CVAR_ARCHIVE);
+	// Create the video variables so we know how to start the graphics drivers
 	vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
 	vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
-	vid_fullscreen = Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);
+	vid_fullscreen = Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE | CVAR_VIDEO);
 	vid_gamma = Cvar_Get ("vid_gamma", "1", CVAR_ARCHIVE);
 
-	vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE);
-	vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE);
+	vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
+	vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
 
-	/* Add some console commands that we want to handle */
-	Cmd_AddCommand ("vid_restart", VID_Restart_f);
+	// Add some console commands that we want to handle
+	Cmd_AddCommand ("vid_restart", VID_ResetMode);
 	Cmd_AddCommand ("vid_front", VID_Front_f);
 	Cmd_AddCommand ("centerwindow", VID_CenterWindow_f);
 
-	/* Start the graphics mode and load refresh DLL */
-	vid_ref->modified = true;
-	VID_CheckChanges ();
+	// Start the graphics mode and load refresh DLL
+	VID_ResetMode ();
 }
 
 
