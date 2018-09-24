@@ -21,7 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // qcommon.h -- definitions common between client and server, but not game.dll
 
 #include "q_shared.h"
+#include "qfiles.h"
 
+// stuff in the renderer should not access these functions
+#ifndef RENDERER_LIBRARY
 
 #define	VERSION		3.19
 
@@ -622,8 +625,6 @@ CMODEL
 */
 
 
-#include "qfiles.h"
-
 cmodel_t	*CM_LoadMap (char *name, qboolean clientload, unsigned *checksum);
 cmodel_t	*CM_InlineModel (char *name);	// *1, *2, etc
 
@@ -813,5 +814,5 @@ void SV_Init (void);
 void SV_Shutdown (char *finalmsg, qboolean reconnect);
 void SV_Frame (int msec);
 
-
+#endif
 

@@ -429,6 +429,9 @@ qboolean VID_LoadRefresh (void)
 		Com_Error (ERR_FATAL, "refresh has incompatible api_version");
 	}
 
+	// enumerate the video modes before bringing stuff on so that we have a valid list of modes before we create the window, device or swapchain
+	re.EnumerateVideoModes ();
+
 	if (re.Init (global_hInstance, MainWndProc) == -1)
 	{
 		re.Shutdown ();

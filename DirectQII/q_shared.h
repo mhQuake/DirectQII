@@ -231,7 +231,7 @@ SYSTEM SPECIFIC
 // note - the intent is clearly that this be only called once per-frame and then everything can advance with the same view of time
 extern	int	sys_currmsec;
 
-int		Sys_Milliseconds (void);
+int Sys_Milliseconds (void);
 void Sys_Mkdir (char *path);
 
 

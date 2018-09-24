@@ -180,7 +180,7 @@ typedef struct refexport_s
 	void (*EndFrame) (int syncinterval);
 
 	void (*AppActivate)(qboolean activate);
-
+	void (*EnumerateVideoModes) (void);
 } refexport_t;
 
 // these are the functions imported by the refresh module

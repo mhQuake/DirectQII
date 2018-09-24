@@ -195,6 +195,8 @@ void Draw_Pic (int x, int y, char *name);
 void Draw_Char (int x, int y, int c);
 void Draw_Fill (int x, int y, int w, int h, int c);
 void Draw_FadeScreen (void);
+void D_EnumerateVideoModes (void);
+
 
 /*
 ===============
@@ -239,6 +241,7 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.EndFrame = GLimp_EndFrame;
 
 	re.AppActivate = GLimp_AppActivate;
+	re.EnumerateVideoModes = D_EnumerateVideoModes;
 
 	Swap_Init ();
 

@@ -57,6 +57,175 @@ ID3D11RenderTargetView *d3d_RenderTarget = NULL;
 ID3D11DepthStencilView *d3d_DepthBuffer = NULL;
 
 
+/*
+=========================================================================================================================================================================
+
+VIDEO MODE ENUMERATION AND MANAGEMENT
+
+Video modes are stored as an array of DXGI_MODE_DESC.
+Video modes are NOT exposed outside of the renderer; if information about a mode is needed, a getter function will return it by modenum.
+
+=========================================================================================================================================================================
+*/
+
+
+DXGI_MODE_DESC *d3d_VideoModes;
+int d3d_NumVideoModes = 0;
+
+
+int D_TryEnumerateModes (IDXGIOutput *output, DXGI_MODE_DESC **ModeList, DXGI_FORMAT fmt)
+{
+	UINT NumModes = 0;
+	const UINT EnumFlags = (DXGI_ENUM_MODES_SCALING | DXGI_ENUM_MODES_INTERLACED);
+
+	// get modes on this adapter (note this is called twice per design) - note that the first time ModeList must be NULL or it will return 0 modes
+	if (SUCCEEDED (output->lpVtbl->GetDisplayModeList (output, fmt, EnumFlags, &NumModes, NULL)))
+	{
+		*ModeList = (DXGI_MODE_DESC *) ri.Load_AllocMemory (sizeof (DXGI_MODE_DESC) * NumModes);
+
+		if (SUCCEEDED (output->lpVtbl->GetDisplayModeList (output, fmt, EnumFlags, &NumModes, *ModeList)))
+			return NumModes;
+		else return 0;
+	}
+	else return 0;
+}
+
+
+IDXGIOutput *D_GetOutput (IDXGIAdapter *d3d_Adapter)
+{
+	int i;
+
+	for (i = 0; ; i++)
+	{
+		IDXGIOutput *d3d_Output = NULL;
+		DXGI_OUTPUT_DESC Desc;
+
+		if ((d3d_Adapter->lpVtbl->EnumOutputs (d3d_Adapter, i, &d3d_Output)) == DXGI_ERROR_NOT_FOUND) break;
+
+		if (FAILED (d3d_Output->lpVtbl->GetDesc (d3d_Output, &Desc)))
+		{
+			SAFE_RELEASE (d3d_Output);
+			continue;
+		}
+
+		if (!Desc.AttachedToDesktop)
+		{
+			SAFE_RELEASE (d3d_Output);
+			continue;
+		}
+
+		if (Desc.Rotation == DXGI_MODE_ROTATION_ROTATE90 || Desc.Rotation == DXGI_MODE_ROTATION_ROTATE180 || Desc.Rotation == DXGI_MODE_ROTATION_ROTATE270)
+		{
+			SAFE_RELEASE (d3d_Output);
+			continue;
+		}
+
+		// this is a valid output now
+		return d3d_Output;
+	}
+
+	// not found
+	return NULL;
+}
+
+
+void D_EnumerateVideoModes (void)
+{
+	int i, j;
+	IDXGIFactory *pFactory = NULL;
+	IDXGIOutput *d3d_Output = NULL;
+	IDXGIAdapter *d3d_Adapter = NULL;
+	UINT NumModes = 0;
+	DXGI_MODE_DESC *EnumModes = NULL;
+
+	// fixme - enum these properly
+	if (FAILED (CreateDXGIFactory (&IID_IDXGIFactory, (void **) &pFactory)))
+		Sys_Error ("D_EnumerateVideoModes : CreateDXGIFactory failed");
+
+	if ((pFactory->lpVtbl->EnumAdapters (pFactory, 0, &d3d_Adapter)) == DXGI_ERROR_NOT_FOUND)
+		Sys_Error ("D_EnumerateVideoModes : IDXGIFactory failed to enumerate Adapter 0");
+
+	if ((d3d_Output = D_GetOutput (d3d_Adapter)) == NULL)
+		Sys_Error ("D_EnumerateVideoModes : IDXGIFactory failed to enumerate Outputs on Adapter 0");
+
+	// enumerate the modes, starting at mode 1 because mode 0 is the windowed mode
+	if ((NumModes = D_TryEnumerateModes (d3d_Output, &EnumModes, DXGI_FORMAT_R8G8B8A8_UNORM)) == 0)
+		Sys_Error ("D_EnumerateVideoModes : Failed to enumerate any 32bpp modes!");
+
+	// make sure our objects are properly killed
+	SAFE_RELEASE (d3d_Output);
+	SAFE_RELEASE (d3d_Adapter);
+	SAFE_RELEASE (pFactory);
+
+	// allocating this properly rather than using a big static array with an arbitrary upper bound that some day won't be enough
+	// this may still be too much but it will never be too little
+	d3d_VideoModes = (DXGI_MODE_DESC *) ri.Zone_Alloc (sizeof (DXGI_MODE_DESC) * NumModes);
+
+	// cleanup the modes by removing unspecified modes where a specified option or options exists, then copy them out to the final array
+	for (i = 0, d3d_NumVideoModes = 0; i < NumModes; i++)
+	{
+		DXGI_MODE_DESC *mode = &EnumModes[i];
+		BOOL deadmode = FALSE;
+
+		// don't allow < 640x480 modes
+		if (mode->Width < 640) continue;
+		if (mode->Height < 480) continue;
+
+		if (mode->Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
+		{
+			for (j = 0; j < NumModes; j++)
+			{
+				DXGI_MODE_DESC *mode2 = &EnumModes[j];
+
+				if (mode->Format != mode2->Format) continue;
+				if (mode->Height != mode2->Height) continue;
+				if (mode->RefreshRate.Denominator != mode2->RefreshRate.Denominator) continue;
+				if (mode->RefreshRate.Numerator != mode2->RefreshRate.Numerator) continue;
+				if (mode->ScanlineOrdering != mode2->ScanlineOrdering) continue;
+				if (mode->Width != mode2->Width) continue;
+
+				if (mode2->Scaling != DXGI_MODE_SCALING_UNSPECIFIED)
+				{
+					deadmode = TRUE;
+					break;
+				}
+			}
+		}
+
+		if (mode->ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
+		{
+			for (j = 0; j < NumModes; j++)
+			{
+				DXGI_MODE_DESC *mode2 = &EnumModes[j];
+
+				if (mode->Format != mode2->Format) continue;
+				if (mode->Height != mode2->Height) continue;
+				if (mode->RefreshRate.Denominator != mode2->RefreshRate.Denominator) continue;
+				if (mode->RefreshRate.Numerator != mode2->RefreshRate.Numerator) continue;
+				if (mode->Scaling != mode2->Scaling) continue;
+				if (mode->Width != mode2->Width) continue;
+
+				if (mode2->ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
+				{
+					deadmode = TRUE;
+					break;
+				}
+			}
+		}
+
+		if (deadmode) continue;
+
+		// this is a real mode now - copy it out
+		memcpy (&d3d_VideoModes[d3d_NumVideoModes], &EnumModes[i], sizeof (DXGI_MODE_DESC));
+		d3d_NumVideoModes++;
+	}
+
+	if (d3d_NumVideoModes < 1)
+		ri.Sys_Error (ERR_FATAL, "Failed to enumerate any usable video modes!");
+
+	ri.Load_FreeMemory ();
+}
+
 
 /*
 =========================================================================================================================================================================
@@ -573,6 +742,7 @@ void GLimp_EndFrame (int syncinterval)
 */
 void GLimp_AppActivate (qboolean active)
 {
+	// does DXGI not do this for us????
 	if (active)
 	{
 		SetForegroundWindow (glw_state.hWnd);

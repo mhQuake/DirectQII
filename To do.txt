@@ -19,3 +19,6 @@ gun at fov > 90
 
 upscale pics/charset/numbers (but NOT conback) so that they'll look good at zoomed ortho views
 negative dlights
+
+GLimp_AppActivate - does DXGI not do this for us????
+
