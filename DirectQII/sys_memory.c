@@ -299,8 +299,6 @@ void *Load_AllocMemory (int size)
 void Sys_SetupMemoryRefImports (refimport_t	*ri)
 {
 	// so that we don't have namespace pollution with externing the Hunk_* funcs we register the OS-specific memory allocation functions separately here
-	ri->Zone_Alloc = Z_Alloc;
-
 	ri->Hunk_Alloc = Hunk_Alloc;
 	ri->Hunk_Begin = Hunk_Begin;
 	ri->Hunk_End = Hunk_End;

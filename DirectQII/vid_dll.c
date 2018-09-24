@@ -419,8 +419,14 @@ void VID_ResetMode (void)
 		vid_ypos->modified = false;
 	}
 
-	// bring the screen to topmost, which seems a safe assumption after resetting the mode
-	VID_Front_f ();
+	if (!vid_fullscreen->value)
+	{
+		// center the window, which seems reasonable to do after switching modes
+		VID_CenterWindow_f ();
+
+		// bring the screen to topmost, which seems a safe assumption after resetting the mode
+		VID_Front_f ();
+	}
 
 	// we can draw on the screen now
 	cls.disable_screen = false;

@@ -245,6 +245,18 @@ refexport_t GetRefAPI (refimport_t rimp)
 
 	Swap_Init ();
 
+	// set up the refresh heap for allocations that live as long as the refresh;
+	// first of all, if one existed from a previous refresh, destroy it
+	if (hRefHeap)
+	{
+		HeapDestroy (hRefHeap);
+		hRefHeap = NULL;
+	}
+
+	// now create the new one we're going to use
+	hRefHeap = HeapCreate (0, 0, 0);
+
+	// and done
 	return re;
 }
 

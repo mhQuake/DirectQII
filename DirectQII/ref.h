@@ -203,7 +203,6 @@ typedef struct refexport_s
 // these are the functions imported by the refresh module
 typedef struct refimport_s
 {
-	void *(*Zone_Alloc) (int size);
 	void (*Sys_Error) (int err_level, char *str, ...);
 	void (*SendKeyEvents) (void);
 	void (*Mkdir) (char *path);

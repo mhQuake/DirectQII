@@ -22,7 +22,3 @@ GLimp_AppActivate - does DXGI not do this for us????
 Test video mode stuff with a clean config.
 Link directly to DirectSound instead of using GPA
 
-fixme - zone allocated stuff should be freed when the reflib shuts down
-create a separate heap for the reflib and alloc from that instead!!!
-then just destroy that heap when the reflib is destroyed, recreate it when the reflib is recreated
-

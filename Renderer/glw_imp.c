@@ -40,6 +40,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // this just needs to be included anywhere....
 #pragma comment (lib, "dxguid.lib")
 
+HANDLE hRefHeap;
+
 /*
 =========================================================================================================================================================================
 
@@ -134,8 +136,6 @@ IDXGIOutput *D_GetOutput (IDXGIAdapter *d3d_Adapter)
 
 void D_EnumerateVideoModes (void)
 {
-	// fixme - zone allocated stuff should be freed when the reflib shuts down
-	// create a separate heap for the reflib and alloc from that instead!!!
 	int i, j, biggest;
 	IDXGIFactory *pFactory = NULL;
 	IDXGIOutput *d3d_Output = NULL;
@@ -164,7 +164,7 @@ void D_EnumerateVideoModes (void)
 
 	// allocating this properly rather than using a big static array with an arbitrary upper bound that some day won't be enough
 	// this may still be too much but it will never be too little
-	d3d_VideoModes = (DXGI_MODE_DESC *) ri.Zone_Alloc (sizeof (DXGI_MODE_DESC) * NumModes);
+	d3d_VideoModes = (DXGI_MODE_DESC *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (DXGI_MODE_DESC) * NumModes);
 
 	// cleanup the modes by removing unspecified modes where a specified option or options exists, then copy them out to the final array
 	for (i = 0, d3d_NumVideoModes = 0; i < NumModes; i++)
@@ -228,9 +228,9 @@ void D_EnumerateVideoModes (void)
 	if (d3d_NumVideoModes < 1)
 		ri.Sys_Error (ERR_FATAL, "Failed to enumerate any usable video modes!");
 
-	// init the viddeo mode data - add 1 for current values of vid_width and vid_height if required (may not be)
-	vid_modedata.widths = (int *) ri.Zone_Alloc (sizeof (int) * (d3d_NumVideoModes + 1));
-	vid_modedata.heights = (int *) ri.Zone_Alloc (sizeof (int) * (d3d_NumVideoModes + 1));
+	// init the video mode data - add 1 for current values of vid_width and vid_height if required (may not be)
+	vid_modedata.widths = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (d3d_NumVideoModes + 1));
+	vid_modedata.heights = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (d3d_NumVideoModes + 1));
 	vid_modedata.numwidths = 0;
 	vid_modedata.numheights = 0;
 
@@ -321,7 +321,7 @@ void D_CacheObject (ID3D11DeviceChild *Object, const char *name)
 	else if (NumObjectCache < MAX_OBJECT_CACHE)
 	{
 		ObjectCache[NumObjectCache].Object = Object;
-		ObjectCache[NumObjectCache].name = (char *) ri.Zone_Alloc (strlen (name) + 1);
+		ObjectCache[NumObjectCache].name = (char *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, strlen (name) + 1);
 		strcpy (ObjectCache[NumObjectCache].name, name);
 
 		NumObjectCache++;

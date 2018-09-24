@@ -494,3 +494,7 @@ void R_FreeUnusedAliasBuffers (void);
 void D_MakeAliasBuffers (model_t *mod);
 
 
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// memory
+extern HANDLE hRefHeap;
+
