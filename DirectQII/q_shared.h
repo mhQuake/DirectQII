@@ -351,7 +351,8 @@ COLLISION DETECTION
 #define	SURF_FLOWING	0x40	// scroll towards angle
 #define	SURF_NODRAW		0x80	// don't bother referencing the texture
 
-
+// no lighting of any kind on these surface types
+#define SURF_NOLIGHTMAP (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)
 
 // content masks
 #define	MASK_ALL				(-1)

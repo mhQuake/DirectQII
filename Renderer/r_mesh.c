@@ -680,10 +680,14 @@ qboolean R_AliasLightInteraction (entity_t *e, model_t *mod, dlight_t *dl)
 void R_AliasDlights (entity_t *e, model_t *mod, dmdl_t *hdr, QMATRIX *localMatrix, vec3_t bbox[8])
 {
 	int	i;
-	dlight_t *dl = r_newrefdef.dlights;
 
-	for (i = 0; i < r_newrefdef.num_dlights; i++, dl++)
+	for (i = 0; i < r_newrefdef.num_dlights; i++)
 	{
+		dlight_t *dl = &r_newrefdef.dlights[i];
+
+		// a dl that's been culled will have it's intensity set to 0
+		if (!(dl->intensity > 0)) continue;
+
 		if (R_AliasLightInteraction (e, mod, dl))
 		{
 			float origin[3];

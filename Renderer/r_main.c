@@ -26,6 +26,7 @@ void R_DrawParticles (void);
 void R_DrawBeam (entity_t *e);
 void R_SetupSky (QMATRIX *SkyMatrix);
 void R_SetLightLevel (void);
+void R_PrepareDlights (void);
 
 
 typedef struct mainconstants_s {
@@ -618,6 +619,8 @@ void R_RenderFrame (refdef_t *fd)
 	R_SetupGL ();
 
 	R_MarkLeaves ();	// done here so we know if we're in water
+
+	R_PrepareDlights ();
 
 	if (D_BeginWaterWarp ())
 	{

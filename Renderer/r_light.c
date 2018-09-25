@@ -86,8 +86,7 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 
 	for (i = 0; i < node->numsurfaces; i++, surf++)
 	{
-		if (surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP))
-			continue;	// no lightmaps
+		if (surf->texinfo->flags & SURF_NOLIGHTMAP) continue;	// no lightmaps
 
 		tex = surf->texinfo;
 
@@ -565,11 +564,10 @@ qboolean R_SurfaceDLImpact (msurface_t *surf, dlight_t *dl, float dist)
 }
 
 
-void R_MarkLights (dlight_t *light, int bit, mnode_t *node, int visframe)
+void R_MarkLights (dlight_t *dl, mnode_t *node, int visframe)
 {
 	cplane_t	*splitplane;
 	float		dist;
-	msurface_t	*surf;
 	int			i;
 
 	if (node->contents != -1) return;
@@ -579,45 +577,45 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node, int visframe)
 	if (node->visframe != visframe) return;
 
 	splitplane = node->plane;
-	dist = Vector3Dot (light->origin, splitplane->normal) - splitplane->dist;
+	dist = Vector3Dot (dl->origin, splitplane->normal) - splitplane->dist;
 
-	if (dist > light->intensity - DLIGHT_CUTOFF)
+	if (dist > dl->intensity - DLIGHT_CUTOFF)
 	{
-		R_MarkLights (light, bit, node->children[0], visframe);
+		R_MarkLights (dl, node->children[0], visframe);
 		return;
 	}
 
-	if (dist < -light->intensity + DLIGHT_CUTOFF)
+	if (dist < -dl->intensity + DLIGHT_CUTOFF)
 	{
-		R_MarkLights (light, bit, node->children[1], visframe);
+		R_MarkLights (dl, node->children[1], visframe);
 		return;
 	}
 
 	// mark the polygons
-	surf = node->surfaces;
-
-	for (i = 0; i < node->numsurfaces; i++, surf++)
+	for (i = 0; i < node->numsurfaces; i++)
 	{
+		msurface_t *surf = &node->surfaces[i];
+
 		// no lightmaps on these surface types
-		if (surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)) continue;
+		if (surf->texinfo->flags & SURF_NOLIGHTMAP) continue;
 
 		// omit surfaces not marked in the current render
 		if (surf->dlightframe != r_dlightframecount) continue;
 
 		// test for impact
-		if (R_SurfaceDLImpact (surf, light, dist))
+		if (R_SurfaceDLImpact (surf, dl, dist))
 		{
 			// chain it for lighting
 			surf->texturechain = surf->texinfo->texturechain;
 			surf->texinfo->texturechain = surf;
 
 			// record surfaces in this light
-			light->numsurfaces++;
+			dl->numsurfaces++;
 		}
 	}
 
-	R_MarkLights (light, bit, node->children[0], visframe);
-	R_MarkLights (light, bit, node->children[1], visframe);
+	R_MarkLights (dl, node->children[0], visframe);
+	R_MarkLights (dl, node->children[1], visframe);
 }
 
 
@@ -629,32 +627,35 @@ R_PushDlights
 void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *localmatrix, int visframe)
 {
 	int	i;
-	dlight_t *l = r_newrefdef.dlights;
 
-	for (i = 0; i < r_newrefdef.num_dlights; i++, l++)
+	for (i = 0; i < r_newrefdef.num_dlights; i++)
 	{
 		float origin[3];
+		dlight_t *dl = &r_newrefdef.dlights[i];
+
+		// a dl that's been culled will have it's intensity set to 0
+		if (!(dl->intensity > 0)) continue;
 
 		// copy off the origin, then move the light into entity local space
-		Vector3Copy (origin, l->origin);
-		R_VectorInverseTransform (localmatrix, l->origin, origin);
+		Vector3Copy (origin, dl->origin);
+		R_VectorInverseTransform (localmatrix, dl->origin, origin);
 
 		// no surfaces yet
-		l->numsurfaces = 0;
+		dl->numsurfaces = 0;
 
 		// and mark it
-		R_MarkLights (l, 1 << i, headnode, visframe);
+		R_MarkLights (dl, headnode, visframe);
 
 		// draw anything we got
-		if (l->numsurfaces)
+		if (dl->numsurfaces)
 		{
-			D_SetupDynamicLight (l);
+			D_SetupDynamicLight (dl);
 			R_DrawDlightChains (e, mod, localmatrix);
-			l->numsurfaces = 0;
+			dl->numsurfaces = 0;
 		}
 
 		// restore the origin
-		Vector3Copy (l->origin, origin);
+		Vector3Copy (dl->origin, origin);
 	}
 
 	// go to a new dlight frame after each push so that we don't carry over lights from the previous
@@ -692,4 +693,18 @@ void R_SetLightLevel (void)
 	r_lightlevel->value = 150.0f * best;
 }
 
+
+void R_PrepareDlights (void)
+{
+	// bbcull and other setup for dlights
+	int	i;
+
+	for (i = 0; i < r_newrefdef.num_dlights; i++)
+	{
+		dlight_t *dl = &r_newrefdef.dlights[i];
+
+		if (R_CullSphere (dl->origin, dl->intensity))
+			dl->intensity = 0;
+	}
+}
 
