@@ -11,6 +11,10 @@ GLimp_AppActivate - does DXGI not do this for us????
 
 Test video mode stuff with a clean config.
 Link directly to DirectSound instead of using GPA
+Isolate all DirectSound code in snd_win.c (is this not already done?)
+Remove wave out code
 
 Menu background should be solid black if console is full-screen.
+
+MP3 audio via OST
 
