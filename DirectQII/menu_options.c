@@ -44,7 +44,7 @@ static menulist_s		s_options_lookspring_box;
 static menulist_s		s_options_lookstrafe_box;
 static menulist_s		s_options_crosshair_box;
 static menuslider_s		s_options_sfxvolume_slider;
-static menulist_s		s_options_cdvolume_box;
+static menuslider_s		s_options_cdvolume_slider;
 static menulist_s		s_options_quality_list;
 static menulist_s		s_options_console_action;
 
@@ -76,7 +76,7 @@ static void MouseSpeedFunc (void *unused)
 static void ControlsSetMenuItemValues (void)
 {
 	s_options_sfxvolume_slider.curvalue = Cvar_VariableValue ("s_volume") * 10;
-	s_options_cdvolume_box.curvalue = !Cvar_VariableValue ("cd_nocd");
+	s_options_cdvolume_slider.curvalue = Cvar_VariableValue ("bgmvolume") * 10;
 	s_options_quality_list.curvalue = Cvar_VariableValue ("s_khz") < 22;
 	s_options_sensitivity_slider.curvalue = (sensitivity->value) * 2;
 
@@ -140,7 +140,7 @@ static void UpdateVolumeFunc (void *unused)
 
 static void UpdateCDVolumeFunc (void *unused)
 {
-	Cvar_SetValue ("cd_nocd", !s_options_cdvolume_box.curvalue);
+	Cvar_SetValue ("bgmvolume", s_options_cdvolume_slider.curvalue / 10);
 }
 
 static void ConsoleFunc (void *unused)
@@ -221,13 +221,14 @@ void Options_MenuInit (void)
 	s_options_sfxvolume_slider.maxvalue = 10;
 	s_options_sfxvolume_slider.curvalue = Cvar_VariableValue ("s_volume") * 10;
 
-	s_options_cdvolume_box.generic.type = MTYPE_SPINCONTROL;
-	s_options_cdvolume_box.generic.x = 0;
-	s_options_cdvolume_box.generic.y = 10;
-	s_options_cdvolume_box.generic.name = "CD music";
-	s_options_cdvolume_box.generic.callback = UpdateCDVolumeFunc;
-	s_options_cdvolume_box.itemnames = cd_music_items;
-	s_options_cdvolume_box.curvalue = !Cvar_VariableValue ("cd_nocd");
+	s_options_cdvolume_slider.generic.type = MTYPE_SLIDER;
+	s_options_cdvolume_slider.generic.x = 0;
+	s_options_cdvolume_slider.generic.y = 10;
+	s_options_cdvolume_slider.generic.name = "music volume";
+	s_options_cdvolume_slider.generic.callback = UpdateCDVolumeFunc;
+	s_options_cdvolume_slider.minvalue = 0;
+	s_options_cdvolume_slider.maxvalue = 10;
+	s_options_cdvolume_slider.curvalue = Cvar_VariableValue ("bgmvolume") * 10;
 
 	s_options_quality_list.generic.type = MTYPE_SPINCONTROL;
 	s_options_quality_list.generic.x = 0;
@@ -314,7 +315,7 @@ void Options_MenuInit (void)
 	ControlsSetMenuItemValues ();
 
 	Menu_AddItem (&s_options_menu, (void *) &s_options_sfxvolume_slider);
-	Menu_AddItem (&s_options_menu, (void *) &s_options_cdvolume_box);
+	Menu_AddItem (&s_options_menu, (void *) &s_options_cdvolume_slider);
 	Menu_AddItem (&s_options_menu, (void *) &s_options_quality_list);
 
 	Menu_AddItem (&s_options_menu, (void *) &s_options_sensitivity_slider);

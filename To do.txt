@@ -13,10 +13,10 @@ Test video mode stuff with a clean config.
 
 Menu background should be solid black if console is full-screen.
 
-MP3 audio via OST
-
 Particles to instancing.
-Check out whe ncan we get rid of winquake.h?
+Check out when can we get rid of winquake.h?
+
+s_khz is wrong in the menu.
 
 
 

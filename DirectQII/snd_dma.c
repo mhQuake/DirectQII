@@ -769,9 +769,14 @@ void S_ClearBuffer (void)
 S_StopAllSounds
 ==================
 */
+void CDAudio_Stop (void);
+
 void S_StopAllSounds (void)
 {
 	int		i;
+
+	// this should also stop music
+	CDAudio_Stop ();
 
 	if (!sound_started)
 		return;

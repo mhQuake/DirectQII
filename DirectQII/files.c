@@ -796,6 +796,7 @@ void FS_InitFilesystem (void)
 	// Logically concatenates the cddir after the basedir for 
 	// allows the game to run from outside the data tree
 	fs_cddir = Cvar_Get ("cddir", "", CVAR_NOSET);
+
 	if (fs_cddir->string[0])
 		FS_AddGameDirectory (va ("%s/"BASEDIRNAME, fs_cddir->string));
 
