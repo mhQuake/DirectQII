@@ -114,13 +114,21 @@ qboolean CDAudio_TryPlay (char *track, qboolean looping)
 
 void CDAudio_Play2 (int track, qboolean looping)
 {
-	if (playing)
-	{
-		if (playTrack == track)
-			return;
+	// if the same track is requested, and if it's currently playing, just continue it
+	if (playing && playTrack == track)
+		return;
 
-		// stop whatever is currently playing
+	// stop whatever is currently playing
+	CDAudio_Stop ();
+
+	// get the track from the remap
+	track = remap[track];
+
+	// if it's out of range don't even try (some maps send track 0)
+	if (track < 1 || track > maxTrack)
+	{
 		CDAudio_Stop ();
+		return;
 	}
 
 	// try it from the gamedir.
@@ -128,8 +136,13 @@ void CDAudio_Play2 (int track, qboolean looping)
 	// which case we would have two successive attempts at the same dir, and as the first one failed the
 	// second would be expected to fail too, but that's actually OK...
 	if (!CDAudio_TryPlay (va ("%s/music/track%02i.mp3", FS_Gamedir (), track), looping))
+	{
 		if (!CDAudio_TryPlay (va ("./"BASEDIRNAME"/music/track%02i.mp3", track), looping))
+		{
+			Com_Printf ("failed to play track %i\n", track);
 			return;
+		}
+	}
 
 	// we got something so store them out
 	playLooping = looping;
@@ -296,8 +309,8 @@ LONG CDAudio_MessageHandler (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case MCI_NOTIFY_SUCCESSFUL:
 		if (playing)
 		{
-			CDAudio_Stop ();
-			playing = false;
+			CDAudio_Stop (); // must be done here because of setting playing = false below
+			playing = false; // do this so that the playTrack == track test won't trigger, because we're restarting the same track
 
 			if (playLooping)
 			{
