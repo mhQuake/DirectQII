@@ -124,21 +124,6 @@ void VID_MenuInit (void)
 {
 	int i;
 
-	static const char *resolutions[] =
-	{
-		"[320 240  ]",
-		"[400 300  ]",
-		"[512 384  ]",
-		"[640 480  ]",
-		"[800 600  ]",
-		"[960 720  ]",
-		"[1024 600 ]",
-		"[1152 864 ]",
-		"[1280 960 ]",
-		"[1600 1200]",
-		0
-	};
-
 	static const char *yesno_names[] =
 	{
 		"no",
@@ -155,7 +140,16 @@ void VID_MenuInit (void)
 	if (!scr_viewsize) scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
 
 	// setup current values
-	s_mode_list.curvalue = vid_mode->value;
+	if (vid_mode->value < 1)
+	{
+		for (i = 0; ; i++)
+		{
+			if (!modedata->fsmodes[i]) break;
+			s_mode_list.curvalue = i;
+		}
+	}
+	else s_mode_list.curvalue = vid_mode->value;
+
 	s_screensize_slider.curvalue = scr_viewsize->value / 10;
 
 	if (vid_fullscreen->value)
@@ -197,7 +191,7 @@ void VID_MenuInit (void)
 	s_mode_list.generic.name = "video mode";
 	s_mode_list.generic.x = 0;
 	s_mode_list.generic.y = 20;
-	s_mode_list.itemnames = resolutions;
+	s_mode_list.itemnames = modedata->fsmodes;
 
 	s_width_list.generic.type = MTYPE_NUMBERLIST;
 	s_width_list.generic.name = "width";

@@ -40,6 +40,9 @@ typedef struct vidmenu_s
 
 	int *heights;
 	int numheights;
+
+	char **fsmodes;
+	int numfsmodes;
 } vidmenu_t;
 
 
