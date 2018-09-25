@@ -32,3 +32,4 @@ void IN_Activate (qboolean active);
 
 int IN_MapKey (int key);
 
+

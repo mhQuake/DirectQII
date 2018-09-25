@@ -140,16 +140,17 @@ main window procedure
 ====================
 */
 LONG CDAudio_MessageHandler (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL IN_InputProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 LONG WINAPI MainWndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	// look for input events
+	if (IN_InputProc (hWnd, uMsg, wParam, lParam)) return 0;
+
 	switch (uMsg)
 	{
 	case WM_ERASEBKGND:
 		return 1;
-
-	case WM_HOTKEY:
-		return 0;
 
 	case WM_CREATE:
 		cl_hwnd = hWnd;
@@ -209,26 +210,6 @@ LONG WINAPI MainWndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (wParam == SC_SCREENSAVE)
 			return 0;
 		return DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-	case WM_SYSKEYDOWN:
-		if (wParam == 13)
-		{
-			if (vid_fullscreen)
-			{
-				Cvar_SetValue ("vid_fullscreen", !vid_fullscreen->value);
-			}
-			return 0;
-		}
-
-		// fall through
-	case WM_KEYDOWN:
-		Key_Event (IN_MapKey (lParam), true, sys_msg_time);
-		break;
-
-	case WM_SYSKEYUP:
-	case WM_KEYUP:
-		Key_Event (IN_MapKey (lParam), false, sys_msg_time);
-		break;
 
 	case MM_MCINOTIFY:
 		return CDAudio_MessageHandler (hWnd, uMsg, wParam, lParam);

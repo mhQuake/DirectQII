@@ -145,9 +145,7 @@ static void UpdateCDVolumeFunc (void *unused)
 
 static void ConsoleFunc (void *unused)
 {
-	/*
-	** the proper way to do this is probably to have ToggleConsole_f accept a parameter
-	*/
+	// the proper way to do this is probably to have ToggleConsole_f accept a parameter
 	extern void Key_ClearTyping (void);
 
 	if (cl.attractloop)

@@ -436,3 +436,70 @@ int IN_MapKey (int key)
 	}
 }
 
+
+BOOL IN_InputProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	// windows messaging input
+	switch (uMsg)
+	{
+	case WM_HOTKEY:
+		return TRUE;
+
+	case WM_SYSKEYDOWN:
+		if (wParam == 13)
+		{
+			int fs = Cvar_VariableValue ("vid_fullscreen");
+			Cvar_SetValue ("vid_fullscreen", !fs);
+			return 0;
+		}
+
+		// fall through
+	case WM_KEYDOWN:
+		Key_Event (IN_MapKey (lParam), true, sys_msg_time);
+		return TRUE;
+
+	case WM_SYSKEYUP:
+	case WM_KEYUP:
+		Key_Event (IN_MapKey (lParam), false, sys_msg_time);
+		return TRUE;
+
+	case WM_SYSCHAR:
+		// keep Alt-Space from happening
+		return TRUE;
+
+		// this is complicated because Win32 seems to pack multiple mouse events into
+		// one update sometimes, so we always check all states and look for events
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONDOWN:
+	case WM_MBUTTONUP:
+	case WM_MOUSEMOVE:
+		if (!di_Mouse)
+		{
+			int temp = 0;
+
+			if (wParam & MK_LBUTTON) temp |= 1;
+			if (wParam & MK_RBUTTON) temp |= 2;
+			if (wParam & MK_MBUTTON) temp |= 4;
+
+			IN_MouseEvent (temp);
+		}
+
+		return TRUE;
+
+		// JACK: This is the mouse wheel with the Intellimouse
+		// Its delta is either positive or neg, and we generate the proper
+		// Event.
+	case WM_MOUSEWHEEL:
+		if (!di_Mouse)
+			IN_MouseWheelEvent ((signed int) (short) HIWORD (wParam));
+
+		return TRUE;
+	}
+
+	// not handled
+	return FALSE;
+}
+

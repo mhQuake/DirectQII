@@ -717,6 +717,7 @@ void SCR_TouchPics (void)
 
 		Com_sprintf (crosshair_pic, sizeof (crosshair_pic), "ch%i", (int) (crosshair->value));
 		re.DrawGetPicSize (&crosshair_width, &crosshair_height, crosshair_pic);
+
 		if (!crosshair_width)
 			crosshair_pic[0] = 0;
 	}
