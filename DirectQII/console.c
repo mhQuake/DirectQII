@@ -574,10 +574,9 @@ void Con_DrawConsole (float frac, int alpha)
 	int				rows;
 	char			*text;
 	int				row;
-	int				lines;
 	char			dlbar[1024];
 
-	lines = viddef.conheight * frac;
+	int lines = viddef.conheight * frac;
 
 	if (alpha <= 0) return;
 	if (lines <= 0) return;

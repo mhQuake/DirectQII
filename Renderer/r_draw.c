@@ -398,8 +398,8 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 	// free any memory we may have used for loading it
 	ri.Load_FreeMemory ();
 
-	// clear out the background
-	Draw_ColouredQuad (0, 0, vid.conwidth, vid.conheight, 0x00000000);
+	// clear out the background (ensuring full alpha)
+	Draw_ColouredQuad (0, 0, vid.conwidth, vid.conheight, 0xff000000);
 
 	// stretch up the pic to fill the viewport while still maintaining aspect
 	w = vid.conwidth;

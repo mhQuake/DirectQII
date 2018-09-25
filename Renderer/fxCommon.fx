@@ -120,9 +120,10 @@ float4 GetGamma (float4 colorin)
 float4 GetFinalLighting (float4 diff, float3 lmap, float AlphaVal)
 {
 	// the topmost bit of precision was tossed out in stock GLQ2 so here we reuse it as an additive term in the final lighting
-	// keep this consistent across different object types
-	float3 luma = max (diff.rgb - 0.5f, 0.0f);
-	return float4 (diff.rgb * lmap + luma, diff.a * AlphaVal);
+	// keeping this consistent across different object types
+	float3 luma = max (diff.rgb - 0.5f, 0.0f) * 2.0f;
+	luma = diff.rgb * dot (luma, float3 (0.2126f, 0.7152f, 0.0722f));
+	return float4 (max (diff.rgb * lmap, luma), diff.a * AlphaVal);
 }
 
 // common to mesh and surf
