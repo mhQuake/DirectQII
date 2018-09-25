@@ -69,9 +69,8 @@ to start a download from the server.
 qboolean CL_CheckOrDownloadFile (char *filename)
 {
 	FILE *fp;
-	char	name[MAX_OSPATH];
+	char name[MAX_OSPATH];
 
-	// some of the baseq2 skins contain this so do the loadfile test first here
 	if (FS_LoadFile (filename, NULL) != -1)
 	{
 		// it exists, no need to download

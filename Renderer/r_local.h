@@ -358,8 +358,8 @@ void D_SetPixelShader (ID3D11PixelShader *ps);
 void D_BindShaderBundle (int sb);
 void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot);
 void D_BindConstantBuffers (void);
-void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, float alphaval, int rflags);
-
+void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, int rflags);
+void R_UpdateAlpha (float alphaval);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // states

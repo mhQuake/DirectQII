@@ -758,7 +758,7 @@ void R_DrawAliasModel (entity_t *e)
 			D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSReverseCull);
 		else D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSFullCull);
 
-		R_UpdateEntityConstants (&localmatrix, NULL, e->alpha, e->flags);
+		R_UpdateAlpha (e->alpha);
 	}
 	else
 	{
@@ -766,8 +766,10 @@ void R_DrawAliasModel (entity_t *e)
 			D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, d3d_RSReverseCull);
 		else D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, d3d_RSFullCull);
 
-		R_UpdateEntityConstants (&localmatrix, NULL, 1.0f, e->flags);
+		R_UpdateAlpha (1);
 	}
+
+	R_UpdateEntityConstants (&localmatrix, NULL, e->flags);
 
 	// set up our mesh constants
 	R_LightAliasModel (e, &consts);

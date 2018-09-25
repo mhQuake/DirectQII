@@ -6,7 +6,9 @@ Split out mmdl_t from dmdl_t, remove offsets and replace with pointers, don't st
 models/monsters/tank/../ctank/skin.pcx
 models/monsters/ctank/skin.pcx
 
-models/monsters/tank/../ctank/pain.pcx
+models/monsters
+/tank/../ctank/pain.pcx
+0123456789
 
 Find out where they're coming from and either fix it or put in a workaround.
 these are stored in the model skins and can't be removed without editing the model; content bug.

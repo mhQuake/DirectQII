@@ -25,7 +25,6 @@ cbuffer cbMainPerFrame : register(b1) {
 cbuffer cbPerObject : register(b2) {
 	matrix LocalMatrix : packoffset(c0);
 	float3 ShadeColor : packoffset(c4.x); // for non-mesh objects that use a colour (beams/null models/etc)
-	float AlphaVal : packoffset(c4.w);
 };
 
 cbuffer cbPerMesh : register(b3) {
@@ -44,6 +43,10 @@ cbuffer cbPerLight : register(b4) {
 	float3 LightColour : packoffset(c1.x);
 };
 
+// now, if D3D11 had, say, 256 standalone constant registers suitable for pushing single floats to, this wouldn't be needed
+cbuffer cbAlphaVal : register(b5) {
+	float AlphaVal : packoffset(c0.x);
+};
 
 // common to mesh and surf
 struct PS_DYNAMICLIGHT {

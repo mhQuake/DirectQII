@@ -43,13 +43,17 @@ typedef struct mainconstants_s {
 
 typedef struct entityconstants_s {
 	QMATRIX localMatrix;
-	float shadecolor[3];
-	float alphaVal;
+	float shadecolor[4]; // padded for cbuffer packing
 } entityconstants_t;
 
+typedef struct alphaconstants_s {
+	float alphaVal;
+	float junk[3];
+} alphaconstants_t;
 
 ID3D11Buffer *d3d_MainConstants = NULL;
 ID3D11Buffer *d3d_EntityConstants = NULL;
+ID3D11Buffer *d3d_AlphaConstants = NULL;
 
 int d3d_PolyblendShader = 0;
 
@@ -73,11 +77,22 @@ void R_InitMain (void)
 		0
 	};
 
+	D3D11_BUFFER_DESC cbAlphaDesc = {
+		sizeof (alphaconstants_t),
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_CONSTANT_BUFFER,
+		0,
+		0,
+		0
+	};
+
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbMainDesc, NULL, &d3d_MainConstants);
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbEntityDesc, NULL, &d3d_EntityConstants);
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbAlphaDesc, NULL, &d3d_AlphaConstants);
 
 	D_RegisterConstantBuffer (d3d_MainConstants, 1);
 	D_RegisterConstantBuffer (d3d_EntityConstants, 2);
+	D_RegisterConstantBuffer (d3d_AlphaConstants, 5);
 
 	d3d_PolyblendShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawPolyblendVS", "DrawPolyblendPS", batch_standard);
 }
@@ -147,7 +162,7 @@ cvar_t	*vid_height;
 cvar_t	*vid_vsync;
 
 
-void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, float alphaval, int rflags)
+void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, int rflags)
 {
 	entityconstants_t consts;
 
@@ -178,11 +193,26 @@ void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, float alphaval
 		Vector3Copy (consts.shadecolor, color);
 	else Vector3Set (consts.shadecolor, 1, 1, 1);
 
-	// other stuff
-	consts.alphaVal = alphaval;
-
 	// and update to the cbuffer
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_EntityConstants, 0, NULL, &consts, 0, 0);
+}
+
+
+void R_UpdateAlpha (float alphaval)
+{
+	static float oldalpha = 0.0f;
+
+	if (alphaval != oldalpha)
+	{
+		alphaconstants_t consts;
+
+		// store it off
+		consts.alphaVal = alphaval;
+
+		// and update to the cbuffer
+		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_AlphaConstants, 0, NULL, &consts, 0, 0);
+		oldalpha = alphaval;
+	}
 }
 
 

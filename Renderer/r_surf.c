@@ -211,7 +211,8 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 	msurface_t	*surf;
 
 	// and now set it up
-	R_UpdateEntityConstants (localmatrix, NULL, alphaval, 0);
+	R_UpdateEntityConstants (localmatrix, NULL, 0);
+	R_UpdateAlpha (alphaval);
 
 	D_BindVertexBuffer (0, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
 	D_BindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
@@ -318,6 +319,7 @@ void R_DrawAlphaSurfaces (void)
 	D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSNoCull);
 	D_BindVertexBuffer (0, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
 	D_BindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
+	R_UpdateEntityConstants (&localMatrix, NULL, 0);
 
 	for (s = r_alpha_surfaces; s; s = s->texturechain)
 	{
@@ -330,7 +332,7 @@ void R_DrawAlphaSurfaces (void)
 		if (thisalpha != lastalpha)
 		{
 			R_EndSurfaceBatch ();
-			R_UpdateEntityConstants (&localMatrix, NULL, thisalpha, 0); // there must be a better way of pushing an alpha value
+			R_UpdateAlpha (thisalpha);
 			lastalpha = thisalpha;
 		}
 

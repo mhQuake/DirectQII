@@ -183,15 +183,16 @@ void R_DrawBeam (entity_t *e)
 
 	if (e->alpha < 1)
 	{
-		R_UpdateEntityConstants (&localmatrix, color, e->alpha, 0);
+		R_UpdateAlpha (e->alpha);
 		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSFullCull);
 	}
 	else
 	{
-		R_UpdateEntityConstants (&localmatrix, color, 1, 0);
+		R_UpdateAlpha (1);
 		D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, d3d_RSFullCull);
 	}
 
+	R_UpdateEntityConstants (&localmatrix, color, 0);
 	D_BindShaderBundle (d3d_BeamShader);
 
 	if (r_beamdetail->modified)
