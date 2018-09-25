@@ -671,7 +671,7 @@ static qboolean R_CullAliasModel (vec3_t bbox[8], entity_t *e)
 qboolean R_AliasLightInteraction (entity_t *e, model_t *mod, dlight_t *dl)
 {
 	// fixme - do a proper sphere/box test
-	if ((dl->intensity - Vector3Dist (e->currorigin, dl->origin)) > 0)
+	if ((dl->intensity - Vector3Dist (e->currorigin, dl->origin)) > -64)
 		return true;
 	else return false;
 }

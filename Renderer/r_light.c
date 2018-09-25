@@ -24,8 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // starting the count at 1 so that a memset-0 doesn't mark surfaces
 int	r_dlightframecount = 1;
 
-#define	DLIGHT_CUTOFF	64
-
 
 /*
 =============================================================================
@@ -579,13 +577,13 @@ void R_MarkLights (dlight_t *dl, mnode_t *node, int visframe)
 	splitplane = node->plane;
 	dist = Vector3Dot (dl->origin, splitplane->normal) - splitplane->dist;
 
-	if (dist > dl->intensity - DLIGHT_CUTOFF)
+	if (dist > dl->intensity)
 	{
 		R_MarkLights (dl, node->children[0], visframe);
 		return;
 	}
 
-	if (dist < -dl->intensity + DLIGHT_CUTOFF)
+	if (dist < -dl->intensity)
 	{
 		R_MarkLights (dl, node->children[1], visframe);
 		return;
