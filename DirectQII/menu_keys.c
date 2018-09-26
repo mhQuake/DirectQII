@@ -18,8 +18,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include <ctype.h>
-#include <io.h>
 #include "client.h"
 #include "qmenu.h"
 
@@ -30,37 +28,40 @@ KEYS MENU
 
 =======================================================================
 */
-char *bindnames[][2] =
-{
-	{"+attack", "attack"},
-	{"weapnext", "next weapon"},
-	{"weapprev", "previous weapon"},
-	{"+forward", "walk forward"},
-	{"+back", "backpedal"},
-	{"+left", "turn left"},
-	{"+right", "turn right"},
-	{"+speed", "run"},
-	{"+moveleft", "step left"},
-	{"+moveright", "step right"},
-	{"+strafe", "sidestep"},
-	{"+moveup", "up / jump"},
-	{"+movedown", "down / crouch"},
+typedef struct keybind_s {
+	char *command;
+	char *bindname;
+	qboolean separator_after;
+	int y;
+} keybind_t;
 
-	{"inven", "inventory"},
-	{"invuse", "use item"},
-	{"invdrop", "drop item"},
-	{"invprev", "prev item"},
-	{"invnext", "next item"},
-
-	{"cmd help", "help computer"},
-	{0, 0}
+keybind_t keybinds[] = {
+	{"+attack", "attack", false},
+	{"weapnext", "next weapon", false},
+	{"weapprev", "prev weapon", true},
+	{"+forward", "walk forward", false},
+	{"+back", "backpedal", false},
+	{"+left", "turn left", false},
+	{"+right", "turn right", false},
+	{"+speed", "run", false},
+	{"+moveleft", "step left", false},
+	{"+moveright", "step right", true},
+	{"+moveup", "up / jump", false},
+	{"+movedown", "down / crouch", true},
+	{"inven", "inventory", false},
+	{"invuse", "use item", false},
+	{"invdrop", "drop item", false},
+	{"invprev", "prev item", false},
+	{"invnext", "next item", true},
+	{"cmd help", "help computer", false},
+	{NULL, NULL}
 };
 
 
-static menuaction_s s_keys_item[sizeof (bindnames) / sizeof (bindnames[0])];
+static menuaction_s s_keys_item[sizeof (keybinds) / sizeof (keybinds[0])];
 
 int	keys_cursor;
-static menuframework_s	s_keys_menu;
+static menuframework_s s_keys_menu;
 
 static void M_UnbindCommand (char *command)
 {
@@ -77,6 +78,7 @@ static void M_UnbindCommand (char *command)
 			Key_SetBinding (j, "");
 	}
 }
+
 
 static void M_FindKeysForCommand (char *command, int *twokeys)
 {
@@ -104,37 +106,36 @@ static void M_FindKeysForCommand (char *command, int *twokeys)
 	}
 }
 
+
 static void KeyCursorDrawFunc (menuframework_s *menu)
 {
+	//int y = menu->y + menu->cursor * 10;
+	int y = menu->y + keybinds[menu->cursor].y;
+
 	if (cls.bind_grab)
-		re.DrawChar (menu->x, menu->y + menu->cursor * 10, '=');
+		re.DrawChar (menu->x, y, '=');
 	else
-		re.DrawChar (menu->x, menu->y + menu->cursor * 10, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
+		re.DrawChar (menu->x, y, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
 
 	re.DrawString ();
 }
+
 
 static void DrawKeyBindingFunc (void *self)
 {
 	int keys[2];
 	menuaction_s *a = (menuaction_s *) self;
 
-	M_FindKeysForCommand (bindnames[a->generic.localdata[0]][0], keys);
+	M_FindKeysForCommand (keybinds[a->generic.localdata[0]].command, keys);
 
 	if (keys[0] == -1)
-	{
 		Menu_DrawString (a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y, "???");
-	}
 	else
 	{
-		int x;
-		const char *name;
-
-		name = Key_KeynumToString (keys[0]);
+		const char *name = Key_KeynumToString (keys[0]);
+		int x = strlen (name) * 8;
 
 		Menu_DrawString (a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y, name);
-
-		x = strlen (name) * 8;
 
 		if (keys[1] != -1)
 		{
@@ -144,15 +145,16 @@ static void DrawKeyBindingFunc (void *self)
 	}
 }
 
+
 static void KeyBindingFunc (void *self)
 {
 	menuaction_s *a = (menuaction_s *) self;
 	int keys[2];
 
-	M_FindKeysForCommand (bindnames[a->generic.localdata[0]][0], keys);
+	M_FindKeysForCommand (keybinds[a->generic.localdata[0]].command, keys);
 
 	if (keys[1] != -1)
-		M_UnbindCommand (bindnames[a->generic.localdata[0]][0]);
+		M_UnbindCommand (keybinds[a->generic.localdata[0]].command);
 
 	cls.bind_grab = true;
 
@@ -169,21 +171,25 @@ static void Keys_MenuInit (void)
 	s_keys_menu.nitems = 0;
 	s_keys_menu.cursordraw = KeyCursorDrawFunc;
 
-	for (i = 0; ; i++, y += 10)
+	for (i = 0; ; i++)
 	{
 		// no more
-		if (!bindnames[i][0]) break;
-		if (!bindnames[i][1]) break;
+		if (!keybinds[i].command) break;
+		if (!keybinds[i].bindname) break;
 
 		s_keys_item[i].generic.type = MTYPE_ACTION;
 		s_keys_item[i].generic.flags = QMF_GRAYED;
 		s_keys_item[i].generic.x = 0;
-		s_keys_item[i].generic.y = y;
+		s_keys_item[i].generic.y = keybinds[i].y = y;
 		s_keys_item[i].generic.ownerdraw = DrawKeyBindingFunc;
 		s_keys_item[i].generic.localdata[0] = i;
-		s_keys_item[i].generic.name = bindnames[i][1];
+		s_keys_item[i].generic.name = keybinds[i].bindname;
 
 		Menu_AddItem (&s_keys_menu, (void *) &s_keys_item[i]);
+
+		if (keybinds[i].separator_after)
+			y += 20;
+		else y += 10;
 	}
 
 	Menu_SetStatusBar (&s_keys_menu, "enter to change, backspace to clear");
@@ -206,7 +212,7 @@ static const char *Keys_MenuKey (int key)
 		{
 			char cmd[1024];
 
-			Com_sprintf (cmd, sizeof (cmd), "bind \"%s\" \"%s\"\n", Key_KeynumToString (key), bindnames[item->generic.localdata[0]][0]);
+			Com_sprintf (cmd, sizeof (cmd), "bind \"%s\" \"%s\"\n", Key_KeynumToString (key), keybinds[item->generic.localdata[0]].command);
 			Cbuf_InsertText (cmd);
 		}
 
@@ -225,13 +231,14 @@ static const char *Keys_MenuKey (int key)
 	case K_BACKSPACE:		// delete bindings
 	case K_DEL:				// delete bindings
 	case K_KP_DEL:
-		M_UnbindCommand (bindnames[item->generic.localdata[0]][0]);
+		M_UnbindCommand (keybinds[item->generic.localdata[0]].command);
 		return menu_out_sound;
 
 	default:
 		return Default_MenuKey (&s_keys_menu, key);
 	}
 }
+
 
 void M_Menu_Keys_f (void)
 {

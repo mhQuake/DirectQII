@@ -57,6 +57,7 @@ typedef struct _tag_menuframework
 	void *items[64];
 
 	const char *statusbar;
+	qboolean saveCfgOnExit;
 
 	void (*cursordraw)(struct _tag_menuframework *m);
 
