@@ -18,8 +18,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include <ctype.h>
-#include <io.h>
 #include "client.h"
 #include "qmenu.h"
 
@@ -211,6 +209,7 @@ void Options_MenuInit (void)
 	s_options_menu.x = viddef.conwidth / 2;
 	s_options_menu.y = viddef.conheight / 2 - 58;
 	s_options_menu.nitems = 0;
+	s_options_menu.saveCfgOnExit = true;
 
 	s_options_sfxvolume_slider.generic.type = MTYPE_SLIDER;
 	s_options_sfxvolume_slider.generic.x = 0;

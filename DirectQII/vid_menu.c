@@ -158,9 +158,11 @@ void VID_MenuInit (void)
 
 	s_windowed_menu.x = viddef.conwidth * 0.50;
 	s_windowed_menu.nitems = 0;
+	s_windowed_menu.saveCfgOnExit = true;
 
 	s_fullscreen_menu.x = viddef.conwidth * 0.50;
 	s_fullscreen_menu.nitems = 0;
+	s_fullscreen_menu.saveCfgOnExit = true;
 
 	// see is width in the list
 	for (i = 0; i < modedata->numwidths; i++)

@@ -170,6 +170,7 @@ static void Keys_MenuInit (void)
 	s_keys_menu.x = viddef.conwidth * 0.50;
 	s_keys_menu.nitems = 0;
 	s_keys_menu.cursordraw = KeyCursorDrawFunc;
+	s_keys_menu.saveCfgOnExit = true;
 
 	for (i = 0; ; i++)
 	{
