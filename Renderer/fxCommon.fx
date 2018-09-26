@@ -48,6 +48,12 @@ cbuffer cbAlphaVal : register(b5) {
 	float AlphaVal : packoffset(c0.x);
 };
 
+cbuffer cbPerSprite : register(b6) {
+	float3 SpriteOrigin : packoffset(c0.x);
+	float SpriteAlpha : packoffset(c0.w);
+};
+
+
 // common to mesh and surf
 struct PS_DYNAMICLIGHT {
 	float4 Position : SV_POSITION;

@@ -364,6 +364,7 @@ void D_MakeAliasBuffers (model_t *mod)
 	{
 		aliasbuffers_t *set = &d3d_AliasBuffers[i];
 
+		// already allocated
 		if (set->PolyVerts) continue;
 		if (set->TexCoords) continue;
 		if (set->Indexes) continue;
