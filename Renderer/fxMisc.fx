@@ -1,8 +1,16 @@
 
 struct VS_PARTICLE {
 	float3 Origin : ORIGIN;
+	float3 Velocity : VELOCITY;
+	float3 Acceleration : ACCELERATION;
+	float Time : TIME;
+	int Color : COLOR;
+	float Alpha : ALPHA;
+};
+
+struct GS_PARTICLE {
+	float3 Origin : ORIGIN;
 	float4 Color : COLOR;
-	float2 Offsets : OFFSETS;
 };
 
 struct PS_DRAWSPRITE {
@@ -34,60 +42,18 @@ PS_DRAWSPRITE SpriteVS (VS_QUADBATCH vs_in)
 	return vs_out;
 }
 
-PS_PARTICLE GetParticleInstancedVert (VS_PARTICLE vs_in, float HackUp, float TypeScale)
+GS_PARTICLE ParticleVS (VS_PARTICLE vs_in)
 {
-	PS_PARTICLE vs_out;
+	GS_PARTICLE vs_out;
 
-	// hack a scale up to keep particles from disapearing
-	float2 ScaleUp = vs_in.Offsets * (1.0f + dot (vs_in.Origin - viewOrigin, viewForward) * HackUp);
+	// move the particle in a framerate-independent manner
+	// p->org[0] + (p->vel[0] + p->accel[0] * time) * time;
+	vs_out.Origin = vs_in.Origin + (vs_in.Velocity + vs_in.Acceleration * vs_in.Time) * vs_in.Time;
 
-	// compute new particle origin
-	float3 Position = vs_in.Origin + (viewRight * ScaleUp.x + viewUp * ScaleUp.y) * TypeScale;
-
-	// and finally write it out
-	vs_out.Position = mul (mvpMatrix, float4 (Position, 1.0f));
-	vs_out.Color = vs_in.Color;
-	vs_out.Offsets = vs_in.Offsets;
+	// copy over colour
+	vs_out.Color = float4 (QuakePalette.Load (int3 (vs_in.Color.x, 0, 0)).rgb, vs_in.Alpha);
 
 	return vs_out;
-}
-
-PS_PARTICLE ParticleInstancedCircleVS (VS_PARTICLE vs_in)
-{
-	return GetParticleInstancedVert (vs_in, 0.002f, 0.666f);
-}
-
-PS_PARTICLE ParticleInstancedSquareVS (VS_PARTICLE vs_in)
-{
-	return GetParticleInstancedVert (vs_in, 0.002f, 0.666f);
-}
-
-PS_PARTICLE GetParticleVert (VS_QUADBATCH vs_in, float HackUp, float TypeScale)
-{
-	PS_PARTICLE vs_out;
-
-	// hack a scale up to keep particles from disapearing
-	float2 ScaleUp = vs_in.TexCoord * (1.0f + dot (vs_in.Position.xyz - viewOrigin, viewForward) * HackUp);
-
-	// compute new particle origin
-	float3 Position = vs_in.Position.xyz + (viewRight * ScaleUp.x + viewUp * ScaleUp.y) * TypeScale;
-
-	// and finally write it out
-	vs_out.Position = mul (mvpMatrix, float4 (Position, 1.0f));
-	vs_out.Color = vs_in.Color;
-	vs_out.Offsets = vs_in.TexCoord;
-
-	return vs_out;
-}
-
-PS_PARTICLE ParticleCircleVS (VS_QUADBATCH vs_in)
-{
-	return GetParticleVert (vs_in, 0.002f, 0.666f);
-}
-
-PS_PARTICLE ParticleSquareVS (VS_QUADBATCH vs_in)
-{
-	return GetParticleVert (vs_in, 0.002f, 0.5f);
 }
 
 float4 BeamVS (float4 Position: POSITION) : SV_POSITION
@@ -103,6 +69,48 @@ PS_NULL NullVS (float3 Position : POSITION, float3 Normal : NORMAL)
 	vs_out.Normal = Normal;
 
 	return vs_out;
+}
+#endif
+
+
+#ifdef GEOMETRYSHADER
+PS_PARTICLE GetParticleVert (point GS_PARTICLE gs_in, float2 Offsets, float ScaleUp)
+{
+	PS_PARTICLE gs_out;
+
+	// compute new particle origin
+	float3 Position = gs_in.Origin + (viewRight * Offsets.x + viewUp * Offsets.y) * ScaleUp;
+
+	// and write it out
+	gs_out.Position = mul (mvpMatrix, float4 (Position, 1.0f));
+	gs_out.Color = gs_in.Color;
+	gs_out.Offsets = Offsets;
+
+	return gs_out;
+}
+
+void ParticleCommonGS (point GS_PARTICLE gs_in, inout TriangleStream<PS_PARTICLE> gs_out, float TypeScale, float HackUp)
+{
+	// hack a scale up to keep particles from disapearing
+	float ScaleUp = 1.0f + dot (gs_in.Origin - viewOrigin, viewForward) * HackUp;
+
+	gs_out.Append (GetParticleVert (gs_in, float2 (-1, -1), ScaleUp * TypeScale));
+	gs_out.Append (GetParticleVert (gs_in, float2 (-1,  1), ScaleUp * TypeScale));
+	gs_out.Append (GetParticleVert (gs_in, float2 ( 1, -1), ScaleUp * TypeScale));
+	gs_out.Append (GetParticleVert (gs_in, float2 ( 1,  1), ScaleUp * TypeScale));
+}
+
+[maxvertexcount (4)]
+void ParticleCircleGS (point GS_PARTICLE gs_in[1], inout TriangleStream<PS_PARTICLE> gs_out)
+{
+	ParticleCommonGS (gs_in[0], gs_out, 0.666f, 0.002f);
+}
+
+
+[maxvertexcount (4)]
+void ParticleSquareGS (point GS_PARTICLE gs_in[1], inout TriangleStream<PS_PARTICLE> gs_out)
+{
+	ParticleCommonGS (gs_in[0], gs_out, 0.5f, 0.002f);
 }
 #endif
 

@@ -1816,8 +1816,8 @@ void CL_FlyParticles (vec3_t origin, int count)
 		active_particles = p;
 
 		p->time = cl.time;
-
 		dist = sin (ltime + i) * 64;
+
 		p->org[0] = origin[0] + bytedirs[i][0] * dist + forward[0] * BEAMLENGTH;
 		p->org[1] = origin[1] + bytedirs[i][1] * dist + forward[1] * BEAMLENGTH;
 		p->org[2] = origin[2] + bytedirs[i][2] * dist + forward[2] * BEAMLENGTH;
@@ -1826,8 +1826,6 @@ void CL_FlyParticles (vec3_t origin, int count)
 		VectorClear (p->accel);
 
 		p->color = 0;
-		p->colorvel = 0;
-
 		p->alpha = 1;
 		p->alphavel = -100;
 	}
@@ -1926,9 +1924,8 @@ void CL_BfgParticles (entity_t *ent)
 
 		VectorSubtract (p->org, ent->currorigin, v);
 		dist = VectorLength (v) / 90.0;
-		p->color = floor (0xd0 + dist * 7);
-		p->colorvel = 0;
 
+		p->color = floor (0xd0 + dist * 7);
 		p->alpha = 1.0 - dist;
 		p->alphavel = -100;
 	}
@@ -2137,22 +2134,21 @@ void CL_AddParticles (void)
 {
 	cparticle_t		*p, *next;
 	float			alpha;
-	float			time, time2;
-	vec3_t			org;
-	int				color;
-	cparticle_t		*active, *tail;
 
-	active = NULL;
-	tail = NULL;
+	cparticle_t *active = NULL;
+	cparticle_t *tail = NULL;
 
 	for (p = active_particles; p; p = next)
 	{
+		// moved this outside the condition so that it's valid for moving the particle below
+		float time = (cl.time - p->time) * 0.001;
+
 		next = p->next;
 
 		// PMM - added INSTANT_PARTICLE handling for heat beam
 		if (p->alphavel != INSTANT_PARTICLE)
 		{
-			time = (cl.time - p->time) * 0.001;
+			// this needs to run on the CPU so that we can correctly remove faded-out particles
 			alpha = p->alpha + time * p->alphavel;
 
 			if (alpha <= 0)
@@ -2163,12 +2159,10 @@ void CL_AddParticles (void)
 				continue;
 			}
 		}
-		else
-		{
-			alpha = p->alpha;
-		}
+		else alpha = p->alpha;
 
 		p->next = NULL;
+
 		if (!tail)
 			active = tail = p;
 		else
@@ -2177,17 +2171,8 @@ void CL_AddParticles (void)
 			tail = p;
 		}
 
-		if (alpha > 1.0)
-			alpha = 1;
-		color = p->color;
-
-		time2 = time * time;
-
-		org[0] = p->org[0] + p->vel[0] * time + p->accel[0] * time2;
-		org[1] = p->org[1] + p->vel[1] * time + p->accel[1] * time2;
-		org[2] = p->org[2] + p->vel[2] * time + p->accel[2] * time2;
-
-		V_AddParticle (org, color, alpha);
+		// particle movement is now done on the GPU
+		V_AddParticle (p->org, p->vel, p->accel, time, (int) p->color, alpha);
 
 		// PMM
 		if (p->alphavel == INSTANT_PARTICLE)

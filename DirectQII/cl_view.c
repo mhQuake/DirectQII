@@ -99,7 +99,7 @@ V_AddParticle
 
 =====================
 */
-void V_AddParticle (vec3_t org, int color, float alpha)
+void V_AddParticle (vec3_t org, vec3_t vel, vec3_t accel, float time, int color, float alpha)
 {
 	if (r_numparticles >= MAX_PARTICLES)
 		return;
@@ -108,14 +108,12 @@ void V_AddParticle (vec3_t org, int color, float alpha)
 		particle_t *p = &r_particles[r_numparticles];
 
 		VectorCopy (org, p->origin);
-		p->color = color;
+		VectorCopy (vel, p->velocity);
+		VectorCopy (accel, p->acceleration);
 
-		// bound alpha properly
-		if (alpha < 0)
-			return; // before the "r_numparticles++" so it won't be added
-		else if (alpha < 1)
-			p->alphaval = alpha * 255;
-		else p->alphaval = 255;
+		p->time = time;
+		p->color = color;
+		p->alpha = alpha;
 
 		r_numparticles++;
 	}
@@ -193,7 +191,7 @@ void V_TestParticles (void)
 			cl.refdef.vieworg[2] + cl.v_forward[2] * d + cl.v_right[2] * r + cl.v_up[2] * u
 		};
 
-		V_AddParticle (org, 8, cl_testparticles->value);
+		V_AddParticle (org, vec3_origin, vec3_origin, 0, 8, cl_testparticles->value);
 	}
 }
 

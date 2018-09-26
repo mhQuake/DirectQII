@@ -504,6 +504,9 @@ void R_BindLightmaps (void)
 	// light normals go to VS slot 1
 	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 1, 1, &d3d_LightNormalsSRV);
 
+	// palette texture goes to VS slot 2 (this is a stupid place to do this)
+	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 2, 1, &r_palettetexture->SRV);
+
 	// lightmap textures go to PS slots 1/2/3
 	d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 1, 3, d3d_LightmapSRVs);
 }

@@ -108,8 +108,11 @@ typedef struct dlight_s {
 typedef struct particle_s
 {
 	vec3_t	origin;
+	vec3_t	velocity;
+	vec3_t	acceleration;
+	float	time;
 	int		color;
-	int		alphaval;
+	float	alpha;
 } particle_t;
 
 typedef struct fov_s
