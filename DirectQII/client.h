@@ -355,6 +355,7 @@ typedef struct cparticle_s
 	vec3_t		org;
 	vec3_t		vel;
 	vec3_t		accel;
+
 	int			color;
 	float		alpha;
 	float		alphavel;

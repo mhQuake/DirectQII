@@ -2172,9 +2172,9 @@ void CL_AddParticles (void)
 		}
 
 		// particle movement is now done on the GPU
-		V_AddParticle (p->org, p->vel, p->accel, time, (int) p->color, alpha);
+		V_AddParticle (p->org, p->vel, p->accel, time, p->color, alpha);
 
-		// PMM
+		// PMM - INSTANT_PARTICLE only lasts for 1 frame and dies immediately after
 		if (p->alphavel == INSTANT_PARTICLE)
 		{
 			p->alphavel = 0.0;
