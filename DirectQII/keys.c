@@ -793,21 +793,26 @@ void Key_Event (int key, qboolean down, unsigned time)
 			Cbuf_AddText ("cmd putaway\n");
 			return;
 		}
+
 		switch (cls.key_dest)
 		{
 		case key_message:
 			Key_Message (key);
 			break;
+
 		case key_menu:
 			M_Keydown (key);
 			break;
+
 		case key_game:
 		case key_console:
 			M_Menu_Main_f ();
 			break;
+
 		default:
 			Com_Error (ERR_FATAL, "Bad cls.key_dest");
 		}
+
 		return;
 	}
 

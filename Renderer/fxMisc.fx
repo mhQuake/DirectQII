@@ -1,4 +1,9 @@
 
+struct VS_PARTICLE {
+	float3 Origin : ORIGIN;
+	float4 Color : COLOR;
+	float2 Offsets : OFFSETS;
+};
 
 struct PS_DRAWSPRITE {
 	float4 Position : SV_POSITION;
@@ -9,7 +14,7 @@ struct PS_DRAWSPRITE {
 struct PS_PARTICLE {
 	float4 Position : SV_POSITION;
 	float4 Color : COLOUR;
-	float2 TexCoord : TEXCOORD;
+	float2 Offsets : OFFSETS;
 };
 
 struct PS_NULL {
@@ -29,6 +34,34 @@ PS_DRAWSPRITE SpriteVS (VS_QUADBATCH vs_in)
 	return vs_out;
 }
 
+PS_PARTICLE GetParticleInstancedVert (VS_PARTICLE vs_in, float HackUp, float TypeScale)
+{
+	PS_PARTICLE vs_out;
+
+	// hack a scale up to keep particles from disapearing
+	float2 ScaleUp = vs_in.Offsets * (1.0f + dot (vs_in.Origin - viewOrigin, viewForward) * HackUp);
+
+	// compute new particle origin
+	float3 Position = vs_in.Origin + (viewRight * ScaleUp.x + viewUp * ScaleUp.y) * TypeScale;
+
+	// and finally write it out
+	vs_out.Position = mul (mvpMatrix, float4 (Position, 1.0f));
+	vs_out.Color = vs_in.Color;
+	vs_out.Offsets = vs_in.Offsets;
+
+	return vs_out;
+}
+
+PS_PARTICLE ParticleInstancedCircleVS (VS_PARTICLE vs_in)
+{
+	return GetParticleInstancedVert (vs_in, 0.002f, 0.666f);
+}
+
+PS_PARTICLE ParticleInstancedSquareVS (VS_PARTICLE vs_in)
+{
+	return GetParticleInstancedVert (vs_in, 0.002f, 0.666f);
+}
+
 PS_PARTICLE GetParticleVert (VS_QUADBATCH vs_in, float HackUp, float TypeScale)
 {
 	PS_PARTICLE vs_out;
@@ -42,7 +75,7 @@ PS_PARTICLE GetParticleVert (VS_QUADBATCH vs_in, float HackUp, float TypeScale)
 	// and finally write it out
 	vs_out.Position = mul (mvpMatrix, float4 (Position, 1.0f));
 	vs_out.Color = vs_in.Color;
-	vs_out.TexCoord = vs_in.TexCoord;
+	vs_out.Offsets = vs_in.TexCoord;
 
 	return vs_out;
 }
@@ -85,7 +118,7 @@ float4 SpritePS (PS_DRAWSPRITE ps_in) : SV_TARGET0
 float4 ParticleCirclePS (PS_PARTICLE ps_in) : SV_TARGET0
 {
 	// procedurally generate the particle dot for good speed and per-pixel accuracy at any scale
-	return GetGamma (float4 (ps_in.Color.rgb, saturate (ps_in.Color.a * (1.0f - dot (ps_in.TexCoord, ps_in.TexCoord)))));
+	return GetGamma (float4 (ps_in.Color.rgb, saturate (ps_in.Color.a * (1.0f - dot (ps_in.Offsets, ps_in.Offsets)))));
 }
 
 float4 ParticleSquarePS (PS_PARTICLE ps_in) : SV_TARGET0

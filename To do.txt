@@ -13,28 +13,7 @@ Test video mode stuff with a clean config.
 
 Menu background should be solid black if console is full-screen.
 
-Particles to instancing.
 Check out when can we get rid of winquake.h?
 
 s_khz is wrong in the menu.
 
-
-
-https://www.gamedev.net/forums/topic/663329-particles-batching-vs-instancing/
-If you read or re-read the slides I posted, that is the least recommended approach as they benchmark showed it's the slowest version. You should bench on your own to verify their results.
-
- 
-
-Their recommendation was to set:
-
-No vertex buffer.
-
-1 static buffer for your indices [6 * MaxNumOfParticlesPerDraw uint16; filled with zeroes]
-
-1 dynamic UBO or TBO for your particle position [2 floats(x, y) * max number of particles].
-
-Use gl_VertexId in the vertex shader to construct the quad.
-
- 
-
-Use glDrawElements. If you use glDrawArrays, you can avoid the index buffer (but usually comes with the overhead of having to switch between arrays and elements inside the GPU or the driver, since most geometry is indexed).
