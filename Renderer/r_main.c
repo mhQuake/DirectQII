@@ -112,7 +112,6 @@ image_t		*r_notexture;		// use for bad textures
 image_t		*r_blacktexture;	// use for bad textures
 image_t		*r_greytexture;		// use for bad textures
 image_t		*r_whitetexture;	// use for bad textures
-image_t		*r_palettetexture;	// use for bad textures
 
 cplane_t	frustum[4];
 

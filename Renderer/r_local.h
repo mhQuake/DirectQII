@@ -160,7 +160,6 @@ extern	image_t		*r_notexture;
 extern	image_t		*r_blacktexture;
 extern	image_t		*r_greytexture;
 extern	image_t		*r_whitetexture;
-extern	image_t		*r_palettetexture;
 
 extern	int			r_visframecount;
 extern	int			r_framecount;

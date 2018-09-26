@@ -74,7 +74,7 @@ struct VS_QUADBATCH_TEXARRAY {
 
 Buffer<float> LightStyles : register(t0);
 Buffer<float4> LightNormals : register(t1);
-Texture2D<float4> QuakePalette : register(t2);
+Buffer<float4> QuakePalette : register(t2);
 #endif
 
 

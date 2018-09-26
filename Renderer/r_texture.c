@@ -423,7 +423,6 @@ void GL_FreeUnusedImages (void)
 	r_blacktexture->registration_sequence = r_registration_sequence;
 	r_greytexture->registration_sequence = r_registration_sequence;
 	r_whitetexture->registration_sequence = r_registration_sequence;
-	r_palettetexture->registration_sequence = r_registration_sequence;
 
 	for (i = 0, image = gltextures; i < MAX_GLTEXTURES; i++, image++)
 	{

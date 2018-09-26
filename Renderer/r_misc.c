@@ -42,9 +42,6 @@ void R_CreateSpecialTextures (void)
 		{0, 0, 0, 0, 0, 0, 0, 0},
 	};
 
-	// used for palette reads in the shaders
-	r_palettetexture = GL_LoadPic ("***r_palettetexture***", (byte *) d_8to24table, 256, 1, it_pic, 32, NULL);
-
 	// also use this for bad textures, but without alpha
 	for (x = 0; x < 8; x++)
 	{

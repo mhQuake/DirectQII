@@ -51,7 +51,7 @@ GS_PARTICLE ParticleVS (VS_PARTICLE vs_in)
 	vs_out.Origin = vs_in.Origin + (vs_in.Velocity + vs_in.Acceleration * vs_in.Time) * vs_in.Time;
 
 	// copy over colour
-	vs_out.Color = float4 (QuakePalette.Load (int3 (vs_in.Color.x, 0, 0)).rgb, vs_in.Alpha);
+	vs_out.Color = float4 (QuakePalette.Load (vs_in.Color).rgb, vs_in.Alpha);
 
 	return vs_out;
 }

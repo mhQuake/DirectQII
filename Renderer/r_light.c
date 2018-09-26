@@ -224,6 +224,10 @@ static lighttexel_t **lm_data[3];
 
 ID3D11Buffer *d3d_DLightConstants = NULL;
 
+// this is a stupid place to do this
+ID3D11Buffer *d3d_PaletteBuffer = NULL;
+ID3D11ShaderResourceView *d3d_PaletteSRV = NULL;
+
 ID3D11Buffer *d3d_LightStyles = NULL;
 ID3D11ShaderResourceView *d3d_LightStyleSRV = NULL;
 
@@ -238,6 +242,33 @@ ID3D11ShaderResourceView *d3d_LightNormalsSRV = NULL;
 float	r_avertexnormals[NUMVERTEXNORMALS][4] = {
 #include "../DirectQII/anorms.h"
 };
+
+void D_CreatePaletteResources (void)
+{
+	// this is a stupid place to do this
+	D3D11_BUFFER_DESC PaletteDesc = {
+		sizeof (d_8to24table),
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_SHADER_RESOURCE,
+		0,
+		0,
+		0
+	};
+
+	D3D11_SUBRESOURCE_DATA srd = {d_8to24table, 0, 0};
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.NumElements = 256;
+
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &PaletteDesc, &srd, &d3d_PaletteBuffer);
+	d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) d3d_PaletteBuffer, &srvDesc, &d3d_PaletteSRV);
+
+	D_CacheObject ((ID3D11DeviceChild *) d3d_PaletteBuffer, "d3d_PaletteBuffer");
+	D_CacheObject ((ID3D11DeviceChild *) d3d_PaletteSRV, "d3d_PaletteSRV");
+}
 
 void D_CreateLightStylesResources (void)
 {
@@ -306,6 +337,7 @@ void R_InitLight (void)
 
 	D_CreateLightStylesResources ();
 	D_CreateLightNormalsResources ();
+	D_CreatePaletteResources (); // this is a stupid place to do this
 }
 
 
@@ -505,7 +537,7 @@ void R_BindLightmaps (void)
 	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 1, 1, &d3d_LightNormalsSRV);
 
 	// palette texture goes to VS slot 2 (this is a stupid place to do this)
-	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 2, 1, &r_palettetexture->SRV);
+	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 2, 1, &d3d_PaletteSRV);
 
 	// lightmap textures go to PS slots 1/2/3
 	d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 1, 3, d3d_LightmapSRVs);
