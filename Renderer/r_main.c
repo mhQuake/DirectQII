@@ -95,7 +95,7 @@ void R_InitMain (void)
 	D_RegisterConstantBuffer (d3d_EntityConstants, 2);
 	D_RegisterConstantBuffer (d3d_AlphaConstants, 5);
 
-	d3d_PolyblendShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawPolyblendVS", "DrawPolyblendPS", batch_standard);
+	d3d_PolyblendShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawPolyblendVS", NULL, "DrawPolyblendPS", NULL, 0);
 }
 
 
@@ -336,30 +336,6 @@ void R_DrawEntitiesOnList (qboolean trans)
 }
 
 
-/*
-============
-R_PolyBlend
-============
-*/
-void R_PolyBlend (void)
-{
-	if (v_blend[3] > 0)
-	{
-		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSNoCull);
-		D_BindShaderBundle (d3d_PolyblendShader);
-
-		D_CheckQuadBatch ();
-
-		D_QuadVertexPosition2f (-1, -1);
-		D_QuadVertexPosition2f ( 1, -1);
-		D_QuadVertexPosition2f ( 1,  1);
-		D_QuadVertexPosition2f (-1,  1);
-
-		D_EndQuadBatch ();
-	}
-}
-
-
 //=======================================================================
 
 
@@ -370,7 +346,6 @@ R_SetupFrame
 */
 void R_SetupFrame (void)
 {
-	int i;
 	mleaf_t	*leaf;
 
 	r_framecount++;
@@ -412,10 +387,8 @@ void R_SetupFrame (void)
 		}
 	}
 
-	for (i = 0; i < 4; i++)
-		v_blend[i] = r_newrefdef.blend[i];
-
 	// scale for value of gl_polyblend
+	Vector4Copy (v_blend, r_newrefdef.blend);
 	v_blend[3] *= gl_polyblend->value;
 
 	c_brush_polys = 0;
@@ -570,6 +543,22 @@ void R_SyncPipeline (void)
 		d3d_Context->lpVtbl->End (d3d_Context, (ID3D11Asynchronous *) FinishEvent);
 		while (d3d_Context->lpVtbl->GetData (d3d_Context, (ID3D11Asynchronous *) FinishEvent, NULL, 0, 0) == S_FALSE);
 		SAFE_RELEASE (FinishEvent);
+	}
+}
+
+
+/*
+============
+R_PolyBlend
+============
+*/
+void R_PolyBlend (void)
+{
+	if (v_blend[3] > 0)
+	{
+		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSNoCull);
+		D_BindShaderBundle (d3d_PolyblendShader);
+		d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
 	}
 }
 

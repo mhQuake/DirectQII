@@ -15,7 +15,6 @@ struct GS_PARTICLE {
 
 struct VS_DRAWSPRITE {
 	float2 XYOffset : XYOFFSET;
-	float2 TexCoord : TEXCOORD;
 };
 
 struct PS_DRAWSPRITE {
@@ -35,12 +34,14 @@ struct PS_NULL {
 };
 
 #ifdef VERTEXSHADER
-PS_DRAWSPRITE SpriteVS (VS_DRAWSPRITE vs_in)
+static const float2 SpriteTexCoords[4] = {float2 (0, 1), float2 (0, 0), float2 (1, 0), float2 (1, 1)};
+
+PS_DRAWSPRITE SpriteVS (VS_DRAWSPRITE vs_in, uint vertexId : SV_VertexID)
 {
 	PS_DRAWSPRITE vs_out;
 
 	vs_out.Position = mul (mvpMatrix, float4 ((viewRight * vs_in.XYOffset.y) + (viewUp * vs_in.XYOffset.x) + SpriteOrigin, 1.0f));
-	vs_out.TexCoord = vs_in.TexCoord;
+	vs_out.TexCoord = SpriteTexCoords[vertexId];
 
 	return vs_out;
 }

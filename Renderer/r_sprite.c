@@ -28,7 +28,6 @@ typedef struct spriteconstants_s {
 
 typedef struct spritepolyvert_s {
 	float XYOffset[2];
-	float TexCoord[2];
 } spritepolyvert_t;
 
 typedef struct spritebuffers_s {
@@ -80,29 +79,18 @@ void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 	{
 		dsprframe_t *frame = &psprite->frames[i];
 
+		// fixme - move these to SV_VertexID based as well
 		verts[0].XYOffset[0] = -frame->origin_y;
 		verts[0].XYOffset[1] = -frame->origin_x;
-
-		verts[0].TexCoord[0] = 0;
-		verts[0].TexCoord[1] = 1;
 
 		verts[1].XYOffset[0] = frame->height - frame->origin_y;
 		verts[1].XYOffset[1] = -frame->origin_x;
 
-		verts[1].TexCoord[0] = 0;
-		verts[1].TexCoord[1] = 0;
-
 		verts[2].XYOffset[0] = frame->height - frame->origin_y;
 		verts[2].XYOffset[1] = frame->width - frame->origin_x;
 
-		verts[2].TexCoord[0] = 1;
-		verts[2].TexCoord[1] = 0;
-
 		verts[3].XYOffset[0] = -frame->origin_y;
 		verts[3].XYOffset[1] = frame->width - frame->origin_x;
-
-		verts[3].TexCoord[0] = 1;
-		verts[3].TexCoord[1] = 1;
 	}
 
 	// create the new vertex buffer
@@ -195,11 +183,7 @@ void R_InitSprites (void)
 	};
 
 	D3D11_SUBRESOURCE_DATA srd = {indexes, 0, 0};
-
-	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		VDECL ("XYOFFSET", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0),
-		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0)
-	};
+	D3D11_INPUT_ELEMENT_DESC layout[] = {VDECL ("XYOFFSET", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0)};
 
 	d3d_SpriteShader = D_CreateShaderBundle (IDR_MISCSHADER, "SpriteVS", NULL, "SpritePS", DEFINE_LAYOUT (layout));
 

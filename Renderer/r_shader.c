@@ -208,8 +208,17 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 		{
 			if (vsBlob)
 			{
-				d3d_Device->lpVtbl->CreateVertexShader (d3d_Device, (DWORD *) vsBlob->lpVtbl->GetBufferPointer (vsBlob), vsBlob->lpVtbl->GetBufferSize (vsBlob), NULL, &sb->VertexShader);
-				d3d_Device->lpVtbl->CreateInputLayout (d3d_Device, layout, numlayout, vsBlob->lpVtbl->GetBufferPointer (vsBlob), vsBlob->lpVtbl->GetBufferSize (vsBlob), &sb->InputLayout);
+				d3d_Device->lpVtbl->CreateVertexShader (
+					d3d_Device, (DWORD *) vsBlob->lpVtbl->GetBufferPointer (vsBlob), vsBlob->lpVtbl->GetBufferSize (vsBlob), NULL, &sb->VertexShader
+				);
+
+				// allowed to be NULL for drawing without buffers
+				if (layout && numlayout)
+				{
+					d3d_Device->lpVtbl->CreateInputLayout (
+						d3d_Device, layout, numlayout, vsBlob->lpVtbl->GetBufferPointer (vsBlob), vsBlob->lpVtbl->GetBufferSize (vsBlob), &sb->InputLayout);
+				}
+
 				vsBlob->lpVtbl->Release (vsBlob);
 			}
 		}
@@ -229,7 +238,10 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 		{
 			if (gsBlob)
 			{
-				d3d_Device->lpVtbl->CreateGeometryShader (d3d_Device, (DWORD *) gsBlob->lpVtbl->GetBufferPointer (gsBlob), gsBlob->lpVtbl->GetBufferSize (gsBlob), NULL, &sb->GeometryShader);
+				d3d_Device->lpVtbl->CreateGeometryShader (
+					d3d_Device, (DWORD *) gsBlob->lpVtbl->GetBufferPointer (gsBlob), gsBlob->lpVtbl->GetBufferSize (gsBlob), NULL, &sb->GeometryShader
+				);
+
 				gsBlob->lpVtbl->Release (gsBlob);
 			}
 		}
@@ -249,7 +261,10 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 		{
 			if (psBlob)
 			{
-				d3d_Device->lpVtbl->CreatePixelShader (d3d_Device, (DWORD *) psBlob->lpVtbl->GetBufferPointer (psBlob), psBlob->lpVtbl->GetBufferSize (psBlob), NULL, &sb->PixelShader);
+				d3d_Device->lpVtbl->CreatePixelShader (
+					d3d_Device, (DWORD *) psBlob->lpVtbl->GetBufferPointer (psBlob), psBlob->lpVtbl->GetBufferSize (psBlob), NULL, &sb->PixelShader
+				);
+
 				psBlob->lpVtbl->Release (psBlob);
 			}
 		}

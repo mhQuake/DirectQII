@@ -8,7 +8,7 @@ struct PS_WATERWARP {
 
 
 #ifdef VERTEXSHADER
-static const float2 FSQTexCoords[4] = {
+static const float2 FullScreenQuadTexCoords[4] = {
 	float2 (0, 1),
 	float2 (1, 1),
 	float2 (1, 0),
@@ -20,7 +20,7 @@ PS_WATERWARP WaterWarpVS (VS_QUADBATCH vs_in, uint vertexId : SV_VertexID)
 	PS_WATERWARP vs_out;
 
 	vs_out.Position = vs_in.Position;
-	vs_out.TexCoord0 = FSQTexCoords[vertexId];
+	vs_out.TexCoord0 = FullScreenQuadTexCoords[vertexId];
 	vs_out.TexCoord1 = vs_in.TexCoord;
 
 	return vs_out;

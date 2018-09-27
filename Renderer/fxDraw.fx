@@ -49,9 +49,14 @@ PS_DRAWCOLOURED DrawColouredVS (VS_QUADBATCH vs_in)
 	return vs_out;
 }
 
-float4 DrawPolyblendVS (VS_QUADBATCH vs_in) : SV_POSITION
+float4 DrawPolyblendVS (uint vertexId : SV_VertexID) : SV_POSITION
 {
-	return vs_in.Position;
+	return float4 (
+		(float) (vertexId / 2) * 4.0f - 1.0f,
+		(float) (vertexId % 2) * 4.0f - 1.0f,
+		0,
+		1
+	);
 }
 #endif
 
