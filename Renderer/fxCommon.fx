@@ -115,8 +115,8 @@ PS_DYNAMICLIGHT GenericDynamicVS (float4 Position, float3 Normal, float2 TexCoor
 sampler mainSampler : register(s0);		// main sampler used for most objects, wrap mode, linear filter, max anisotropy
 sampler lmapSampler : register(s1);		// lightmap sampler, always linear, clamp mode, no mips, no anisotropy; also reused for the skybox
 sampler warpSampler : register(s2);		// underwater and other warps, always linear, wrap mode, no mips, no anisotropy
-sampler drawSampler : register(s3);		// used for the 2d render; point sampled, clamp mode, no mips, no anisotropy
-sampler cineSampler : register(s4);		// used for the 2d render; point sampled, clamp mode, no mips, no anisotropy
+sampler drawSampler : register(s3);		// used for the 2d render; linear sampled, clamp mode, no mips, no anisotropy
+sampler cineSampler : register(s4);		// used for cinematics; linear sampled, clamp-to-border mode, no mips, no anisotropy
 
 // texture slots
 Texture2D<float4> mainTexture : register(t0);	// main diffuse texture on most objects
@@ -140,30 +140,22 @@ float4 GetGamma (float4 colorin)
 // common to mesh and surf
 float4 GenericDynamicPS (PS_DYNAMICLIGHT ps_in) : SV_TARGET0
 {
-	// https://github.com/id-Software/Quake-Tools/blob/c0d1b91c74eb654365ac7755bc837e497caaca73/qutils/LIGHT/LTFACE.C#L353
+	// dlights for all surf and mesh objects, keeping dynamic lighting consistent across object types; this is based on the lighting performed
+	// by qrad.exe and light.exe rather than any of the dynamic lighting systems in the original fixed-pipeline code in the engine.
 	float dist = length (ps_in.LightVector);
-	clip (LightRadius - dist);
+	float len = LightRadius - dist;
+
+	// too far away
+	clip (len);
 
 	// reading the diffuse texture early so that it should interleave with some ALU ops
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
 
-	/*
-	https://github.com/id-Software/Quake-Tools/blob/c0d1b91c74eb654365ac7755bc837e497caaca73/qutils/LIGHT/LTFACE.C#L403
-	https://github.com/id-Software/Quake-Tools/blob/c0d1b91c74eb654365ac7755bc837e497caaca73/qutils/LIGHT/LTFACE.C#L410
-	https://github.com/id-Software/Quake-Tools/blob/c0d1b91c74eb654365ac7755bc837e497caaca73/qutils/LIGHT/LIGHT.C#L13
-	nitpickers corner
-	(hello tomaz! "What codebase is this based on? ... Thats NOT from the original quake code"): angle = (1.0 - scalecos) + scalecos * angle;
-	but scalecos is 0.5, so substituting: angle = (1.0 - 0.5) + 0.5 * angle;
-	and evaluate (1.0 - 0.5): angle = 0.5 + 0.5 * angle;
-	or (because multiplication and addition are commutative but multiplication takes precedence): angle = angle * 0.5 + 0.5;
-	*/
+	// same calculation (slightly re-ordered) as light.exe and qrad.exe
 	float Angle = dot (normalize (ps_in.Normal), normalize (ps_in.LightVector)) * 0.5f + 0.5f;
 
-	/*
-	https://github.com/id-Software/Quake-Tools/blob/c0d1b91c74eb654365ac7755bc837e497caaca73/qutils/LIGHT/LTFACE.C#L411
-	light.exe used a 0..255 scale whereas shaders use a 0..1 scale so bring it down; but using 256 which the hardware might optimize better
-	*/
-	float Add = ((LightRadius - dist) * 0.00390625f) * Angle;
+	// light.exe used a 0..255 scale whereas shaders use a 0..1 scale so bring it down; but using 256 which the hardware might optimize better
+	float Add = len * (1.0f / 256.0f) * Angle;
 
 	// and done
 	return float4 (diff.rgb * LightColour * Add, 0.0f);
