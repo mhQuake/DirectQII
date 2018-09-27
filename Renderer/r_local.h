@@ -324,7 +324,7 @@ void GLimp_AppActivate (qboolean active);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // draw
-void D_UpdateDrawConstants (int width, int height, float gammaval, float contrastval);
+void D_UpdateDrawConstants (float InverseCinematicAspect);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -338,12 +338,9 @@ typedef enum _batchtype_t {
 
 
 void D_CheckQuadBatch (void);
-void D_QuadVertexPosition3fvColorAlphaTexCoord2f (float *xyz, DWORD color, int alpha, float s, float t);
-void D_QuadVertexPosition3fvColorTexCoord2f (float *xyz, DWORD color, float s, float t);
 void D_QuadVertexPosition2fColorTexCoord2f (float x, float y, DWORD color, float s, float t);
 void D_QuadVertexPosition2fTexCoord2f (float x, float y, float s, float t);
 void D_QuadVertexPosition2fColor (float x, float y, DWORD color);
-void D_QuadVertexPosition2f (float x, float y);
 void D_QuadVertexPosition2fTexCoord3f (float x, float y, float s, float t, float slice);
 void D_EndQuadBatch (void);
 int D_CreateShaderBundleForQuadBatch (int resourceID, const char *vsentry, const char *psentry, batchtype_t type);

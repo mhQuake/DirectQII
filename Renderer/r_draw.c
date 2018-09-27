@@ -22,24 +22,30 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
+
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 #define STAT_MINUS		10	// num frame for '-' stats digit
 
 static image_t	*draw_chars;
 static image_t	*sb_nums[2];
 
 static int d3d_DrawTexturedShader;
+static int d3d_DrawCinematicShader;
 static int d3d_DrawColouredShader;
-static int d3d_DrawFullviewShader;
 static int d3d_DrawTexArrayShader;
 
 
 static ID3D11Buffer *d3d_DrawConstants = NULL;
+static ID3D11Buffer *d3d_CineConstants = NULL;
+
 
 typedef struct drawconstants_s {
 	QMATRIX OrthoMatrix;
 	float gamma;
 	float contrast;
-	float junk[2];
+	float aspect[2];
 } drawconstants_t;
 
 
@@ -50,7 +56,7 @@ Draw_InitLocal
 */
 void Draw_InitLocal (void)
 {
-	D3D11_BUFFER_DESC cbDesc = {
+	D3D11_BUFFER_DESC cbDrawDesc = {
 		sizeof (drawconstants_t),
 		D3D11_USAGE_DEFAULT,
 		D3D11_BIND_CONSTANT_BUFFER,
@@ -59,15 +65,29 @@ void Draw_InitLocal (void)
 		0
 	};
 
+	D3D11_BUFFER_DESC cbCineDesc = {
+		sizeof (QMATRIX),
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_CONSTANT_BUFFER,
+		0,
+		0,
+		0
+	};
+
 	// buffers
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDesc, NULL, &d3d_DrawConstants);
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDrawDesc, NULL, &d3d_DrawConstants);
 	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
+
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbCineDesc, NULL, &d3d_CineConstants);
+	D_RegisterConstantBuffer (d3d_CineConstants, 7);
 
 	// shaders
 	d3d_DrawTexturedShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawTexturedVS", "DrawTexturedPS", batch_standard);
 	d3d_DrawColouredShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawColouredVS", "DrawColouredPS", batch_standard);
-	d3d_DrawFullviewShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawTexturedVS", "DrawFullviewPS", batch_standard);
 	d3d_DrawTexArrayShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawTexArrayVS", "DrawTexArrayPS", batch_texarray);
+
+	// non-quadbatch shaders
+	d3d_DrawCinematicShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", NULL, 0);
 
 	// load console characters
 	draw_chars = GL_FindImage ("pics/conchars.pcx", it_charset);
@@ -76,15 +96,27 @@ void Draw_InitLocal (void)
 }
 
 
-void D_UpdateDrawConstants (int width, int height, float gammaval, float contrastval)
+void D_UpdateDrawConstants (float InverseCinematicAspect)
 {
 	drawconstants_t consts;
 
 	R_MatrixIdentity (&consts.OrthoMatrix);
-	R_MatrixOrtho (&consts.OrthoMatrix, 0, width, height, 0, -1, 1);
+	R_MatrixOrtho (&consts.OrthoMatrix, 0, vid.conwidth, vid.conheight, 0, -1, 1);
 
-	consts.gamma = gammaval;
-	consts.contrast = contrastval;
+	consts.gamma = vid_gamma->value;
+	consts.contrast = 1.0f;
+
+	if (vid.width > vid.height)
+	{
+		consts.aspect[0] = ((float) vid.width / (float) vid.height) * InverseCinematicAspect;
+		consts.aspect[1] = -1.0f;
+	}
+	else
+	{
+		// to do
+		consts.aspect[0] = 1.0f;
+		consts.aspect[1] = (float) -vid.height / (float) vid.width;
+	}
 
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DrawConstants, 0, NULL, &consts, 0, 0);
 }
@@ -288,9 +320,9 @@ void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha)
 	}
 
 	if (alpha >= 255)
-		Draw_TexturedQuad (gl, x, y, w, h, 0, 1, 0, 1, d3d_DrawFullviewShader);
+		Draw_TexturedQuad (gl, x, y, w, h, 0, 1, 0, 1, d3d_DrawTexturedShader);
 	else if (alpha > 0)
-		Draw_TexturedColouredQuad (gl, x, y, w, h, (alpha << 24) | 0xffffff, 0, 1, 0, 1, d3d_DrawFullviewShader);
+		Draw_TexturedColouredQuad (gl, x, y, w, h, (alpha << 24) | 0xffffff, 0, 1, 0, 1, d3d_DrawTexturedShader);
 }
 
 
@@ -362,11 +394,14 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 	// we only need to refresh the texture if the frame changes
 	static int r_rawframe = -1;
 
-	// drawing coords
-	int x, y, w, h;
+	// matrix transform for positioning the cinematic correctly
+	// sampler state should be set to clamp-to-border with a border color of black
+	QMATRIX cineMatrix;
+	float strans, ttrans;
 
-	// using a dummy image_t so that we can push this through the standard drawing routines
-	image_t gl;
+	// ensure the correct viewport is set
+	D3D11_VIEWPORT vp = {0, 0, vid.width, vid.height, 0, 0};
+	d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
 
 	// if the dimensions change the texture needs to be recreated
 	if (r_RawDesc.Width != cols || r_RawDesc.Height != rows)
@@ -398,32 +433,29 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 	// free any memory we may have used for loading it
 	ri.Load_FreeMemory ();
 
-	// clear out the background (ensuring full alpha)
-	Draw_ColouredQuad (0, 0, vid.conwidth, vid.conheight, 0xff000000);
-
-	// stretch up the pic to fill the viewport while still maintaining aspect
-	w = vid.conwidth;
-	h = (w * rows) / cols;
-
-	if (h > vid.conheight)
+	// derive the texture matrix for the cinematic pic
+	if (vid.width > vid.height)
 	{
-		h = vid.conheight;
-		w = (h * cols) / rows;
+		strans = 0.5f * ((float) rows / (float) cols) * ((float) vid.width / (float) vid.height);
+		ttrans = -0.5f;
+	}
+	else
+	{
+		strans = 0.5f;
+		ttrans = -0.5f * ((float) cols / (float) rows) * ((float) vid.height / (float) vid.width);
 	}
 
-	// take it down if required
-	while (w > vid.conwidth) w >>= 1;
-	while (h > vid.conheight) h >>= 1;
+	// load it on
+	R_MatrixLoadf (&cineMatrix, strans, 0, 0, 0, 0, ttrans, 0, 0, 0, 0, 1, 0, 0.5f, 0.5f, 0, 1);
 
-	// and center it properly
-	x = (vid.conwidth - w) >> 1;
-	y = (vid.conheight - h) >> 1;
+	// and upload it to the GPU
+	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_CineConstants, 0, NULL, &cineMatrix, 0, 0);
 
-	// set up our dummy image_t
-	gl.Texture = r_RawTexture;
-	gl.SRV = r_RawSRV;
+	R_BindTexture (r_RawSRV);
 
-	// and draw it
-	Draw_TexturedQuad (&gl, x, y, w, h, 0, 1, 0, 1, d3d_DrawFullviewShader);
+	D_BindShaderBundle (d3d_DrawCinematicShader);
+	D_SetRenderStates (d3d_BSNone, d3d_DSNoDepth, d3d_RSNoCull);
+
+	d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
 }
 

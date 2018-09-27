@@ -125,37 +125,6 @@ int D_CreateShaderBundleForQuadBatch (int resourceID, const char *vsentry, const
 }
 
 
-void D_QuadVertexPosition3fvColorAlphaTexCoord2f (float *xyz, DWORD color, int alpha, float s, float t)
-{
-	d_quadverts[d_numquadverts].texcoord[0] = s;
-	d_quadverts[d_numquadverts].texcoord[1] = t;
-
-	d_quadverts[d_numquadverts].color = color;
-	d_quadverts[d_numquadverts].rgba[3] = alpha;
-
-	d_quadverts[d_numquadverts].position[0] = xyz[0];
-	d_quadverts[d_numquadverts].position[1] = xyz[1];
-	d_quadverts[d_numquadverts].position[2] = xyz[2];
-
-	d_numquadverts++;
-}
-
-
-void D_QuadVertexPosition3fvColorTexCoord2f (float *xyz, DWORD color, float s, float t)
-{
-	d_quadverts[d_numquadverts].texcoord[0] = s;
-	d_quadverts[d_numquadverts].texcoord[1] = t;
-
-	d_quadverts[d_numquadverts].color = color;
-
-	d_quadverts[d_numquadverts].position[0] = xyz[0];
-	d_quadverts[d_numquadverts].position[1] = xyz[1];
-	d_quadverts[d_numquadverts].position[2] = xyz[2];
-
-	d_numquadverts++;
-}
-
-
 void D_QuadVertexPosition2fColorTexCoord2f (float x, float y, DWORD color, float s, float t)
 {
 	d_quadverts[d_numquadverts].texcoord[0] = s;
@@ -190,16 +159,6 @@ void D_QuadVertexPosition2fColor (float x, float y, DWORD color)
 {
 	d_quadverts[d_numquadverts].color = color;
 
-	d_quadverts[d_numquadverts].position[0] = x;
-	d_quadverts[d_numquadverts].position[1] = y;
-	d_quadverts[d_numquadverts].position[2] = 0;
-
-	d_numquadverts++;
-}
-
-
-void D_QuadVertexPosition2f (float x, float y)
-{
 	d_quadverts[d_numquadverts].position[0] = x;
 	d_quadverts[d_numquadverts].position[1] = y;
 	d_quadverts[d_numquadverts].position[2] = 0;

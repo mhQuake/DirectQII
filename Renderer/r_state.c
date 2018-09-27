@@ -38,7 +38,11 @@ ID3D11SamplerState *D_CreateSamplerState (D3D11_FILTER Filter, D3D11_TEXTURE_ADD
 	desc.AddressU = AddressMode;
 	desc.AddressV = AddressMode;
 	desc.AddressW = AddressMode;
+
+	// border colour is always black because that's what our clamp-to-border code elsewhere in the engine expects
 	desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 0;
+
+	// nope, not doing this
 	desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 
 	if (MaxAnisotropy > 1)
@@ -166,6 +170,7 @@ ID3D11SamplerState *d3d_MainSampler = NULL;
 ID3D11SamplerState *d3d_LMapSampler = NULL;
 ID3D11SamplerState *d3d_WarpSampler = NULL;
 ID3D11SamplerState *d3d_DrawSampler = NULL;
+ID3D11SamplerState *d3d_CineSampler = NULL;
 
 
 void GL_SetDefaultState (void)
@@ -190,6 +195,7 @@ void GL_SetDefaultState (void)
 	d3d_LMapSampler = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
 	d3d_WarpSampler = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, 0, 1);
 	d3d_DrawSampler = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
+	d3d_CineSampler = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, 0, 1);
 }
 
 
@@ -200,10 +206,11 @@ void D_BindSamplers (void)
 		d3d_MainSampler,
 		d3d_LMapSampler,
 		d3d_WarpSampler,
-		d3d_DrawSampler
+		d3d_DrawSampler,
+		d3d_CineSampler
 	};
 
-	d3d_Context->lpVtbl->PSSetSamplers (d3d_Context, 0, 4, Samplers);
+	d3d_Context->lpVtbl->PSSetSamplers (d3d_Context, 0, 5, Samplers);
 }
 
 

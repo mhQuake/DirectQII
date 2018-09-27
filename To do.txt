@@ -17,8 +17,6 @@ Check out when can we get rid of winquake.h?
 
 s_khz is wrong in the menu.
 
-Sprites to GPU
-
 Ogg and WMA
 
-Full screen triangle, do with poly lend first. Create Shader takes null input layout. 
+Cinematic to use clamp-to-border mode and full-screen triangle

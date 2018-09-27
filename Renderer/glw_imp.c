@@ -742,8 +742,8 @@ qboolean GLimp_InitGL (int modenum)
 	DXGI_SWAP_CHAIN_DESC sd;
 	IDXGIFactory *pFactory = NULL;
 
-	// we don't support any d3d9 feature levels
-	D3D_FEATURE_LEVEL FeatureLevels[] = {D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0};
+	// we don't support any pre-d3d11 feature levels
+	D3D_FEATURE_LEVEL FeatureLevels[] = {D3D_FEATURE_LEVEL_11_0};
 
 	memset (&sd, 0, sizeof (sd));
 
@@ -832,7 +832,7 @@ void GLimp_BeginFrame (void)
 	R_Set2DMode ();
 
 	// set up the 2D ortho view, brightness and contrast
-	D_UpdateDrawConstants (vid.conwidth, vid.conheight, vid_gamma->value, 1.0f);
+	D_UpdateDrawConstants (1.0f);
 
 	// everything in all draws is drawn as an indexed triangle list, even if it's ultimately a strip or a single tri, so this can be set-and-forget once per frame
 	d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

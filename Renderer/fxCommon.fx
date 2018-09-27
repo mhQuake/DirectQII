@@ -7,6 +7,7 @@ cbuffer cbDrawPerFrame : register(b0) {
 	matrix orthoMatrix : packoffset(c0);
 	float v_gamma : packoffset(c4.x);
 	float v_contrast : packoffset(c4.y);
+	float2 DrawAspect : packoffset(c4.z);
 };
 
 cbuffer cbMainPerFrame : register(b1) {
@@ -60,6 +61,9 @@ cbuffer cbPerSprite : register(b6) {
 	float SpriteAlpha : packoffset(c0.w);
 };
 
+cbuffer cbCinematic : register(b7) {
+	matrix cineMatrix : packoffset(c0);
+};
 
 // common to mesh and surf
 struct PS_DYNAMICLIGHT {
@@ -112,6 +116,7 @@ sampler mainSampler : register(s0);		// main sampler used for most objects, wrap
 sampler lmapSampler : register(s1);		// lightmap sampler, always linear, clamp mode, no mips, no anisotropy; also reused for the skybox
 sampler warpSampler : register(s2);		// underwater and other warps, always linear, wrap mode, no mips, no anisotropy
 sampler drawSampler : register(s3);		// used for the 2d render; point sampled, clamp mode, no mips, no anisotropy
+sampler cineSampler : register(s4);		// used for the 2d render; point sampled, clamp mode, no mips, no anisotropy
 
 // texture slots
 Texture2D<float4> mainTexture : register(t0);	// main diffuse texture on most objects
