@@ -808,7 +808,6 @@ qboolean GLimp_InitGL (int modenum)
 
 	// load all of our initial objects
 	// each subsystem creates it's objects then registers it's handlers, following which the reset handler runs to complete object creation
-	R_InitQuadBatch ();
 	R_InitMain ();
 	R_InitSurfaces ();
 	R_InitParticles ();
@@ -832,7 +831,7 @@ void GLimp_BeginFrame (void)
 	R_Set2DMode ();
 
 	// set up the 2D ortho view, brightness and contrast
-	D_UpdateDrawConstants ();
+	Draw_UpdateConstants ();
 
 	// everything in all draws is drawn as an indexed triangle list, even if it's ultimately a strip or a single tri, so this can be set-and-forget once per frame
 	d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

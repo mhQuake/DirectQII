@@ -19,3 +19,7 @@ s_khz is wrong in the menu.
 
 rasterizer state is wrong for left-handed gun models
 
+r_lightpoint with bmodels
+
+CVAR_VIDEO should not write to console if in the menus
+

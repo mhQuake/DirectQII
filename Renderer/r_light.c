@@ -223,109 +223,23 @@ typedef struct lighttexel_s {
 static int r_currentlightmap = 0;
 static int lm_allocated[LIGHTMAP_SIZE];
 
-static ID3D11Texture2D *d3d_LightmapTextures[3];
-static ID3D11ShaderResourceView *d3d_LightmapSRVs[3];
+static texture_t d3d_Lightmaps[3];
 
 static lighttexel_t **lm_data[3];
 
-ID3D11Buffer *d3d_DLightConstants = NULL;
+static ID3D11Buffer *d3d_DLightConstants = NULL;
 
-// this is a stupid place to do this
-ID3D11Buffer *d3d_PaletteBuffer = NULL;
-ID3D11ShaderResourceView *d3d_PaletteSRV = NULL;
-
-ID3D11Buffer *d3d_LightStyles = NULL;
-ID3D11ShaderResourceView *d3d_LightStyleSRV = NULL;
-
-// lightnormals are read on the GPU so that we can use a skinnier vertex format and save loads of memory
-ID3D11Buffer *d3d_LightNormalsTex = NULL;
-ID3D11ShaderResourceView *d3d_LightNormalsSRV = NULL;
+static tbuffer_t d3d_QuakePalette; // this is a stupid place to do this
+static tbuffer_t d3d_LightNormals; // lightnormals are read on the GPU so that we can use a skinnier vertex format and save loads of memory
+static tbuffer_t d3d_LightStyles;
 
 #define NUMVERTEXNORMALS	162
 
 // padded for HLSL usage
 // to do - reconstruct this mathematically
-float	r_avertexnormals[NUMVERTEXNORMALS][4] = {
+static float r_avertexnormals[NUMVERTEXNORMALS][4] = {
 #include "../DirectQII/anorms.h"
 };
-
-void D_CreatePaletteResources (void)
-{
-	// this is a stupid place to do this
-	D3D11_BUFFER_DESC PaletteDesc = {
-		sizeof (d_8to24table),
-		D3D11_USAGE_DEFAULT,
-		D3D11_BIND_SHADER_RESOURCE,
-		0,
-		0,
-		0
-	};
-
-	D3D11_SUBRESOURCE_DATA srd = {d_8to24table, 0, 0};
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-	srvDesc.Buffer.FirstElement = 0;
-	srvDesc.Buffer.NumElements = 256;
-
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &PaletteDesc, &srd, &d3d_PaletteBuffer);
-	d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) d3d_PaletteBuffer, &srvDesc, &d3d_PaletteSRV);
-
-	D_CacheObject ((ID3D11DeviceChild *) d3d_PaletteBuffer, "d3d_PaletteBuffer");
-	D_CacheObject ((ID3D11DeviceChild *) d3d_PaletteSRV, "d3d_PaletteSRV");
-}
-
-void D_CreateLightStylesResources (void)
-{
-	D3D11_BUFFER_DESC LightStylesDesc = {
-		sizeof (float) * MAX_LIGHTSTYLES,
-		D3D11_USAGE_DEFAULT,
-		D3D11_BIND_SHADER_RESOURCE,
-		0,
-		0,
-		0
-	};
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-
-	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-	srvDesc.Buffer.FirstElement = 0;
-	srvDesc.Buffer.NumElements = MAX_LIGHTSTYLES;
-
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &LightStylesDesc, NULL, &d3d_LightStyles);
-	d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) d3d_LightStyles, &srvDesc, &d3d_LightStyleSRV);
-
-	D_CacheObject ((ID3D11DeviceChild *) d3d_LightStyles, "d3d_LightStyles");
-	D_CacheObject ((ID3D11DeviceChild *) d3d_LightStyleSRV, "d3d_LightStyleSRV");
-}
-
-void D_CreateLightNormalsResources (void)
-{
-	D3D11_BUFFER_DESC LightNormalsDesc = {
-		sizeof (r_avertexnormals),
-		D3D11_USAGE_DEFAULT,
-		D3D11_BIND_SHADER_RESOURCE,
-		0,
-		0,
-		0
-	};
-
-	D3D11_SUBRESOURCE_DATA srd = {r_avertexnormals, 0, 0};
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-
-	srvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-	srvDesc.Buffer.FirstElement = 0;
-	srvDesc.Buffer.NumElements = NUMVERTEXNORMALS;
-
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &LightNormalsDesc, &srd, &d3d_LightNormalsTex);
-	d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) d3d_LightNormalsTex, &srvDesc, &d3d_LightNormalsSRV);
-
-	D_CacheObject ((ID3D11DeviceChild *) d3d_LightNormalsTex, "d3d_LightNormalsTex");
-	D_CacheObject ((ID3D11DeviceChild *) d3d_LightNormalsSRV, "d3d_LightNormalsSRV");
-}
 
 void R_InitLight (void)
 {
@@ -341,21 +255,27 @@ void R_InitLight (void)
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDLightDesc, NULL, &d3d_DLightConstants);
 	D_RegisterConstantBuffer (d3d_DLightConstants, 4);
 
-	D_CreateLightStylesResources ();
-	D_CreateLightNormalsResources ();
-	D_CreatePaletteResources (); // this is a stupid place to do this
+	R_CreateTBuffer (&d3d_LightStyles, NULL, MAX_LIGHTSTYLES, sizeof (float), DXGI_FORMAT_R32_FLOAT);
+	R_CreateTBuffer (&d3d_LightNormals, r_avertexnormals, NUMVERTEXNORMALS, sizeof (r_avertexnormals[0]), DXGI_FORMAT_R32G32B32A32_FLOAT);
+	R_CreateTBuffer (&d3d_QuakePalette, d_8to24table, 256, sizeof (d_8to24table[0]), DXGI_FORMAT_R8G8B8A8_UNORM); // this is a stupid place to do this
+}
+
+
+void R_ShutdownLightmaps (void)
+{
+	R_ReleaseTexture (&d3d_Lightmaps[0]);
+	R_ReleaseTexture (&d3d_Lightmaps[1]);
+	R_ReleaseTexture (&d3d_Lightmaps[2]);
 }
 
 
 void R_ShutdownLight (void)
 {
-	int i;
+	R_ReleaseTBuffer (&d3d_LightStyles);
+	R_ReleaseTBuffer (&d3d_LightNormals);
+	R_ReleaseTBuffer (&d3d_QuakePalette); // this is a stupid place to do this
 
-	for (i = 0; i < 3; i++)
-	{
-		SAFE_RELEASE (d3d_LightmapTextures[i]);
-		SAFE_RELEASE (d3d_LightmapSRVs[i]);
-	}
+	R_ShutdownLightmaps ();
 }
 
 
@@ -469,7 +389,7 @@ GL_BeginBuildingLightmaps
 void GL_BeginBuildingLightmaps (model_t *m)
 {
 	// release prior textures
-	R_ShutdownLight ();
+	R_ShutdownLightmaps ();
 
 	// wipe lightmaps and allocations
 	memset (lm_data, 0, sizeof (lm_data));
@@ -486,11 +406,7 @@ void GL_BeginBuildingLightmaps (model_t *m)
 void R_CreateLightmapTexture (int ch)
 {
 	int i;
-	D3D11_TEXTURE2D_DESC Desc;
 	D3D11_SUBRESOURCE_DATA *srd = ri.Load_AllocMemory (sizeof (D3D11_SUBRESOURCE_DATA) * r_currentlightmap);
-
-	// describe the texture
-	R_DescribeTexture (&Desc, LIGHTMAP_SIZE, LIGHTMAP_SIZE, r_currentlightmap, TEX_RGBA8);
 
 	// set up the SRDs
 	for (i = 0; i < r_currentlightmap; i++)
@@ -500,9 +416,8 @@ void R_CreateLightmapTexture (int ch)
 		srd[i].SysMemSlicePitch = 0;
 	}
 
-	// failure is not an option...
-	if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &d3d_LightmapTextures[ch]))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
-	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) d3d_LightmapTextures[ch], NULL, &d3d_LightmapSRVs[ch]))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
+	// and create it
+	R_CreateTexture (&d3d_Lightmaps[ch], srd, LIGHTMAP_SIZE, LIGHTMAP_SIZE, r_currentlightmap, TEX_RGBA8);
 }
 
 
@@ -548,21 +463,19 @@ void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, float *lm)
 
 void R_BindLightmaps (void)
 {
-	// this can be NULL
-	if (r_newrefdef.lightstyles)
-		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_LightStyles, 0, NULL, r_newrefdef.lightstyles, 0, 0);
-
-	// lightstyles go to VS slot 0
-	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 0, 1, &d3d_LightStyleSRV);
-
-	// light normals go to VS slot 1
-	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 1, 1, &d3d_LightNormalsSRV);
-
-	// palette texture goes to VS slot 2 (this is a stupid place to do this)
-	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 2, 1, &d3d_PaletteSRV);
+	// VS tbuffers go to VS slots 0/1/2
+	ID3D11ShaderResourceView *VertexSRVs[3] = {d3d_LightStyles.SRV, d3d_LightNormals.SRV, d3d_QuakePalette.SRV};
 
 	// lightmap textures go to PS slots 1/2/3
-	d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 1, 3, d3d_LightmapSRVs);
+	ID3D11ShaderResourceView *LightmapSRVs[3] = {d3d_Lightmaps[0].SRV, d3d_Lightmaps[1].SRV, d3d_Lightmaps[2].SRV};
+
+	// optionally update lightstyles (this can be NULL)
+	if (r_newrefdef.lightstyles)
+		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_LightStyles.Buffer, 0, NULL, r_newrefdef.lightstyles, 0, 0);
+
+	// and set them all
+	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 0, 3, VertexSRVs);
+	d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 1, 3, LightmapSRVs);
 }
 
 
@@ -572,16 +485,17 @@ void D_SetupDynamicLight (dlight_t *dl)
 	if (dl->color[0] < 0 || dl->color[1] < 0 || dl->color[2] < 0)
 	{
 		// anti-light - flip back to positive and set the appropriate state
-		dl->color[0] = -dl->color[0];
-		dl->color[1] = -dl->color[1];
-		dl->color[2] = -dl->color[2];
-
+		Vector3Scalef (dl->color, dl->color, -1);
 		D_SetRenderStates (d3d_BSSubtractive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
+		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, dl, 0, 0);
+		Vector3Scalef (dl->color, dl->color, -1); // put it back so it will be correctly detected next time
 	}
-	else D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
-
-	// update the light
-	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, dl, 0, 0);
+	else
+	{
+		// standard light can just go straight up as-is
+		D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
+		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, dl, 0, 0);
+	}
 }
 
 

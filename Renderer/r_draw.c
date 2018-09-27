@@ -23,11 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 
 
-// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-// quadbatch
-// the quadbatch stuff is only used for 2d drawing now...
-// and we might even remove it from some of that...
-
 typedef struct drawpolyvert_s {
 	float position[2];
 	float texcoord[2];
@@ -56,7 +51,29 @@ static ID3D11Buffer *d3d_DrawVertexes = NULL;
 static ID3D11Buffer *d3d_DrawIndexes = NULL;
 
 
-void R_InitQuadBatch (void)
+#define STAT_MINUS		10	// num frame for '-' stats digit
+
+static image_t	*draw_chars;
+static image_t	*sb_nums[2];
+
+static int d3d_DrawTexturedShader;
+static int d3d_DrawCinematicShader;
+static int d3d_DrawColouredShader;
+static int d3d_DrawTexArrayShader;
+
+static ID3D11Buffer *d3d_DrawConstants = NULL;
+static ID3D11Buffer *d3d_CineConstants = NULL;
+
+
+typedef struct drawconstants_s {
+	QMATRIX OrthoMatrix;
+	float gamma;
+	float contrast;
+	float junk[2];
+} drawconstants_t;
+
+
+void Draw_CreateBuffers (void)
 {
 	D3D11_BUFFER_DESC vbDesc = {
 		sizeof (drawpolyvert_t) * MAX_DRAW_VERTS,
@@ -92,61 +109,13 @@ void R_InitQuadBatch (void)
 	}
 
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, NULL, &d3d_DrawVertexes);
+	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawIndexes, "d3d_DrawIndexes");
+
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_DrawIndexes);
+	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawVertexes, "d3d_DrawVertexes");
 
 	ri.Load_FreeMemory ();
-
-	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawIndexes, "d3d_DrawIndexes");
-	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawVertexes, "d3d_DrawVertexes");
 }
-
-
-void D_CheckQuadBatch (void)
-{
-	if (d_firstdrawvert + d_numdrawverts + 4 >= MAX_DRAW_VERTS)
-	{
-		// if we run out of buffer space for the next quad we flush the batch and begin a new one
-		Draw_Flush ();
-		d_firstdrawvert = 0;
-	}
-
-	if (!d_drawverts)
-	{
-		// first index is only reset to 0 if the buffer must wrap so this is valid to do
-		D3D11_MAP mode = (d_firstdrawvert > 0) ? D3D11_MAP_WRITE_NO_OVERWRITE : D3D11_MAP_WRITE_DISCARD;
-		D3D11_MAPPED_SUBRESOURCE msr;
-
-		if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0, mode, 0, &msr)))
-			return;
-		else d_drawverts = (drawpolyvert_t *) msr.pData + d_firstdrawvert;
-	}
-}
-
-
-// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-#define STAT_MINUS		10	// num frame for '-' stats digit
-
-static image_t	*draw_chars;
-static image_t	*sb_nums[2];
-
-static int d3d_DrawTexturedShader;
-static int d3d_DrawCinematicShader;
-static int d3d_DrawColouredShader;
-static int d3d_DrawTexArrayShader;
-
-
-static ID3D11Buffer *d3d_DrawConstants = NULL;
-static ID3D11Buffer *d3d_CineConstants = NULL;
-
-
-typedef struct drawconstants_s {
-	QMATRIX OrthoMatrix;
-	float gamma;
-	float contrast;
-	float junk[2];
-} drawconstants_t;
 
 
 /*
@@ -185,7 +154,7 @@ void Draw_InitLocal (void)
 		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0)
 	};
 
-	// buffers
+	// cbuffers
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDrawDesc, NULL, &d3d_DrawConstants);
 	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
 
@@ -196,9 +165,10 @@ void Draw_InitLocal (void)
 	d3d_DrawTexturedShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
 	d3d_DrawColouredShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
 	d3d_DrawTexArrayShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
-
-	// non-quadbatch shaders
 	d3d_DrawCinematicShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", NULL, 0);
+
+	// vertex and index buffers
+	Draw_CreateBuffers ();
 
 	// load console characters
 	draw_chars = GL_FindImage ("pics/conchars.pcx", it_charset);
@@ -207,7 +177,7 @@ void Draw_InitLocal (void)
 }
 
 
-void D_UpdateDrawConstants (void)
+void Draw_UpdateConstants (void)
 {
 	drawconstants_t consts;
 
@@ -239,6 +209,31 @@ void Draw_Flush (void)
 		d_firstdrawvert += d_numdrawverts;
 		d_numdrawverts = 0;
 	}
+}
+
+
+qboolean Draw_EnsureBufferSpace (void)
+{
+	if (d_firstdrawvert + d_numdrawverts + 4 >= MAX_DRAW_VERTS)
+	{
+		// if we run out of buffer space for the next quad we flush the batch and begin a new one
+		Draw_Flush ();
+		d_firstdrawvert = 0;
+	}
+
+	if (!d_drawverts)
+	{
+		// first index is only reset to 0 if the buffer must wrap so this is valid to do
+		D3D11_MAP mode = (d_firstdrawvert > 0) ? D3D11_MAP_WRITE_NO_OVERWRITE : D3D11_MAP_WRITE_DISCARD;
+		D3D11_MAPPED_SUBRESOURCE msr;
+
+		if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0, mode, 0, &msr)))
+			return false;
+		else d_drawverts = (drawpolyvert_t *) msr.pData + d_firstdrawvert;
+	}
+
+	// all OK!
+	return true;
 }
 
 
@@ -282,43 +277,46 @@ void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned col
 	D_BindShaderBundle (d3d_DrawTexturedShader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
 
-	D_CheckQuadBatch ();
+	if (Draw_EnsureBufferSpace ())
+	{
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y, color, 0, 0);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y, color, 1, 0);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, color, 1, 1);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y + h, color, 0, 1);
 
-	Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y, color, 0, 0);
-	Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y, color, 1, 0);
-	Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, color, 1, 1);
-	Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y + h, color, 0, 1);
-
-	Draw_Flush ();
+		Draw_Flush ();
+	}
 }
 
 
-void Draw_ColouredQuad (int x, int y, int w, int h, unsigned colour)
+void Draw_ColouredQuad (int x, int y, int w, int h, unsigned color)
 {
 	D_BindShaderBundle (d3d_DrawColouredShader);
 	D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSNoDepth, d3d_RSNoCull);
 
-	D_CheckQuadBatch ();
+	if (Draw_EnsureBufferSpace ())
+	{
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y, color);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y, color);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, color);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y + h, color);
 
-	Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y, colour);
-	Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y, colour);
-	Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, colour);
-	Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y + h, colour);
-
-	Draw_Flush ();
+		Draw_Flush ();
+	}
 }
 
 
 void Draw_CharacterQuad (int x, int y, int w, int h, int slice)
 {
 	// check for overflow
-	D_CheckQuadBatch ();
-
-	// and draw it
-	Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y, 0, 0, slice);
-	Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y, 1, 0, slice);
-	Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, 1, 1, slice);
-	Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y + h, 0, 1, slice);
+	if (Draw_EnsureBufferSpace ())
+	{
+		// and draw it
+		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y, 0, 0, slice);
+		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y, 1, 0, slice);
+		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, 1, 1, slice);
+		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y + h, 0, 1, slice);
+	}
 }
 
 
@@ -495,15 +493,12 @@ void Draw_FadeScreen (void)
 Draw_StretchRaw
 =============
 */
-ID3D11Texture2D *r_RawTexture = NULL;
-ID3D11ShaderResourceView *r_RawSRV = NULL;
-D3D11_TEXTURE2D_DESC r_RawDesc;
+texture_t r_CinematicPic;
+
 
 void Draw_ShutdownRawImage (void)
 {
-	SAFE_RELEASE (r_RawTexture);
-	SAFE_RELEASE (r_RawSRV);
-	memset (&r_RawDesc, 0, sizeof (r_RawDesc));
+	R_ReleaseTexture (&r_CinematicPic);
 }
 
 
@@ -539,20 +534,16 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 	d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
 
 	// if the dimensions change the texture needs to be recreated
-	if (r_RawDesc.Width != cols || r_RawDesc.Height != rows)
+	if (r_CinematicPic.Desc.Width != cols || r_CinematicPic.Desc.Height != rows)
 		Draw_ShutdownRawImage ();
 
-	if (!r_RawTexture || !r_RawSRV)
+	if (!r_CinematicPic.SRV)
 	{
 		// ensure in case we got a partial creation
 		Draw_ShutdownRawImage ();
 
-		// describe the texture
-		R_DescribeTexture (&r_RawDesc, cols, rows, 1, TEX_RGBA8);
-
-		// failure is not an option...
-		if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &r_RawDesc, NULL, &r_RawTexture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
-		if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) r_RawTexture, NULL, &r_RawSRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
+		// and create it
+		R_CreateTexture (&r_CinematicPic, NULL, cols, rows, 1, TEX_RGBA8);
 
 		// load the image
 		r_rawframe = -1;
@@ -561,7 +552,7 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 	if (r_rawframe != frame)
 	{
 		// reload data if required
-		R_TexSubImage8 (r_RawTexture, 0, 0, 0, cols, rows, data, r_rawpalette);
+		R_TexSubImage8 (r_CinematicPic.Texture, 0, 0, 0, cols, rows, data, r_rawpalette);
 		r_rawframe = frame;
 	}
 
@@ -586,7 +577,7 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 	// and upload it to the GPU
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_CineConstants, 0, NULL, &cineMatrix, 0, 0);
 
-	R_BindTexture (r_RawSRV);
+	R_BindTexture (r_CinematicPic.SRV);
 
 	D_BindShaderBundle (d3d_DrawCinematicShader);
 	D_SetRenderStates (d3d_BSNone, d3d_DSNoDepth, d3d_RSNoCull);

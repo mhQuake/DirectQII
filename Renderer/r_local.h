@@ -61,7 +61,6 @@ extern QMATRIX	r_mvp_matrix;
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // module registration and object lifecycle
-void R_InitQuadBatch (void);
 void R_InitMain (void);
 void R_ShutdownShaders (void);
 void R_InitSurfaces (void);
@@ -332,7 +331,7 @@ void GLimp_AppActivate (qboolean active);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // draw
-void D_UpdateDrawConstants (void);
+void Draw_UpdateConstants (void);
 void Draw_Flush (void);
 
 
@@ -489,4 +488,36 @@ extern HANDLE hRefHeap;
 void R_FreeUnusedSpriteBuffers (void);
 void D_MakeSpriteBuffers (model_t *mod);
 
+
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// more texture stuff
+typedef struct rendertarget_s {
+	ID3D11Texture2D *Texture;
+	ID3D11ShaderResourceView *SRV;
+	ID3D11RenderTargetView *RTV;
+	D3D11_TEXTURE2D_DESC Desc;
+} rendertarget_t;
+
+void R_CreateRenderTarget (rendertarget_t *rt);
+void R_ReleaseRenderTarget (rendertarget_t *rt);
+
+typedef struct texture_s {
+	ID3D11Texture2D *Texture;
+	ID3D11ShaderResourceView *SRV;
+	D3D11_TEXTURE2D_DESC Desc;
+} texture_t;
+
+void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags);
+void R_ReleaseTexture (texture_t *t);
+
+
+typedef struct tbuffer_s {
+	ID3D11Buffer *Buffer;
+	ID3D11ShaderResourceView *SRV;
+} tbuffer_t;
+
+void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format);
+void R_ReleaseTBuffer (tbuffer_t *t);
+
+void R_CopyScreen (rendertarget_t *dst);
 

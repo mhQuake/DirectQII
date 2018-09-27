@@ -529,3 +529,110 @@ image_t *GL_LoadTexArray (char *base)
 	return image;
 }
 
+
+void R_CreateRenderTarget (rendertarget_t *rt)
+{
+	ID3D11Texture2D *pBackBuffer = NULL;
+
+	// Get a pointer to the back buffer
+	if (FAILED (d3d_SwapChain->lpVtbl->GetBuffer (d3d_SwapChain, 0, &IID_ID3D11Texture2D, (LPVOID *) &pBackBuffer)))
+	{
+		ri.Sys_Error (ERR_FATAL, "D_CreateRenderTargetAtBackbufferSize : d3d_SwapChain->GetBuffer failed");
+		return;
+	}
+
+	// get the description of the backbuffer for creating the new rendertarget from it
+	pBackBuffer->lpVtbl->GetDesc (pBackBuffer, &rt->Desc);
+	pBackBuffer->lpVtbl->Release (pBackBuffer);
+
+	// adjust the desc for RTT usage
+	rt->Desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+
+	// and create it - failure is not an option...
+	if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &rt->Desc, NULL, &rt->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
+	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) rt->Texture, NULL, &rt->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
+	if (FAILED (d3d_Device->lpVtbl->CreateRenderTargetView (d3d_Device, (ID3D11Resource *) rt->Texture, NULL, &rt->RTV))) ri.Sys_Error (ERR_FATAL, "CreateRenderTargetView failed");
+}
+
+
+void R_ReleaseRenderTarget (rendertarget_t *rt)
+{
+	SAFE_RELEASE (rt->Texture);
+	SAFE_RELEASE (rt->SRV);
+	SAFE_RELEASE (rt->RTV);
+	memset (rt, 0, sizeof (rendertarget_t));
+}
+
+
+void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags)
+{
+	// describe the texture
+	R_DescribeTexture (&t->Desc, width, height, arraysize, flags);
+
+	// failure is not an option...
+	if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &t->Desc, srd, &t->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
+	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) t->Texture, NULL, &t->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
+}
+
+
+void R_ReleaseTexture (texture_t *t)
+{
+	SAFE_RELEASE (t->Texture);
+	SAFE_RELEASE (t->SRV);
+	memset (t, 0, sizeof (texture_t));
+}
+
+
+void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format)
+{
+	D3D11_BUFFER_DESC tbDesc = {
+		ElementSize * NumElements,
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_SHADER_RESOURCE,
+		0,
+		0,
+		0
+	};
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+
+	srvDesc.Format = Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.NumElements = NumElements;
+
+	if (data)
+	{
+		D3D11_SUBRESOURCE_DATA srd = {data, 0, 0};
+		d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &tbDesc, &srd, &tb->Buffer);
+	}
+	else d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &tbDesc, NULL, &tb->Buffer);
+
+	d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) tb->Buffer, &srvDesc, &tb->SRV);
+}
+
+
+void R_ReleaseTBuffer (tbuffer_t *tb)
+{
+	SAFE_RELEASE (tb->Buffer);
+	SAFE_RELEASE (tb->SRV);
+	memset (tb, 0, sizeof (tbuffer_t));
+}
+
+
+void R_CopyScreen (rendertarget_t *dst)
+{
+	ID3D11Texture2D *pBackBuffer = NULL;
+
+	// Get a pointer to the back buffer
+	if (SUCCEEDED (d3d_SwapChain->lpVtbl->GetBuffer (d3d_SwapChain, 0, &IID_ID3D11Texture2D, (LPVOID *) &pBackBuffer)))
+	{
+		// we need to use CopySubresourceRegion because the target and/or source may be mipped
+		d3d_Context->lpVtbl->CopySubresourceRegion (d3d_Context, (ID3D11Resource *) dst->Texture, 0, 0, 0, 0, (ID3D11Resource *) pBackBuffer, 0, NULL);
+
+		// and done
+		pBackBuffer->lpVtbl->Release (pBackBuffer);
+	}
+}
+
+
