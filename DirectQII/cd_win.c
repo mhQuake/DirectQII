@@ -47,18 +47,24 @@ cvar_t *bgmvolume;
 UINT	wDeviceID;
 int		loopcounter;
 
+char	cd_basedir[MAX_OSPATH];
+char	cd_ext[4];
 
-static void CDAudio_GetAudioDiskInfo (void)
+
+static qboolean CDAudio_GetTracks (char *basedir, char *ext)
 {
 	int i;
 	FILE *f;
 
-	// count number of tracks
+	// start from scratch
 	maxTrack = 0;
+	cd_basedir[0] = 0;
+	cd_ext[0] = 0;
 
+	// (track numbers begin at 2 in Quake)
 	for (i = 2; ; i++)
 	{
-		if ((f = fopen (va ("%s/music/track%02i.mp3", FS_Gamedir (), i), "rb")) != NULL)
+		if ((f = fopen (va ("%s/music/track%02i.%s", basedir, i, ext), "rb")) != NULL)
 		{
 			maxTrack = i;
 			fclose (f);
@@ -66,45 +72,78 @@ static void CDAudio_GetAudioDiskInfo (void)
 		else break;
 	}
 
-	if (maxTrack) return;
-
-	for (i = 2; ; i++)
+	if (maxTrack > 0)
 	{
-		if ((f = fopen (va ("./"BASEDIRNAME"/music/track%02i.mp3", i), "rb")) != NULL)
-		{
-			maxTrack = i;
-			fclose (f);
-		}
-		else break;
+		// store out what we got - all future attempts to play music will look in this path and try this extension
+		strcpy (cd_basedir, basedir);
+		strcpy (cd_ext, ext);
+		return true;
 	}
+	else return false;
+}
+
+
+static void CDAudio_GetAudioDiskInfo (void)
+{
+	// try the current gamedir first
+	if (CDAudio_GetTracks (FS_Gamedir (), "mp3")) return;
+	if (CDAudio_GetTracks (FS_Gamedir (), "ogg")) return;
+	if (CDAudio_GetTracks (FS_Gamedir (), "wma")) return;
+
+	// fall back to baseq2 - this may casue baseq2 to be scanned twice, but that's OK
+	// (note - because FS_Gamedir is an absolute path whereas BASEDIRNAME is a relative path, there is no 100% robust way of skipping this)
+	if (CDAudio_GetTracks (BASEDIRNAME, "mp3")) return;
+	if (CDAudio_GetTracks (BASEDIRNAME, "ogg")) return;
+	if (CDAudio_GetTracks (BASEDIRNAME, "wma")) return;
+}
+
+
+qboolean CDAudio_SetVolume (qboolean force)
+{
+	static int lastvolume = -1;
+	int s_volume = (int) (bgmvolume->value * 1000.0f);
+
+	if (s_volume < 0) s_volume = 0;
+	if (s_volume > 1000) s_volume = 1000;
+
+	if (lastvolume != s_volume || force)
+	{
+		// yayy - linear scale!
+		if (!mciSendString (va ("setaudio "Q_MCI_DEVICE" volume to %i", s_volume), NULL, 0, 0))
+			lastvolume = s_volume;
+		else return false;
+	}
+
+	// succeeded or not needed
+	return true;
 }
 
 
 qboolean CDAudio_TryPlay (char *track, qboolean looping)
 {
-	// 0 if successful - needs filename in quotes as it may contain spaces (track numbers begin at 2 in Quake)
+	// 0 if successful - needs filename in quotes as it may contain spaces
 	if (!mciSendString (va ("open \"%s\" type mpegvideo alias "Q_MCI_DEVICE, track), NULL, 0, 0))
 	{
-		// do an initial volume set
-		int s_volume = (int) (bgmvolume->value * 1000.0f);
-
-		if (s_volume < 0) s_volume = 0;
-		if (s_volume > 1000) s_volume = 1000;
-
-		if (!mciSendString (va ("setaudio "Q_MCI_DEVICE" volume to %i", s_volume), NULL, 0, 0))
+		// do an initial volume set (forcing it so it will override the cached vol)
+		if (CDAudio_SetVolume (true))
 		{
 			// and attempt to play it
 			if (!mciSendString ("set "Q_MCI_DEVICE" video off", NULL, 0, 0))	// in case the file contains video info
 			{
-				//if (!mciSendString (va ("play "Q_MCI_DEVICE"%s", looping ? " repeat" : ""), NULL, 0, 0))
 				if (!mciSendString ("play "Q_MCI_DEVICE" notify", NULL, 0, cl_hwnd))
 				{
-					// got it; retrieve the device id for the CDAudio_MessageHandler
+					// got it; retrieve the device id for the CDAudio_MessageHandler proc
 					wDeviceID = mciGetDeviceID (Q_MCI_DEVICE);
 					return true;
 				}
 			}
 		}
+
+		// if it gets to here it failed to open, set volume, play, or respond to other controls; most likely a codec is not installed
+		Com_Printf ("failed to play track %i - have you a codec for \".%s\" installed?\n", track, cd_ext);
+
+		// prevent all further music
+		cd_ext[0] = 0;
 	}
 
 	// it shouldn't be playing if we get to here....
@@ -115,34 +154,25 @@ qboolean CDAudio_TryPlay (char *track, qboolean looping)
 void CDAudio_Play2 (int track, qboolean looping)
 {
 	// if the same track is requested, and if it's currently playing, just continue it
-	if (playing && playTrack == track)
-		return;
+	if (playing && playTrack == track) return;
 
 	// stop whatever is currently playing
 	CDAudio_Stop ();
 
+	// if any of these are NULL we didn't get any tracks
+	if (!cd_basedir[0]) return;
+	if (!cd_ext[0]) return;
+	if (!maxTrack) return;
+
 	// get the track from the remap
 	track = remap[track];
 
-	// if it's out of range don't even try (some maps send track 0)
-	if (track < 1 || track > maxTrack)
-	{
-		CDAudio_Stop ();
-		return;
-	}
+	// if it's out of range don't even try (some maps send track 0) (it was already stopped above)
+	if (track < 1 || track > maxTrack) return;
 
-	// try it from the gamedir.
-	// if not there, try it from the basedir - note that this might be the same as the gamedir, in
-	// which case we would have two successive attempts at the same dir, and as the first one failed the
-	// second would be expected to fail too, but that's actually OK...
-	if (!CDAudio_TryPlay (va ("%s/music/track%02i.mp3", FS_Gamedir (), track), looping))
-	{
-		if (!CDAudio_TryPlay (va ("./"BASEDIRNAME"/music/track%02i.mp3", track), looping))
-		{
-			Com_Printf ("failed to play track %i\n", track);
-			return;
-		}
-	}
+	// try it
+	if (!CDAudio_TryPlay (va ("%s/music/track%02i.%s", cd_basedir, track, cd_ext), looping))
+		return;
 
 	// we got something so store them out
 	playLooping = looping;
@@ -153,11 +183,11 @@ void CDAudio_Play2 (int track, qboolean looping)
 
 void CDAudio_Play (int track, qboolean looping)
 {
-	// set a loop counter so that this track will change to the
-	// looptrack later
+	// set a loop counter so that this track will change to the - looptrack later
 	loopcounter = 0;
 	CDAudio_Play2 (track, looping);
 }
+
 
 void CDAudio_Stop (void)
 {
@@ -345,20 +375,7 @@ LONG CDAudio_MessageHandler (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void CDAudio_Update (void)
 {
 	if (playing)
-	{
-		static int lastvolume = -1;
-		int s_volume = (int) (bgmvolume->value * 1000.0f);
-
-		if (s_volume < 0) s_volume = 0;
-		if (s_volume > 1000) s_volume = 1000;
-
-		if (lastvolume != s_volume)
-		{
-			// yayy - linear scale!
-			mciSendString (va ("setaudio "Q_MCI_DEVICE" volume to %i", s_volume), NULL, 0, 0);
-			lastvolume = s_volume;
-		}
-	}
+		CDAudio_SetVolume (false);
 }
 
 

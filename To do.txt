@@ -18,5 +18,3 @@ Check out when can we get rid of winquake.h?
 s_khz is wrong in the menu.
 
 Ogg and WMA
-
-Cinematic to use clamp-to-border mode and full-screen triangle
