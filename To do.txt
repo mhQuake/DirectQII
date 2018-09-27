@@ -17,7 +17,7 @@ Check out when can we get rid of winquake.h?
 
 s_khz is wrong in the menu.
 
-rasterizer state is wrong for left-handed gun models
+Dlights rasterizer state is wrong for left-handed gun models
 
 r_lightpoint with bmodels
 
