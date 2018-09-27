@@ -32,6 +32,7 @@ msurface_t	*r_alpha_surfaces;
 static int r_numsurfaceverts = 0;
 
 void R_DrawSkyChain (msurface_t *surf);
+void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, float *lm);
 
 
 int d3d_FirstSurfIndex = 0;
@@ -712,53 +713,34 @@ void GL_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t
 	for (i = 0; i < surf->numedges; i++, verts++)
 	{
 		int lindex = mod->surfedges[surf->firstedge + i];
-		float s, t, *vec;
 
 		if (lindex > 0)
 		{
 			medge_t *r_pedge = &mod->edges[lindex];
-			vec = mod->vertexes[r_pedge->v[0]].position;
+			Vector3Copy (verts->xyz, mod->vertexes[r_pedge->v[0]].position);
 		}
 		else
 		{
 			medge_t *r_pedge = &mod->edges[-lindex];
-			vec = mod->vertexes[r_pedge->v[1]].position;
+			Vector3Copy (verts->xyz, mod->vertexes[r_pedge->v[1]].position);
 		}
-
-		VectorCopy (vec, verts->xyz);
 
 		if (surf->texinfo->flags & SURF_WARP)
 		{
 			// precalc as much of this as possible so that we don't need a more complex FS
-			verts->st[0] = Vector3Dot (vec, surf->texinfo->vecs[0]) * 0.015625f;
-			verts->st[1] = Vector3Dot (vec, surf->texinfo->vecs[1]) * 0.015625f;
+			verts->st[0] = Vector3Dot (verts->xyz, surf->texinfo->vecs[0]) * 0.015625f;
+			verts->st[1] = Vector3Dot (verts->xyz, surf->texinfo->vecs[1]) * 0.015625f;
 
-			verts->lm[0] = Vector3Dot (vec, surf->texinfo->vecs[1]) * M_PI / 64.0f;
-			verts->lm[1] = Vector3Dot (vec, surf->texinfo->vecs[0]) * M_PI / 64.0f;
+			verts->lm[0] = Vector3Dot (verts->xyz, surf->texinfo->vecs[1]) * M_PI / 64.0f;
+			verts->lm[1] = Vector3Dot (verts->xyz, surf->texinfo->vecs[0]) * M_PI / 64.0f;
 		}
 		else if (!(surf->texinfo->flags & SURF_SKY))
 		{
-			s = (Vector3Dot (vec, surf->texinfo->vecs[0]) + surf->texinfo->vecs[0][3]) / surf->texinfo->image->width;
-			t = (Vector3Dot (vec, surf->texinfo->vecs[1]) + surf->texinfo->vecs[1][3]) / surf->texinfo->image->height;
-
-			verts->st[0] = s;
-			verts->st[1] = t;
+			verts->st[0] = (Vector3Dot (verts->xyz, surf->texinfo->vecs[0]) + surf->texinfo->vecs[0][3]) / surf->texinfo->image->width;
+			verts->st[1] = (Vector3Dot (verts->xyz, surf->texinfo->vecs[1]) + surf->texinfo->vecs[1][3]) / surf->texinfo->image->height;
 
 			// lightmap texture coordinates
-			s = Vector3Dot (vec, surf->texinfo->vecs[0]) + surf->texinfo->vecs[0][3];
-			s -= surf->texturemins[0];
-			s += surf->light_s * 16;
-			s += 8;
-			s /= LIGHTMAP_SIZE * 16;
-
-			t = Vector3Dot (vec, surf->texinfo->vecs[1]) + surf->texinfo->vecs[1][3];
-			t -= surf->texturemins[1];
-			t += surf->light_t * 16;
-			t += 8;
-			t /= LIGHTMAP_SIZE * 16;
-
-			verts->lm[0] = s;
-			verts->lm[1] = t;
+			R_SetupLightmapTexCoords (surf, verts->xyz, verts->lm);
 
 			// lightmap texture num is texture array slice to use
 			verts->mapnum = surf->lightmaptexturenum;

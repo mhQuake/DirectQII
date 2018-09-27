@@ -698,7 +698,7 @@ void R_AliasDlights (entity_t *e, model_t *mod, dmdl_t *hdr, QMATRIX *localMatri
 			R_VectorInverseTransform (localMatrix, dl->origin, origin);
 
 			// set up the light
-			D_SetupDynamicLight (dl);
+			D_SetupDynamicLight (dl, i);
 
 			// set up the shaders
 			D_BindShaderBundle (d3d_MeshDynamicShader);

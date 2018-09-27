@@ -24,6 +24,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // starting the count at 1 so that a memset-0 doesn't mark surfaces
 int	r_dlightframecount = 1;
 
+// 256x256 lightmaps allows 4x the surfs packed in a single map
+#define	LIGHTMAP_SIZE		256
+
+// using a texture array we must constrain MAX_LIGHTMAPS to this value
+#define	MAX_LIGHTMAPS	D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION
+
 
 /*
 =============================================================================
@@ -524,6 +530,22 @@ void GL_EndBuildingLightmaps (void)
 }
 
 
+void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, float *lm)
+{
+	lm[0] = Vector3Dot (vec, surf->texinfo->vecs[0]) + surf->texinfo->vecs[0][3];
+	lm[0] -= surf->texturemins[0];
+	lm[0] += surf->light_s * 16;
+	lm[0] += 8;
+	lm[0] /= LIGHTMAP_SIZE * 16;
+
+	lm[1] = Vector3Dot (vec, surf->texinfo->vecs[1]) + surf->texinfo->vecs[1][3];
+	lm[1] -= surf->texturemins[1];
+	lm[1] += surf->light_t * 16;
+	lm[1] += 8;
+	lm[1] /= LIGHTMAP_SIZE * 16;
+}
+
+
 void R_BindLightmaps (void)
 {
 	// this can be NULL
@@ -544,8 +566,9 @@ void R_BindLightmaps (void)
 }
 
 
-void D_SetupDynamicLight (dlight_t *dl)
+void D_SetupDynamicLight (dlight_t *dl, int dlnum)
 {
+	// select the appropriate state (fixme - this rasterizer state is wrong for left-handed gun models)
 	if (dl->color[0] < 0 || dl->color[1] < 0 || dl->color[2] < 0)
 	{
 		// anti-light - flip back to positive and set the appropriate state
@@ -557,6 +580,7 @@ void D_SetupDynamicLight (dlight_t *dl)
 	}
 	else D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
 
+	// update the light
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, dl, 0, 0);
 }
 
@@ -682,7 +706,7 @@ void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *local
 		// draw anything we got
 		if (dl->numsurfaces)
 		{
-			D_SetupDynamicLight (dl);
+			D_SetupDynamicLight (dl, i);
 			R_DrawDlightChains (e, mod, localmatrix);
 			dl->numsurfaces = 0;
 		}
@@ -734,10 +758,17 @@ void R_PrepareDlights (void)
 
 	for (i = 0; i < r_newrefdef.num_dlights; i++)
 	{
+		// NOTE ON THE SCISSOR TEST OPTIMIZATION - this was a perf win back in 2004/2005; nowadays it's actually slower
 		dlight_t *dl = &r_newrefdef.dlights[i];
 
+		// fast cullsphere elimination first
 		if (R_CullSphere (dl->origin, dl->intensity))
+		{
 			dl->intensity = 0;
+			continue;
+		}
+
+		// other stuff may follow...
 	}
 }
 

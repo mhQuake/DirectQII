@@ -52,6 +52,14 @@ void R_Set2DMode (void);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// world transforms
+extern QMATRIX	r_view_matrix;
+extern QMATRIX	r_proj_matrix;
+extern QMATRIX	r_gun_matrix;
+extern QMATRIX	r_mvp_matrix;
+
+
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // module registration and object lifecycle
 void R_InitQuadBatch (void);
 void R_InitMain (void);
@@ -460,14 +468,9 @@ void Image_ApplyTranslationRGB (byte *rgb, int size, byte *table);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-// light
-#define	LIGHTMAP_SIZE		256
-
-// using a texture array and with needing to support feature levels as low as d3d10 we must constrain MAX_LIGHTMAPS to this value
-#define	MAX_LIGHTMAPS	D3D10_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION
-
+// lights
 void R_BindLightmaps (void);
-void D_SetupDynamicLight (dlight_t *dl);
+void D_SetupDynamicLight (dlight_t *dl, int dlnum);
 void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix);
 void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *localmatrix, int visframe);
 void R_SetEntityLighting (entity_t *e, float *shadelight, float *shadevector);
