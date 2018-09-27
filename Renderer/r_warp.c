@@ -276,9 +276,6 @@ qboolean D_BeginWaterWarp (void)
 
 void D_DoWaterWarp (void)
 {
-	float s = (float) vid.width / (float) vid.height;
-	float t = 1.0f;
-
 	// revert the original RTs
 	d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
 
@@ -294,15 +291,5 @@ void D_DoWaterWarp (void)
 
 	// full-screen triangle
 	d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
-	/*
-	D_CheckQuadBatch ();
-
-	D_QuadVertexPosition2fColorTexCoord2f (-1, -1, 0xffffffff, 0, 0);
-	D_QuadVertexPosition2fColorTexCoord2f ( 1, -1, 0xffffffff, s, 0);
-	D_QuadVertexPosition2fColorTexCoord2f ( 1,  1, 0xffffffff, s, t);
-	D_QuadVertexPosition2fColorTexCoord2f (-1,  1, 0xffffffff, 0, t);
-
-	D_EndQuadBatch ();
-	*/
 }
 

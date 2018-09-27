@@ -566,7 +566,7 @@ void R_BindLightmaps (void)
 }
 
 
-void D_SetupDynamicLight (dlight_t *dl, int dlnum)
+void D_SetupDynamicLight (dlight_t *dl)
 {
 	// select the appropriate state (fixme - this rasterizer state is wrong for left-handed gun models)
 	if (dl->color[0] < 0 || dl->color[1] < 0 || dl->color[2] < 0)
@@ -706,7 +706,7 @@ void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *local
 		// draw anything we got
 		if (dl->numsurfaces)
 		{
-			D_SetupDynamicLight (dl, i);
+			D_SetupDynamicLight (dl);
 			R_DrawDlightChains (e, mod, localmatrix);
 			dl->numsurfaces = 0;
 		}
