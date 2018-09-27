@@ -1,5 +1,13 @@
 # DirectQII
-Readme
+The Direct3D 11 API
+-------------------
+Direct3D 11 was chosen as the target API because it is the most sane and with the least amount of bullshit.  The objective was to do a clean and high-quality port of the original renderer, so you won't see realtime global illumination, normal maps, HDR/bloom effects, or 256-bit SSAO, GTFO or RFLMAO here.  As a general rule, if it wasn't in the original renderer, it won't be here either; if you want to see clowns and jugglers go to the circus.
+
+Instead Direct3D 11 is used for a high-quality and high-performance implementation of the stock Quake II renderer.  API features used include:
+
+ - Geometry shaders.
+ - Drawing without the Input Assembler stage.
+ - 
 
 
 How Video Modes Work
