@@ -208,6 +208,20 @@ void R_ShutdownSprite (void)
 }
 
 
+void R_UpdateSpriteconstants (entity_t *e)
+{
+	spriteconstants_t consts;
+
+	Vector3Copy (consts.spriteOrigin, e->currorigin);
+
+	if (e->flags & RF_TRANSLUCENT)
+		consts.spritealpha = e->alpha;
+	else consts.spritealpha = 1;
+
+	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_SpriteConstants, 0, NULL, &consts, 0, 0);
+}
+
+
 /*
 =================
 R_DrawSpriteModel
@@ -224,15 +238,7 @@ void R_DrawSpriteModel (entity_t *e)
 	int framenum = e->currframe % psprite->numframes;
 	dsprframe_t *frame = &psprite->frames[framenum];
 
-	spriteconstants_t consts;
-
-	Vector3Copy (consts.spriteOrigin, e->currorigin);
-
-	if (e->flags & RF_TRANSLUCENT)
-		consts.spritealpha = e->alpha;
-	else consts.spritealpha = 1;
-
-	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_SpriteConstants, 0, NULL, &consts, 0, 0);
+	R_UpdateSpriteconstants (e);
 
 	D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSFullCull);
 	D_BindShaderBundle (d3d_SpriteShader);

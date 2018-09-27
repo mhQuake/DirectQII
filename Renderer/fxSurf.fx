@@ -135,7 +135,7 @@ float4 SurfLightmapPS (PS_LIGHTMAPPED ps_in) : SV_TARGET0
 		dot (lmap2Texture.Sample (lmapSampler, ps_in.Lightmap), ps_in.Styles)
 	);
 
-	return GetFinalLighting (diff, lmap, AlphaVal);
+	return float4 (diff.rgb * lmap, diff.a * AlphaVal);
 }
 
 float4 SurfDrawTurbPS (PS_DRAWTURB ps_in) : SV_TARGET0

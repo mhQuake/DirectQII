@@ -57,7 +57,7 @@ float4 MeshLightmapPS (PS_MESH ps_in) : SV_TARGET0
 	float shadedot = dot (normalize (ps_in.Normal), ShadeVector);
 	float3 lmap = ShadeLight * max (shadedot + 1.0f, (shadedot * 0.2954545f) + 1.0f);
 
-	return GetFinalLighting (diff, lmap, AlphaVal);
+	return float4 (diff.rgb * lmap, diff.a * AlphaVal);
 }
 
 float4 MeshFullbrightPS (PS_MESH ps_in) : SV_TARGET0
