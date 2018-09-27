@@ -332,26 +332,8 @@ void GLimp_AppActivate (qboolean active);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // draw
-void D_UpdateDrawConstants (float InverseCinematicAspect);
-
-
-// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-// quadbatch
-// the quadbatch stuff is only used for 2d drawing now...
-// and we might even remove it from some of that...
-typedef enum _batchtype_t {
-	batch_standard,
-	batch_texarray
-} batchtype_t;
-
-
-void D_CheckQuadBatch (void);
-void D_QuadVertexPosition2fColorTexCoord2f (float x, float y, DWORD color, float s, float t);
-void D_QuadVertexPosition2fTexCoord2f (float x, float y, float s, float t);
-void D_QuadVertexPosition2fColor (float x, float y, DWORD color);
-void D_QuadVertexPosition2fTexCoord3f (float x, float y, float s, float t, float slice);
-void D_EndQuadBatch (void);
-int D_CreateShaderBundleForQuadBatch (int resourceID, const char *vsentry, const char *psentry, batchtype_t type);
+void D_UpdateDrawConstants (void);
+void Draw_Flush (void);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------

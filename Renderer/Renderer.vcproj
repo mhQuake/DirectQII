@@ -214,10 +214,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\r_quadbatch.c"
-				>
-			</File>
-			<File
 				RelativePath=".\r_shader.c"
 				>
 			</File>

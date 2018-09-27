@@ -1,4 +1,14 @@
 
+struct VS_DRAWCOMMON {
+	float4 Position : POSITION;
+	float2 TexCoord : TEXCOORD;
+	float4 Color : COLOUR;
+};
+
+struct VS_DRAWCHARACTER {
+	float4 Position : POSITION;
+	float3 TexCoord : TEXCOORD;
+};
 
 struct PS_DRAWTEXTURED {
 	float4 Position : SV_POSITION;
@@ -18,7 +28,7 @@ struct PS_DRAWCOLOURED {
 
 
 #ifdef VERTEXSHADER
-PS_DRAWTEXTURED DrawTexturedVS (VS_QUADBATCH vs_in)
+PS_DRAWTEXTURED DrawTexturedVS (VS_DRAWCOMMON vs_in)
 {
 	PS_DRAWTEXTURED vs_out;
 
@@ -40,7 +50,7 @@ PS_DRAWTEXTURED DrawCinematicVS (uint vertexId : SV_VertexID)
 	return vs_out;
 }
 
-PS_DRAWCHARACTER DrawTexArrayVS (VS_QUADBATCH_TEXARRAY vs_in)
+PS_DRAWCHARACTER DrawTexArrayVS (VS_DRAWCHARACTER vs_in)
 {
 	PS_DRAWCHARACTER vs_out;
 
@@ -50,7 +60,7 @@ PS_DRAWCHARACTER DrawTexArrayVS (VS_QUADBATCH_TEXARRAY vs_in)
 	return vs_out;
 }
 
-PS_DRAWCOLOURED DrawColouredVS (VS_QUADBATCH vs_in)
+PS_DRAWCOLOURED DrawColouredVS (VS_DRAWCOMMON vs_in)
 {
 	PS_DRAWCOLOURED vs_out;
 

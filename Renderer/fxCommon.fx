@@ -7,7 +7,6 @@ cbuffer cbDrawPerFrame : register(b0) {
 	matrix orthoMatrix : packoffset(c0);
 	float v_gamma : packoffset(c4.x);
 	float v_contrast : packoffset(c4.y);
-	float2 DrawAspect : packoffset(c4.z);
 };
 
 cbuffer cbMainPerFrame : register(b1) {
@@ -78,17 +77,6 @@ static const float M_PI = 3.14159265f;
 
 
 #ifdef VERTEXSHADER
-struct VS_QUADBATCH {
-	float4 Position : POSITION;
-	float4 Color : COLOUR;
-	float2 TexCoord : TEXCOORD;
-};
-
-struct VS_QUADBATCH_TEXARRAY {
-	float4 Position : POSITION;
-	float3 TexCoord : TEXCOORD;
-};
-
 Buffer<float> LightStyles : register(t0);
 Buffer<float4> LightNormals : register(t1);
 Buffer<float4> QuakePalette : register(t2);

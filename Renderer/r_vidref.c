@@ -228,7 +228,7 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.DrawFadeScreen = Draw_FadeScreen;
 
 	re.DrawChar = Draw_Char;
-	re.DrawString = D_EndQuadBatch;
+	re.DrawString = Draw_Flush;
 	re.DrawField = Draw_Field;
 
 	re.DrawStretchRaw = Draw_StretchRaw;

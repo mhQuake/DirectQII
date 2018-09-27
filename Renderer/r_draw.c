@@ -24,6 +24,106 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// quadbatch
+// the quadbatch stuff is only used for 2d drawing now...
+// and we might even remove it from some of that...
+
+typedef struct drawpolyvert_s {
+	float position[2];
+	float texcoord[2];
+	union {
+		DWORD color;
+		byte rgba[4];
+		float slice;
+	};
+} drawpolyvert_t;
+
+
+// these should be sized such that MAX_DRAW_INDEXES = (MAX_DRAW_VERTS / 4) * 6
+#define MAX_DRAW_VERTS		0x400
+#define MAX_DRAW_INDEXES	0x600
+
+#if (MAX_DRAW_VERTS / 4) * 6 != MAX_DRAW_INDEXES
+#error (MAX_DRAW_VERTS / 4) * 6 != MAX_DRAW_INDEXES
+#endif
+
+
+static drawpolyvert_t *d_drawverts = NULL;
+static int d_firstdrawvert = 0;
+static int d_numdrawverts = 0;
+
+static ID3D11Buffer *d3d_DrawVertexes = NULL;
+static ID3D11Buffer *d3d_DrawIndexes = NULL;
+
+
+void R_InitQuadBatch (void)
+{
+	D3D11_BUFFER_DESC vbDesc = {
+		sizeof (drawpolyvert_t) * MAX_DRAW_VERTS,
+		D3D11_USAGE_DYNAMIC,
+		D3D11_BIND_VERTEX_BUFFER,
+		D3D11_CPU_ACCESS_WRITE,
+		0,
+		0
+	};
+
+	D3D11_BUFFER_DESC ibDesc = {
+		sizeof (unsigned short) * MAX_DRAW_INDEXES,
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_INDEX_BUFFER,
+		0,
+		0,
+		0
+	};
+
+	int i;
+	unsigned short *ndx = ri.Load_AllocMemory (sizeof (unsigned short) * MAX_DRAW_INDEXES);
+	D3D11_SUBRESOURCE_DATA srd = {ndx, 0, 0};
+
+	for (i = 0; i < MAX_DRAW_VERTS; i += 4, ndx += 6)
+	{
+		ndx[0] = i + 0;
+		ndx[1] = i + 1;
+		ndx[2] = i + 2;
+
+		ndx[3] = i + 0;
+		ndx[4] = i + 2;
+		ndx[5] = i + 3;
+	}
+
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, NULL, &d3d_DrawVertexes);
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_DrawIndexes);
+
+	ri.Load_FreeMemory ();
+
+	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawIndexes, "d3d_DrawIndexes");
+	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawVertexes, "d3d_DrawVertexes");
+}
+
+
+void D_CheckQuadBatch (void)
+{
+	if (d_firstdrawvert + d_numdrawverts + 4 >= MAX_DRAW_VERTS)
+	{
+		// if we run out of buffer space for the next quad we flush the batch and begin a new one
+		Draw_Flush ();
+		d_firstdrawvert = 0;
+	}
+
+	if (!d_drawverts)
+	{
+		// first index is only reset to 0 if the buffer must wrap so this is valid to do
+		D3D11_MAP mode = (d_firstdrawvert > 0) ? D3D11_MAP_WRITE_NO_OVERWRITE : D3D11_MAP_WRITE_DISCARD;
+		D3D11_MAPPED_SUBRESOURCE msr;
+
+		if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0, mode, 0, &msr)))
+			return;
+		else d_drawverts = (drawpolyvert_t *) msr.pData + d_firstdrawvert;
+	}
+}
+
+
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 #define STAT_MINUS		10	// num frame for '-' stats digit
@@ -45,7 +145,7 @@ typedef struct drawconstants_s {
 	QMATRIX OrthoMatrix;
 	float gamma;
 	float contrast;
-	float aspect[2];
+	float junk[2];
 } drawconstants_t;
 
 
@@ -74,6 +174,17 @@ void Draw_InitLocal (void)
 		0
 	};
 
+	D3D11_INPUT_ELEMENT_DESC layout_standard[] = {
+		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0),
+		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0),
+		VDECL ("COLOUR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 0)
+	};
+
+	D3D11_INPUT_ELEMENT_DESC layout_texarray[] = {
+		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0),
+		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0)
+	};
+
 	// buffers
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDrawDesc, NULL, &d3d_DrawConstants);
 	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
@@ -82,9 +193,9 @@ void Draw_InitLocal (void)
 	D_RegisterConstantBuffer (d3d_CineConstants, 7);
 
 	// shaders
-	d3d_DrawTexturedShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawTexturedVS", "DrawTexturedPS", batch_standard);
-	d3d_DrawColouredShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawColouredVS", "DrawColouredPS", batch_standard);
-	d3d_DrawTexArrayShader = D_CreateShaderBundleForQuadBatch (IDR_DRAWSHADER, "DrawTexArrayVS", "DrawTexArrayPS", batch_texarray);
+	d3d_DrawTexturedShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
+	d3d_DrawColouredShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
+	d3d_DrawTexArrayShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
 
 	// non-quadbatch shaders
 	d3d_DrawCinematicShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", NULL, 0);
@@ -96,7 +207,7 @@ void Draw_InitLocal (void)
 }
 
 
-void D_UpdateDrawConstants (float InverseCinematicAspect)
+void D_UpdateDrawConstants (void)
 {
 	drawconstants_t consts;
 
@@ -106,55 +217,79 @@ void D_UpdateDrawConstants (float InverseCinematicAspect)
 	consts.gamma = vid_gamma->value;
 	consts.contrast = 1.0f;
 
-	if (vid.width > vid.height)
-	{
-		consts.aspect[0] = ((float) vid.width / (float) vid.height) * InverseCinematicAspect;
-		consts.aspect[1] = -1.0f;
-	}
-	else
-	{
-		// to do
-		consts.aspect[0] = 1.0f;
-		consts.aspect[1] = (float) -vid.height / (float) vid.width;
-	}
-
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DrawConstants, 0, NULL, &consts, 0, 0);
 }
 
 
-void Draw_TexturedColouredQuad (image_t *image, int x, int y, int w, int h, unsigned color, int sl, int sh, int tl, int th, int shader)
+void Draw_Flush (void)
 {
-	R_BindTexture (image->SRV);
+	if (d_drawverts)
+	{
+		d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0);
+		d_drawverts = NULL;
+	}
 
-	D_BindShaderBundle (shader);
-	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
+	if (d_numdrawverts)
+	{
+		D_BindVertexBuffer (0, d3d_DrawVertexes, sizeof (drawpolyvert_t), 0);
+		D_BindIndexBuffer (d3d_DrawIndexes, DXGI_FORMAT_R16_UINT);
 
-	D_CheckQuadBatch ();
+		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
 
-	D_QuadVertexPosition2fColorTexCoord2f (x, y, color, sl, tl);
-	D_QuadVertexPosition2fColorTexCoord2f (x + w, y, color, sh, tl);
-	D_QuadVertexPosition2fColorTexCoord2f (x + w, y + h, color, sh, th);
-	D_QuadVertexPosition2fColorTexCoord2f (x, y + h, color, sl, th);
-
-	D_EndQuadBatch ();
+		d_firstdrawvert += d_numdrawverts;
+		d_numdrawverts = 0;
+	}
 }
 
 
-void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, int sl, int sh, int tl, int th, int shader)
+void Draw_TexturedVertex (drawpolyvert_t *vert, float x, float y, DWORD color, float s, float t)
+{
+	vert->position[0] = x;
+	vert->position[1] = y;
+
+	vert->texcoord[0] = s;
+	vert->texcoord[1] = t;
+
+	vert->color = color;
+}
+
+
+void Draw_ColouredVertex (drawpolyvert_t *vert, float x, float y, DWORD color)
+{
+	vert->position[0] = x;
+	vert->position[1] = y;
+
+	vert->color = color;
+}
+
+
+void Draw_CharacterVertex (drawpolyvert_t *vert, float x, float y, float s, float t, float slice)
+{
+	vert->position[0] = x;
+	vert->position[1] = y;
+
+	vert->texcoord[0] = s;
+	vert->texcoord[1] = t;
+
+	vert->slice = slice;
+}
+
+
+void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned color)
 {
 	R_BindTexture (image->SRV);
 
-	D_BindShaderBundle (shader);
+	D_BindShaderBundle (d3d_DrawTexturedShader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
 
 	D_CheckQuadBatch ();
 
-	D_QuadVertexPosition2fTexCoord2f (x, y, sl, tl);
-	D_QuadVertexPosition2fTexCoord2f (x + w, y, sh, tl);
-	D_QuadVertexPosition2fTexCoord2f (x + w, y + h, sh, th);
-	D_QuadVertexPosition2fTexCoord2f (x, y + h, sl, th);
+	Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y, color, 0, 0);
+	Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y, color, 1, 0);
+	Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, color, 1, 1);
+	Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y + h, color, 0, 1);
 
-	D_EndQuadBatch ();
+	Draw_Flush ();
 }
 
 
@@ -165,12 +300,25 @@ void Draw_ColouredQuad (int x, int y, int w, int h, unsigned colour)
 
 	D_CheckQuadBatch ();
 
-	D_QuadVertexPosition2fColor (x, y, colour);
-	D_QuadVertexPosition2fColor (x + w, y, colour);
-	D_QuadVertexPosition2fColor (x + w, y + h, colour);
-	D_QuadVertexPosition2fColor (x, y + h, colour);
+	Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y, colour);
+	Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y, colour);
+	Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, colour);
+	Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y + h, colour);
 
-	D_EndQuadBatch ();
+	Draw_Flush ();
+}
+
+
+void Draw_CharacterQuad (int x, int y, int w, int h, int slice)
+{
+	// check for overflow
+	D_CheckQuadBatch ();
+
+	// and draw it
+	Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y, 0, 0, slice);
+	Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y, 1, 0, slice);
+	Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, 1, 1, slice);
+	Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y + h, 0, 1, slice);
 }
 
 
@@ -205,23 +353,16 @@ void Draw_Field (int x, int y, int color, int width, int value)
 	{
 		if (*ptr == '-')
 			frame = STAT_MINUS;
-		else
-			frame = *ptr - '0';
+		else frame = *ptr - '0';
 
-		// check for overflow
-		D_CheckQuadBatch ();
-
-		D_QuadVertexPosition2fTexCoord3f (x, y, 0, 0, frame);
-		D_QuadVertexPosition2fTexCoord3f (x + sb_nums[color]->width, y, 1, 0, frame);
-		D_QuadVertexPosition2fTexCoord3f (x + sb_nums[color]->width, y + sb_nums[color]->height, 1, 1, frame);
-		D_QuadVertexPosition2fTexCoord3f (x, y + sb_nums[color]->height, 0, 1, frame);
+		Draw_CharacterQuad (x, y, sb_nums[color]->width, sb_nums[color]->height, frame);
 
 		x += sb_nums[color]->width;
 		ptr++;
 		l--;
 	}
 
-	D_EndQuadBatch ();
+	Draw_Flush ();
 }
 
 
@@ -242,19 +383,13 @@ void Draw_Char (int x, int y, int num)
 	// space
 	if ((num & 127) == 32) return;
 
+	// these are done for each char but they only trigger state changes for the first
 	GL_BindTexArray (draw_chars->SRV);
 
 	D_BindShaderBundle (d3d_DrawTexArrayShader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
 
-	// check for overflow
-	D_CheckQuadBatch ();
-
-	// and draw it
-	D_QuadVertexPosition2fTexCoord3f (x, y, 0, 0, (num & 255));
-	D_QuadVertexPosition2fTexCoord3f (x + 8, y, 1, 0, (num & 255));
-	D_QuadVertexPosition2fTexCoord3f (x + 8, y + 8, 1, 1, (num & 255));
-	D_QuadVertexPosition2fTexCoord3f (x, y + 8, 0, 1, (num & 255));
+	Draw_CharacterQuad (x, y, 8, 8, num & 255);
 }
 
 
@@ -305,7 +440,7 @@ void Draw_Pic (int x, int y, char *pic)
 		return;
 	}
 
-	Draw_TexturedQuad (gl, x, y, gl->width, gl->height, 0, 1, 0, 1, d3d_DrawTexturedShader);
+	Draw_TexturedQuad (gl, x, y, gl->width, gl->height, 0xffffffff);
 }
 
 
@@ -320,9 +455,9 @@ void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha)
 	}
 
 	if (alpha >= 255)
-		Draw_TexturedQuad (gl, x, y, w, h, 0, 1, 0, 1, d3d_DrawTexturedShader);
+		Draw_TexturedQuad (gl, x, y, w, h, 0xffffffff);
 	else if (alpha > 0)
-		Draw_TexturedColouredQuad (gl, x, y, w, h, (alpha << 24) | 0xffffff, 0, 1, 0, 1, d3d_DrawTexturedShader);
+		Draw_TexturedQuad (gl, x, y, w, h, (alpha << 24) | 0xffffff);
 }
 
 
