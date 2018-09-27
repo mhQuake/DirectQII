@@ -20,3 +20,5 @@ s_khz is wrong in the menu.
 Sprites to GPU
 
 Ogg and WMA
+
+Full screen triangle, do with poly lend first. Create Shader takes null input layout. 
