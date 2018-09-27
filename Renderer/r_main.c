@@ -39,6 +39,10 @@ typedef struct mainconstants_s {
 	float WarpTime[2];
 	float TexScroll;
 	float turbTime;
+	float RefdefX;
+	float RefdefY;
+	float RefdefW;
+	float RefdefH;
 	QMATRIX skyMatrix;
 } mainconstants_t;
 
@@ -498,6 +502,12 @@ void R_SetupGL (void)
 	// cycle in increments of 2 * M_PI so that the sine warp will wrap correctly
 	consts.turbTime = modf ((double) r_newrefdef.time / (M_PI * 2.0), junk) * (M_PI * 2.0);
 
+	// copy over refdef size for stull like e.g. the water warp noise lookup
+	consts.RefdefX = r_newrefdef.x;
+	consts.RefdefY = r_newrefdef.y;
+	consts.RefdefW = r_newrefdef.width;
+	consts.RefdefH = r_newrefdef.height;
+
 	// set up sky for drawing (also binds the sky texture)
 	R_SetupSky (&consts.skyMatrix);
 
@@ -558,6 +568,8 @@ void R_PolyBlend (void)
 	{
 		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSNoCull);
 		D_BindShaderBundle (d3d_PolyblendShader);
+
+		// full-screen triangle
 		d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
 	}
 }

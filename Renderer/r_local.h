@@ -329,6 +329,8 @@ void D_UpdateDrawConstants (int width, int height, float gammaval, float contras
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // quadbatch
+// the quadbatch stuff is only used for 2d drawing now...
+// and we might even remove it from some of that...
 typedef enum _batchtype_t {
 	batch_standard,
 	batch_texarray

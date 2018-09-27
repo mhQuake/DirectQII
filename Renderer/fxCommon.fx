@@ -19,7 +19,14 @@ cbuffer cbMainPerFrame : register(b1) {
 	float2 WarpTime : packoffset(c9.x);
 	float TexScroll : packoffset(c9.z);
 	float turbTime : packoffset(c9.w);
-	matrix SkyMatrix : packoffset(c10);
+	
+	// in case we ever need these...
+	float RefdefX : packoffset(c10.x);
+	float RefdefY : packoffset(c10.y);
+	float RefdefW : packoffset(c10.z);
+	float RefdefH : packoffset(c10.w);
+
+	matrix SkyMatrix : packoffset(c11);
 };
 
 cbuffer cbPerObject : register(b2) {

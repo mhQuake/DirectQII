@@ -8,20 +8,13 @@ struct PS_WATERWARP {
 
 
 #ifdef VERTEXSHADER
-static const float2 FullScreenQuadTexCoords[4] = {
-	float2 (0, 1),
-	float2 (1, 1),
-	float2 (1, 0),
-	float2 (0, 0)
-};
-
-PS_WATERWARP WaterWarpVS (VS_QUADBATCH vs_in, uint vertexId : SV_VertexID)
+PS_WATERWARP WaterWarpVS (uint vertexId : SV_VertexID)
 {
 	PS_WATERWARP vs_out;
 
-	vs_out.Position = vs_in.Position;
-	vs_out.TexCoord0 = FullScreenQuadTexCoords[vertexId];
-	vs_out.TexCoord1 = vs_in.TexCoord;
+	vs_out.Position = float4 ((float) (vertexId / 2) * 4.0f - 1.0f, (float) (vertexId % 2) * 4.0f - 1.0f, 0, 1);
+	vs_out.TexCoord0 = float2 ((float) (vertexId / 2) * 2.0f, 1.0f - (float) (vertexId % 2) * 2.0f);
+	vs_out.TexCoord1 = vs_out.TexCoord0 * float2 (RefdefW / RefdefH, 1.0f);
 
 	return vs_out;
 }

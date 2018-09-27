@@ -110,7 +110,7 @@ void R_InitWarp (void)
 	};
 
 	d3d_SurfDrawSkyShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawSkyVS", NULL, "SurfDrawSkyPS", DEFINE_LAYOUT (layout));
-	d3d_WaterWarpShader = D_CreateShaderBundleForQuadBatch (IDR_WATERWARP, "WaterWarpVS", "WaterWarpPS", batch_standard);
+	d3d_WaterWarpShader = D_CreateShaderBundle (IDR_WATERWARP, "WaterWarpVS", NULL, "WaterWarpPS", NULL, 0);
 	d3d_SkyNoSkyShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawSkyVS", NULL, "SkyNoSkyPS", DEFINE_LAYOUT (layout));
 
 	D_CreateRenderTargetAtBackbufferSize ();
@@ -292,6 +292,9 @@ void D_DoWaterWarp (void)
 	// this can't be bound once at the start of the frame because setting it as an RT will unbind it
 	R_BindTexture (r_WaterWarpSRV);
 
+	// full-screen triangle
+	d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
+	/*
 	D_CheckQuadBatch ();
 
 	D_QuadVertexPosition2fColorTexCoord2f (-1, -1, 0xffffffff, 0, 0);
@@ -300,5 +303,6 @@ void D_DoWaterWarp (void)
 	D_QuadVertexPosition2fColorTexCoord2f (-1,  1, 0xffffffff, 0, t);
 
 	D_EndQuadBatch ();
+	*/
 }
 
