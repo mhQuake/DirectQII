@@ -339,22 +339,17 @@ void Menu_AdjustCursor (menuframework_s *m, int dir)
 
 void Menu_Center (menuframework_s *menu)
 {
-	int height;
-
-	height = ((menucommon_s *) menu->items[menu->nitems - 1])->y;
-	height += 10;
-
-	menu->y = (VID_HEIGHT - height) / 2;
+	int height = ((menucommon_s *) menu->items[menu->nitems - 1])->y;
+	menu->y = (VID_HEIGHT - (height + 10)) / 2;
 }
+
 
 void Menu_Draw (menuframework_s *menu)
 {
 	int i;
 	menucommon_s *item;
 
-	/*
-	** draw contents
-	*/
+	// draw contents
 	for (i = 0; i < menu->nitems; i++)
 	{
 		switch (((menucommon_s *) menu->items[i])->type)

@@ -35,14 +35,14 @@ typedef struct keybind_s {
 	int y;
 } keybind_t;
 
-keybind_t keybinds_weapon[] = {
+keybind_t key_weapon_binds[] = {
 	{"+attack", "attack", false},
 	{"weapnext", "next weapon", false},
 	{"weapprev", "prev weapon", true},
 	{NULL, NULL}
 };
 
-keybind_t keybinds_move[] = {
+keybind_t key_move_binds[] = {
 	{"+forward", "walk forward", false},
 	{"+back", "backpedal", false},
 	{"+left", "turn left", false},
@@ -55,7 +55,7 @@ keybind_t keybinds_move[] = {
 	{NULL, NULL}
 };
 
-keybind_t keybinds_misc[] = {
+keybind_t key_misc_binds[] = {
 	{"inven", "inventory", false},
 	{"invuse", "use item", false},
 	{"invdrop", "drop item", false},
@@ -65,40 +65,21 @@ keybind_t keybinds_misc[] = {
 	{NULL, NULL}
 };
 
-keybind_t keybinds[] = {
-	{"+attack", "attack", false},
-	{"weapnext", "next weapon", false},
-	{"weapprev", "prev weapon", true},
-	{"+forward", "walk forward", false},
-	{"+back", "backpedal", false},
-	{"+left", "turn left", false},
-	{"+right", "turn right", false},
-	{"+speed", "run", false},
-	{"+moveleft", "step left", false},
-	{"+moveright", "step right", true},
-	{"+moveup", "up / jump", false},
-	{"+movedown", "down / crouch", true},
-	{"inven", "inventory", false},
-	{"invuse", "use item", false},
-	{"invdrop", "drop item", false},
-	{"invprev", "prev item", false},
-	{"invnext", "next item", true},
-	{"cmd help", "help computer", false},
-	{NULL, NULL}
-};
-
-
-static menuframework_s s_keys_menu;
-static menuaction_s s_keys_item[sizeof (keybinds) / sizeof (keybinds[0])];
 
 static menuframework_s s_keys_weapon_menu;
-static menuaction_s s_keys_weapon_item[sizeof (keybinds_weapon) / sizeof (keybinds_weapon[0])];
+static menuaction_s s_keys_weapon_item[sizeof (key_weapon_binds) / sizeof (key_weapon_binds[0])];
 
 static menuframework_s s_keys_move_menu;
-static menuaction_s s_keys_move_item[sizeof (keybinds_move) / sizeof (keybinds_move[0])];
+static menuaction_s s_keys_move_item[sizeof (key_move_binds) / sizeof (key_move_binds[0])];
 
 static menuframework_s s_keys_misc_menu;
-static menuaction_s s_keys_misc_item[sizeof (keybinds_misc) / sizeof (keybinds_misc[0])];
+static menuaction_s s_keys_misc_item[sizeof (key_misc_binds) / sizeof (key_misc_binds[0])];
+
+static menuframework_s *s_current_keys_menu = &s_keys_weapon_menu;
+static menuaction_s	*s_current_keys_item = s_keys_weapon_item;
+static keybind_t *s_current_key_binds = key_weapon_binds;
+
+static menulist_s		s_key_mode_list;
 
 
 static void M_UnbindCommand (char *command)
@@ -147,8 +128,7 @@ static void M_FindKeysForCommand (char *command, int *twokeys)
 
 static void KeyCursorDrawFunc (menuframework_s *menu)
 {
-	//int y = menu->y + menu->cursor * 10;
-	int y = menu->y + keybinds[menu->cursor].y;
+	int y = menu->y + s_current_key_binds[menu->cursor].y;
 
 	if (cls.bind_grab)
 		re.DrawChar (menu->x, y, '=');
@@ -164,7 +144,7 @@ static void DrawKeyBindingFunc (void *self)
 	int keys[2];
 	menuaction_s *a = (menuaction_s *) self;
 
-	M_FindKeysForCommand (keybinds[a->generic.localdata[0]].command, keys);
+	M_FindKeysForCommand (s_current_key_binds[a->generic.localdata[0]].command, keys);
 
 	if (keys[0] == -1)
 		Menu_DrawString (a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y, "???");
@@ -189,92 +169,150 @@ static void KeyBindingFunc (void *self)
 	menuaction_s *a = (menuaction_s *) self;
 	int keys[2];
 
-	M_FindKeysForCommand (keybinds[a->generic.localdata[0]].command, keys);
+	M_FindKeysForCommand (s_current_key_binds[a->generic.localdata[0]].command, keys);
 
 	if (keys[1] != -1)
-		M_UnbindCommand (keybinds[a->generic.localdata[0]].command);
+		M_UnbindCommand (s_current_key_binds[a->generic.localdata[0]].command);
 
 	cls.bind_grab = true;
+}
 
-	Menu_SetStatusBar (&s_keys_menu, "press a key or button for this action");
+
+static void Keys_MenuInitMenu (menuframework_s *menu, keybind_t *bindings, menuaction_s *items)
+{
+	int y = 0;
+	int i = 0;
+
+	menu->x = viddef.conwidth / 2;
+	menu->y = viddef.conheight / 2 - 58;
+	menu->nitems = 0;
+	menu->cursordraw = KeyCursorDrawFunc;
+	menu->saveCfgOnExit = true;
+
+	Menu_AddItem (menu, (void *) &s_key_mode_list);
+	y += 20;
+
+	for (i = 0; ; i++)
+	{
+		// no more
+		if (!bindings[i].command) break;
+		if (!bindings[i].bindname) break;
+
+		items[i].generic.type = MTYPE_ACTION;
+		items[i].generic.flags = QMF_GRAYED;
+		items[i].generic.x = 0;
+		items[i].generic.y = bindings[i].y = y;
+		items[i].generic.ownerdraw = DrawKeyBindingFunc;
+		items[i].generic.localdata[0] = i;
+		items[i].generic.name = bindings[i].bindname;
+
+		Menu_AddItem (menu, (void *) &items[i]);
+
+		if (bindings[i].separator_after)
+			y += 20;
+		else y += 10;
+	}
 }
 
 
 static void Keys_MenuInit (void)
 {
-	int y = 0;
-	int i = 0;
-
-	s_keys_menu.x = viddef.conwidth * 0.50;
-	s_keys_menu.nitems = 0;
-	s_keys_menu.cursordraw = KeyCursorDrawFunc;
-	s_keys_menu.saveCfgOnExit = true;
-
-	for (i = 0; ; i++)
+	static const char *keymode_names[] =
 	{
-		// no more
-		if (!keybinds[i].command) break;
-		if (!keybinds[i].bindname) break;
+		"weapons",
+		"movement",
+		"misc",
+		0
+	};
 
-		s_keys_item[i].generic.type = MTYPE_ACTION;
-		s_keys_item[i].generic.flags = QMF_GRAYED;
-		s_keys_item[i].generic.x = 0;
-		s_keys_item[i].generic.y = keybinds[i].y = y;
-		s_keys_item[i].generic.ownerdraw = DrawKeyBindingFunc;
-		s_keys_item[i].generic.localdata[0] = i;
-		s_keys_item[i].generic.name = keybinds[i].bindname;
+	// set up the key mode option which will be common to all
+	s_key_mode_list.generic.type = MTYPE_SPINCONTROL;
+	s_key_mode_list.generic.name = "mode";
+	s_key_mode_list.generic.x = 0;
+	s_key_mode_list.generic.y = 0;
+	s_key_mode_list.itemnames = keymode_names;
 
-		Menu_AddItem (&s_keys_menu, (void *) &s_keys_item[i]);
-
-		if (keybinds[i].separator_after)
-			y += 20;
-		else y += 10;
-	}
-
-	Menu_SetStatusBar (&s_keys_menu, "enter to change, backspace to clear");
-	Menu_Center (&s_keys_menu);
+	Keys_MenuInitMenu (&s_keys_weapon_menu, key_weapon_binds, s_keys_weapon_item);
+	Keys_MenuInitMenu (&s_keys_move_menu, key_move_binds, s_keys_move_item);
+	Keys_MenuInitMenu (&s_keys_misc_menu, key_misc_binds, s_keys_misc_item);
 }
 
 static void Keys_MenuDraw (void)
 {
-	Menu_AdjustCursor (&s_keys_menu, 1);
-	Menu_Draw (&s_keys_menu);
+	switch (s_key_mode_list.curvalue)
+	{
+	case 0:
+	default:
+		s_current_keys_menu = &s_keys_weapon_menu;
+		s_current_key_binds = key_weapon_binds;
+		s_current_keys_item = s_keys_weapon_item;
+		break;
+
+	case 1:
+		s_current_keys_menu = &s_keys_move_menu;
+		s_current_key_binds = key_move_binds;
+		s_current_keys_item = s_keys_move_item;
+		break;
+
+	case 2:
+		s_current_keys_menu = &s_keys_misc_menu;
+		s_current_key_binds = key_misc_binds;
+		s_current_keys_item = s_keys_misc_item;
+		break;
+	}
+
+	// set the correct status bar
+	/*
+	if (s_current_keys_menu->cursor == 0)
+		Menu_SetStatusBar (s_current_keys_menu, NULL);
+	else if (cls.bind_grab)
+		Menu_SetStatusBar (s_current_keys_menu, "press a key or button for this action");
+	else Menu_SetStatusBar (s_current_keys_menu, "enter to change, backspace to clear");
+	*/
+	Menu_SetStatusBar (s_current_keys_menu, va ("cursor at %i", s_current_keys_menu->cursor));
+
+	M_Banner ("m_banner_customize");
+	Menu_AdjustCursor (s_current_keys_menu, 1);
+	Menu_Draw (s_current_keys_menu);
 }
 
 static const char *Keys_MenuKey (int key)
 {
-	menuaction_s *item = (menuaction_s *) Menu_ItemAtCursor (&s_keys_menu);
-
-	if (cls.bind_grab)
+	if (s_current_keys_menu->cursor == 0)
 	{
-		if (key != K_ESCAPE && key != '`')
-		{
-			char cmd[1024];
+		// the mode selection spin control just goes through the standard key func
+		return Default_MenuKey (s_current_keys_menu, key);
+	}
+	else
+	{
+		// otherwise we're on a key-binding option
+		menuaction_s *item = (menuaction_s *) Menu_ItemAtCursor (s_current_keys_menu);
 
-			Com_sprintf (cmd, sizeof (cmd), "bind \"%s\" \"%s\"\n", Key_KeynumToString (key), keybinds[item->generic.localdata[0]].command);
-			Cbuf_InsertText (cmd);
+		if (cls.bind_grab)
+		{
+			if (key != K_ESCAPE && key != '`')
+				Cbuf_InsertText (va ("bind \"%s\" \"%s\"\n", Key_KeynumToString (key), s_current_key_binds[item->generic.localdata[0]].command));
+
+			cls.bind_grab = false;
+			return menu_out_sound;
 		}
 
-		Menu_SetStatusBar (&s_keys_menu, "enter to change, backspace to clear");
-		cls.bind_grab = false;
-		return menu_out_sound;
-	}
+		switch (key)
+		{
+		case K_KP_ENTER:
+		case K_ENTER:
+			KeyBindingFunc (item);
+			return menu_in_sound;
 
-	switch (key)
-	{
-	case K_KP_ENTER:
-	case K_ENTER:
-		KeyBindingFunc (item);
-		return menu_in_sound;
+		case K_BACKSPACE:		// delete bindings
+		case K_DEL:				// delete bindings
+		case K_KP_DEL:
+			M_UnbindCommand (s_current_key_binds[item->generic.localdata[0]].command);
+			return menu_out_sound;
 
-	case K_BACKSPACE:		// delete bindings
-	case K_DEL:				// delete bindings
-	case K_KP_DEL:
-		M_UnbindCommand (keybinds[item->generic.localdata[0]].command);
-		return menu_out_sound;
-
-	default:
-		return Default_MenuKey (&s_keys_menu, key);
+		default:
+			return Default_MenuKey (s_current_keys_menu, key);
+		}
 	}
 }
 

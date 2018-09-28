@@ -29,3 +29,5 @@ Highlight the word "or"
 precalc and save out avelocities like anorms
 
 split up keybinds menu
+
+binary search PAK files
