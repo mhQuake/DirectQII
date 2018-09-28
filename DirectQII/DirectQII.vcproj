@@ -206,11 +206,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cl_ents.c"
+				RelativePath=".\cl_effects.c"
 				>
 			</File>
 			<File
-				RelativePath=".\cl_fx.c"
+				RelativePath=".\cl_ents.c"
 				>
 			</File>
 			<File
@@ -222,15 +222,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cl_lights.c"
+				>
+			</File>
+			<File
 				RelativePath=".\cl_main.c"
 				>
 			</File>
 			<File
-				RelativePath=".\cl_newfx.c"
+				RelativePath=".\cl_parse.c"
 				>
 			</File>
 			<File
-				RelativePath=".\cl_parse.c"
+				RelativePath=".\cl_particles.c"
 				>
 			</File>
 			<File

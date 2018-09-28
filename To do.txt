@@ -23,10 +23,9 @@ r_lightpoint with bmodels
 
 CVAR_VIDEO should not write to console if in the menus
 
-make Draw_Fadescreen a fullscreen triangle
-(it's OK to hard-code colours etc to it)
-
-Draw_fill shouldn't alpha blend;it's a solid fill
-
 Can customizer controls have a banner? 
 Highlight the word "or" 
+
+precalc and save out avelocities like anorms
+
+split up keybinds menu

@@ -35,6 +35,36 @@ typedef struct keybind_s {
 	int y;
 } keybind_t;
 
+keybind_t keybinds_weapon[] = {
+	{"+attack", "attack", false},
+	{"weapnext", "next weapon", false},
+	{"weapprev", "prev weapon", true},
+	{NULL, NULL}
+};
+
+keybind_t keybinds_move[] = {
+	{"+forward", "walk forward", false},
+	{"+back", "backpedal", false},
+	{"+left", "turn left", false},
+	{"+right", "turn right", false},
+	{"+speed", "run", false},
+	{"+moveleft", "step left", false},
+	{"+moveright", "step right", true},
+	{"+moveup", "up / jump", false},
+	{"+movedown", "down / crouch", true},
+	{NULL, NULL}
+};
+
+keybind_t keybinds_misc[] = {
+	{"inven", "inventory", false},
+	{"invuse", "use item", false},
+	{"invdrop", "drop item", false},
+	{"invprev", "prev item", false},
+	{"invnext", "next item", true},
+	{"cmd help", "help computer", false},
+	{NULL, NULL}
+};
+
 keybind_t keybinds[] = {
 	{"+attack", "attack", false},
 	{"weapnext", "next weapon", false},
@@ -58,10 +88,18 @@ keybind_t keybinds[] = {
 };
 
 
+static menuframework_s s_keys_menu;
 static menuaction_s s_keys_item[sizeof (keybinds) / sizeof (keybinds[0])];
 
-int	keys_cursor;
-static menuframework_s s_keys_menu;
+static menuframework_s s_keys_weapon_menu;
+static menuaction_s s_keys_weapon_item[sizeof (keybinds_weapon) / sizeof (keybinds_weapon[0])];
+
+static menuframework_s s_keys_move_menu;
+static menuaction_s s_keys_move_item[sizeof (keybinds_move) / sizeof (keybinds_move[0])];
+
+static menuframework_s s_keys_misc_menu;
+static menuaction_s s_keys_misc_item[sizeof (keybinds_misc) / sizeof (keybinds_misc[0])];
+
 
 static void M_UnbindCommand (char *command)
 {

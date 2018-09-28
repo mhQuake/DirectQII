@@ -699,6 +699,7 @@ void FS_Dir_f (void)
 				*tmp = '/';
 			tmp++;
 		}
+
 		Com_Printf ("Directory of %s\n", findname);
 		Com_Printf ("----\n");
 
@@ -715,8 +716,10 @@ void FS_Dir_f (void)
 
 				Z_Free (dirnames[i]);
 			}
+
 			Z_Free (dirnames);
 		}
+
 		Com_Printf ("\n");
 	};
 }

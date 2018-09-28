@@ -60,6 +60,8 @@ static int d3d_DrawTexturedShader;
 static int d3d_DrawCinematicShader;
 static int d3d_DrawColouredShader;
 static int d3d_DrawTexArrayShader;
+static int d3d_DrawFadescreenShader;
+
 
 static ID3D11Buffer *d3d_DrawConstants = NULL;
 static ID3D11Buffer *d3d_CineConstants = NULL;
@@ -166,6 +168,7 @@ void Draw_InitLocal (void)
 	d3d_DrawColouredShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
 	d3d_DrawTexArrayShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
 	d3d_DrawCinematicShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", NULL, 0);
+	d3d_DrawFadescreenShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawFadescreenVS", NULL, "DrawFadescreenPS", NULL, 0);
 
 	// vertex and index buffers
 	Draw_CreateBuffers ();
@@ -283,23 +286,6 @@ void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned col
 		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y, color, 1, 0);
 		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, color, 1, 1);
 		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y + h, color, 0, 1);
-
-		Draw_Flush ();
-	}
-}
-
-
-void Draw_ColouredQuad (int x, int y, int w, int h, unsigned color)
-{
-	D_BindShaderBundle (d3d_DrawColouredShader);
-	D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSNoDepth, d3d_RSNoCull);
-
-	if (Draw_EnsureBufferSpace ())
-	{
-		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y, color);
-		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y, color);
-		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, color);
-		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y + h, color);
 
 		Draw_Flush ();
 	}
@@ -459,17 +445,23 @@ void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha)
 }
 
 
-/*
-=============
-Draw_Fill
-
-Fills a box of pixels with a single color
-=============
-*/
 void Draw_Fill (int x, int y, int w, int h, int c)
 {
-	Draw_ColouredQuad (x, y, w, h, d_8to24table[c]);
+	// this is a quad filled with a single solid colour so it doesn't need to blend
+	D_BindShaderBundle (d3d_DrawColouredShader);
+	D_SetRenderStates (d3d_BSNone, d3d_DSNoDepth, d3d_RSNoCull);
+
+	if (Draw_EnsureBufferSpace ())
+	{
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y, d_8to24table[c]);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y, d_8to24table[c]);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, d_8to24table[c]);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y + h, d_8to24table[c]);
+
+		Draw_Flush ();
+	}
 }
+
 
 //=============================================================================
 
@@ -481,7 +473,11 @@ Draw_FadeScreen
 */
 void Draw_FadeScreen (void)
 {
-	Draw_ColouredQuad (0, 0, vid.conwidth, vid.conheight, 0xcc000000);
+	D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSNoCull);
+	D_BindShaderBundle (d3d_DrawFadescreenShader);
+
+	// full-screen triangle
+	d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
 }
 
 

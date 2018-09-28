@@ -83,12 +83,6 @@ static void ControlsSetMenuItemValues (void)
 
 	s_options_invertmouse_box.curvalue = m_pitch->value < 0;
 
-	Cvar_SetValue ("lookspring", M_ClampCvar (0, 1, lookspring->value));
-	s_options_lookspring_box.curvalue = lookspring->value;
-
-	Cvar_SetValue ("lookstrafe", M_ClampCvar (0, 1, lookstrafe->value));
-	s_options_lookstrafe_box.curvalue = lookstrafe->value;
-
 	Cvar_SetValue ("freelook", M_ClampCvar (0, 1, freelook->value));
 	s_options_freelook_box.curvalue = freelook->value;
 
@@ -119,16 +113,6 @@ static void InvertMouseFunc (void *unused)
 	{
 		Cvar_SetValue ("m_pitch", -fabs (m_pitch->value));
 	}
-}
-
-static void LookspringFunc (void *unused)
-{
-	Cvar_SetValue ("lookspring", s_options_lookspring_box.curvalue);
-}
-
-static void LookstrafeFunc (void *unused)
-{
-	Cvar_SetValue ("lookstrafe", s_options_lookstrafe_box.curvalue);
 }
 
 static void UpdateVolumeFunc (void *unused)
@@ -266,48 +250,34 @@ void Options_MenuInit (void)
 	s_options_freelook_box.generic.callback = FreeLookFunc;
 	s_options_freelook_box.itemnames = yesno_names;
 
-	s_options_lookspring_box.generic.type = MTYPE_SPINCONTROL;
-	s_options_lookspring_box.generic.x = 0;
-	s_options_lookspring_box.generic.y = 80;
-	s_options_lookspring_box.generic.name = "lookspring";
-	s_options_lookspring_box.generic.callback = LookspringFunc;
-	s_options_lookspring_box.itemnames = yesno_names;
-
-	s_options_lookstrafe_box.generic.type = MTYPE_SPINCONTROL;
-	s_options_lookstrafe_box.generic.x = 0;
-	s_options_lookstrafe_box.generic.y = 90;
-	s_options_lookstrafe_box.generic.name = "lookstrafe";
-	s_options_lookstrafe_box.generic.callback = LookstrafeFunc;
-	s_options_lookstrafe_box.itemnames = yesno_names;
-
 	s_options_crosshair_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_crosshair_box.generic.x = 0;
-	s_options_crosshair_box.generic.y = 100;
+	s_options_crosshair_box.generic.y = 90;
 	s_options_crosshair_box.generic.name = "crosshair";
 	s_options_crosshair_box.generic.callback = CrosshairFunc;
 	s_options_crosshair_box.itemnames = crosshair_names;
 
 	s_options_customize_options_action.generic.type = MTYPE_ACTION;
 	s_options_customize_options_action.generic.x = 0;
-	s_options_customize_options_action.generic.y = 120;
+	s_options_customize_options_action.generic.y = 110;
 	s_options_customize_options_action.generic.name = "customize controls";
 	s_options_customize_options_action.generic.callback = CustomizeControlsFunc;
 
 	s_options_writeconfig_action.generic.type = MTYPE_ACTION;
 	s_options_writeconfig_action.generic.x = 0;
-	s_options_writeconfig_action.generic.y = 130;
+	s_options_writeconfig_action.generic.y = 120;
 	s_options_writeconfig_action.generic.name = "save configuration";
 	s_options_writeconfig_action.generic.callback = WriteConfigurationFunc;
 
 	s_options_defaults_action.generic.type = MTYPE_ACTION;
 	s_options_defaults_action.generic.x = 0;
-	s_options_defaults_action.generic.y = 140;
+	s_options_defaults_action.generic.y = 130;
 	s_options_defaults_action.generic.name = "reset defaults";
 	s_options_defaults_action.generic.callback = ControlsResetDefaultsFunc;
 
 	s_options_console_action.generic.type = MTYPE_ACTION;
 	s_options_console_action.generic.x = 0;
-	s_options_console_action.generic.y = 150;
+	s_options_console_action.generic.y = 140;
 	s_options_console_action.generic.name = "go to console";
 	s_options_console_action.generic.callback = ConsoleFunc;
 
@@ -321,8 +291,6 @@ void Options_MenuInit (void)
 	Menu_AddItem (&s_options_menu, (void *) &s_options_alwaysrun_box);
 	Menu_AddItem (&s_options_menu, (void *) &s_options_invertmouse_box);
 	Menu_AddItem (&s_options_menu, (void *) &s_options_freelook_box);
-	Menu_AddItem (&s_options_menu, (void *) &s_options_lookspring_box);
-	Menu_AddItem (&s_options_menu, (void *) &s_options_lookstrafe_box);
 	Menu_AddItem (&s_options_menu, (void *) &s_options_crosshair_box);
 
 	Menu_AddItem (&s_options_menu, (void *) &s_options_customize_options_action);

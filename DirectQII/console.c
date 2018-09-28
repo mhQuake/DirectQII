@@ -321,6 +321,7 @@ void Con_Init (void)
 	Cmd_AddCommand ("messagemode", Con_MessageMode_f);
 	Cmd_AddCommand ("messagemode2", Con_MessageMode2_f);
 	Cmd_AddCommand ("clear", Con_Clear_f);
+	Cmd_AddCommand ("cls", Con_Clear_f); // muscle memory!!!
 	Cmd_AddCommand ("condump", Con_Dump_f);
 	con.initialized = true;
 }

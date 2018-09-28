@@ -74,6 +74,11 @@ float4 DrawPolyblendVS (uint vertexId : SV_VertexID) : SV_POSITION
 {
 	return float4 ((float) (vertexId / 2) * 4.0f - 1.0f, (float) (vertexId % 2) * 4.0f - 1.0f, 0, 1);
 }
+
+float4 DrawFadescreenVS (uint vertexId : SV_VertexID) : SV_POSITION
+{
+	return float4 ((float) (vertexId / 2) * 4.0f - 1.0f, (float) (vertexId % 2) * 4.0f - 1.0f, 0, 1);
+}
 #endif
 
 
@@ -99,14 +104,19 @@ float4 DrawTexArrayPS (PS_DRAWCHARACTER ps_in) : SV_TARGET0
 
 float4 DrawColouredPS (PS_DRAWCOLOURED ps_in) : SV_TARGET0
 {
-	// adjust for pre-multiplied alpha
-	float4 diff = GetGamma (ps_in.Color);
-	return float4 (diff.rgb * diff.a, diff.a);
+	// this is a quad filled with a single solid colour so it doesn't need to blend
+	return GetGamma (ps_in.Color);
 }
 
 float4 DrawPolyblendPS (float4 Position : SV_POSITION) : SV_TARGET0
 {
 	return GetGamma (vBlend);
+}
+
+float4 DrawFadescreenPS (float4 Position : SV_POSITION) : SV_TARGET0
+{
+	// no gamma needed because rgb is black
+	return float4 (0, 0, 0, 0.666f);
 }
 #endif
 
