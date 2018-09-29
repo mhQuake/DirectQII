@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "client.h"
 #include "snd_loc.h"
-#include "winquake.h"
 
 #include <dsound.h>
 #pragma comment (lib, "dsound.lib")
@@ -39,6 +38,8 @@ static qboolean	snd_firsttime = true, snd_isdirect, snd_iswave;
 static int	snd_buffer_count = 0;
 static int	sample16;
 static int	snd_sent, snd_completed;
+
+extern HWND cl_hwnd;
 
 /*
  * Global variables. Must be visible to window-procedure function

@@ -283,10 +283,6 @@
 				RelativePath="..\DirectQII\resource.h"
 				>
 			</File>
-			<File
-				RelativePath="..\DirectQII\winquake.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Shaders"

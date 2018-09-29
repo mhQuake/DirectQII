@@ -24,8 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <float.h>
 
 #include "client.h"
-#include "winquake.h"
-//#include "zmouse.h"
+#include <windows.h>
 
 // Structure containing functions exported from refresh DLL
 refexport_t	re;
@@ -46,11 +45,10 @@ qboolean reflib_active = false; // true if the refresh has been loaded successfu
 
 HWND        cl_hwnd;            // Main window handle for life of program
 
-#define VID_NUM_MODES (sizeof (vid_modes) / sizeof (vid_modes[0]))
-
 LONG WINAPI MainWndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 extern	unsigned	sys_msg_time;
+extern qboolean		ActiveApp, Minimized;
 
 
 /*
@@ -350,7 +348,7 @@ qboolean VID_LoadRefresh (void)
 	// enumerate the video modes before bringing stuff on so that we have a valid list of modes before we create the window, device or swapchain
 	re.EnumerateVideoModes ();
 
-	if (re.Init (global_hInstance, MainWndProc) == -1)
+	if (re.Init (GetModuleHandle (NULL), MainWndProc) == -1)
 	{
 		re.Shutdown ();
 		VID_FreeReflib ();

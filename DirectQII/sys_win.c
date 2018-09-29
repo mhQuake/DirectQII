@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // sys_win.h
 
 #include "qcommon.h"
-#include "winquake.h"
+#include <windows.h>
 #include "resource.h"
 #include <errno.h>
 #include <float.h>
@@ -53,6 +53,8 @@ char		*argv[MAX_NUM_ARGVS];
 
 
 qboolean CL_InTimeDemo (void);
+
+extern HWND cl_hwnd;
 
 
 /*
@@ -496,8 +498,6 @@ WinMain
 
 ==================
 */
-HINSTANCE	global_hInstance;
-
 
 // http://ntcoder.com/bab/tag/getuserprofiledirectory/
 #include "userenv.h"
@@ -605,8 +605,6 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	// as an alternative we could mklink the quake gamedirs to the linker output path as a post-build step
 	Sys_SetWorkingDirectory ();
 #endif
-
-	global_hInstance = hInstance;
 
 	ParseCommandLine (lpCmdLine);
 

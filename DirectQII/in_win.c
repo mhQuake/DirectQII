@@ -19,11 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // in_win.c -- windows 95 mouse and joystick code
 
-#include "client.h"
-#include "winquake.h"
-
 #define DIRECTINPUT_VERSION 0x0800
 
+#include "client.h"
+#include <windows.h>
 #include <dinput.h>
 
 #pragma comment (lib, "dinput8.lib")
@@ -32,7 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 IDirectInput8 *di_Object = NULL;
 IDirectInputDevice8 *di_Mouse = NULL;
 
-
+extern HWND cl_hwnd;
 extern	unsigned	sys_msg_time;
 
 qboolean	in_appactive;

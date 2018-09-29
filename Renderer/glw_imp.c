@@ -32,7 +32,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <assert.h>
 #include <windows.h>
 #include "r_local.h"
-#include "../DirectQII/winquake.h"
 
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "dxgi.lib")
@@ -454,6 +453,8 @@ void VID_ScaleVidDef (viddef_t *vd, int w, int h)
 ** VID_CreateWindow
 */
 #define	WINDOW_CLASS_NAME	"DirectQII"
+#define	WINDOW_STYLE	(WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE)
+
 
 qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 {

@@ -466,10 +466,6 @@
 				RelativePath=".\vid.h"
 				>
 			</File>
-			<File
-				RelativePath=".\winquake.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
