@@ -32,7 +32,6 @@ typedef struct keybind_s {
 	char *command;
 	char *bindname;
 	qboolean separator_after;
-	int y;
 } keybind_t;
 
 keybind_t key_weapon_binds[] = {
@@ -62,6 +61,9 @@ keybind_t key_misc_binds[] = {
 	{"invprev", "prev item", false},
 	{"invnext", "next item", true},
 	{"cmd help", "help computer", false},
+	{"echo Quick Saving...; wait; save quick", "quick save", false},
+	{"echo Quick Loading...; wait; load quick", "quick load", false},
+	{"screenshot", "screenshot", false},
 	{NULL, NULL}
 };
 
@@ -128,12 +130,14 @@ static void M_FindKeysForCommand (char *command, int *twokeys)
 
 static void KeyCursorDrawFunc (menuframework_s *menu)
 {
-	int y = menu->y + s_current_key_binds[menu->cursor].y;
+	menucommon_s *item = (menucommon_s *) Menu_ItemAtCursor (menu);
 
-	if (cls.bind_grab)
-		re.DrawChar (menu->x, y, '=');
+	if (menu->cursor == 0)
+		re.DrawChar (menu->x, menu->y + item->y, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
+	else if (cls.bind_grab)
+		re.DrawChar (menu->x, menu->y + item->y, '=');
 	else
-		re.DrawChar (menu->x, y, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
+		re.DrawChar (menu->x, menu->y + item->y, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
 
 	re.DrawString ();
 }
@@ -201,7 +205,7 @@ static void Keys_MenuInitMenu (menuframework_s *menu, keybind_t *bindings, menua
 		items[i].generic.type = MTYPE_ACTION;
 		items[i].generic.flags = QMF_GRAYED;
 		items[i].generic.x = 0;
-		items[i].generic.y = bindings[i].y = y;
+		items[i].generic.y = y;
 		items[i].generic.ownerdraw = DrawKeyBindingFunc;
 		items[i].generic.localdata[0] = i;
 		items[i].generic.name = bindings[i].bindname;

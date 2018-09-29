@@ -378,7 +378,7 @@ void Menu_Draw (menuframework_s *menu)
 		}
 	}
 
-	item = Menu_ItemAtCursor (menu);
+	item = (menucommon_s *) Menu_ItemAtCursor (menu);
 
 	if (item && item->cursordraw)
 	{
@@ -410,7 +410,6 @@ void Menu_Draw (menuframework_s *menu)
 			Menu_DrawStatusBar (item->statusbar);
 		else
 			Menu_DrawStatusBar (menu->statusbar);
-
 	}
 	else
 	{

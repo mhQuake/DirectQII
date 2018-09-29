@@ -299,37 +299,7 @@ void Cmd_ForwardToServer (void)
 
 void CL_Setenv_f (void)
 {
-	int argc = Cmd_Argc ();
-
-	if (argc > 2)
-	{
-		char buffer[1000];
-		int i;
-
-		strcpy (buffer, Cmd_Argv (1));
-		strcat (buffer, "=");
-
-		for (i = 2; i < argc; i++)
-		{
-			strcat (buffer, Cmd_Argv (i));
-			strcat (buffer, " ");
-		}
-
-		putenv (buffer);
-	}
-	else if (argc == 2)
-	{
-		char *env = getenv (Cmd_Argv (1));
-
-		if (env)
-		{
-			Com_Printf ("%s=%s\n", Cmd_Argv (1), env);
-		}
-		else
-		{
-			Com_Printf ("%s undefined\n", Cmd_Argv (1), env);
-		}
-	}
+	Com_Printf ("I can't think of one use case for this that wouldn't keep me awake at night\n");
 }
 
 
@@ -342,7 +312,7 @@ void CL_ForwardToServer_f (void)
 {
 	if (cls.state != ca_connected && cls.state != ca_active)
 	{
-		Com_Printf ("Can't \"%s\", not connected\n", Cmd_Argv (0));
+		Com_Printf ("Can't \"%s\", not connected\n", Cmd_Args ());
 		return;
 	}
 
@@ -1543,9 +1513,7 @@ void CL_InitLocal (void)
 	// 	Cmd_AddCommand ("packet", CL_Packet_f); // this is dangerous to leave in
 
 	Cmd_AddCommand ("setenv", CL_Setenv_f);
-
 	Cmd_AddCommand ("precache", CL_Precache_f);
-
 	Cmd_AddCommand ("download", CL_Download_f);
 
 	// forward to server commands
