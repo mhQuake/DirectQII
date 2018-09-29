@@ -44,18 +44,17 @@ QUAKE FILESYSTEM
 // in memory
 //
 
-typedef struct packfile_s
-{
-	char	name[MAX_QPATH];
-	int		filepos, filelen;
-} packfile_t;
-
 typedef struct pack_s
 {
 	char	filename[MAX_OSPATH];
+
+	// for constraining the binary search range
+	int		namesmin[256];
+	int		namesmax[256];
+
 	FILE	*handle;
 	int		numfiles;
-	packfile_t	*files;
+	dpackfile_t	*files;
 } pack_t;
 
 char	fs_gamedir[MAX_OSPATH];
@@ -82,6 +81,54 @@ typedef struct searchpath_s
 
 searchpath_t	*fs_searchpaths;
 searchpath_t	*fs_base_searchpaths;	// without gamedirs
+
+
+static dpackfile_t *FS_FindFileInPAK (pack_t *pack, char *filename)
+{
+	int imin, imax;
+	char newname[256];
+
+	// force the name to lower-case so that we can do a valid (and potentially faster) comparison
+	strcpy (newname, filename);
+	_strlwr (newname);
+
+	// if this is the case, the PAK contains no files who's name starts with the first char of the file to load
+	if (pack->namesmin[newname[0]] > pack->namesmax[newname[0]]) return NULL;
+
+	// this condition is for checking if there is only one file in the pack with this first letter
+	if (pack->namesmin[newname[0]] == pack->namesmax[newname[0]])
+	{
+		// only one file is a candidate for checking, so check it directly and it's either a match or not
+		dpackfile_t *pf = &pack->files[pack->namesmin[newname[0]]];
+
+		if (!strcmp (pf->name, newname))
+			return pf;
+		else return NULL;
+	}
+
+	// short-circuit some of this by defining a range to search in based on the first char of the filename
+	for (imin = pack->namesmin[newname[0]], imax = pack->namesmax[newname[0]]; imax >= imin;)
+	{
+		int imid = (imax + imin) >> 1;
+		int comp = strcmp (pack->files[imid].name, newname);
+
+		if (comp < 0)
+			imin = imid + 1;
+		else if (comp > 0)
+			imax = imid - 1;
+		else return &pack->files[imid];
+	}
+
+	// not found
+	return NULL;
+}
+
+
+static int FS_SortPackFile (dpackfile_t *p1, dpackfile_t *p2)
+{
+	// the PAK files dir was forced to lower-case at load-time so strcmp is sufficient here
+	return strcmp (p1->name, p2->name);
+}
 
 
 /*
@@ -143,7 +190,7 @@ void FS_CreatePath (char *path)
 ==============
 FS_FCloseFile
 
-For some reason, other dll's can't just cal fclose()
+For some reason, other dll's can't just call fclose()
 on files returned by FS_FOpenFile...
 ==============
 */
@@ -177,13 +224,6 @@ int	Developer_searchpath (int who)
 
 		if (strstr (search->filename, "rogue"))
 			return 2;
-
-		/*
-		start = strchr (search->filename, ch);
-
-		if (start == NULL) continue;
-		if (strcmp (start, "xatrix") == 0) return (1);
-		*/
 	}
 
 	return (0);
@@ -206,8 +246,6 @@ int FS_FOpenFile (char *filename, FILE **file)
 {
 	searchpath_t	*search;
 	char			netpath[MAX_OSPATH];
-	pack_t			*pak;
-	int				i;
 	filelink_t		*link;
 
 	file_from_pak = 0;
@@ -237,26 +275,24 @@ int FS_FOpenFile (char *filename, FILE **file)
 		if (search->pack)
 		{
 			// look through all the pak file elements
-			pak = search->pack;
+			pack_t *pak = search->pack;
+			dpackfile_t *pf = FS_FindFileInPAK (pak, filename);
 
-			for (i = 0; i < pak->numfiles; i++)
+			if (pf)
 			{
-				if (!Q_strcasecmp (pak->files[i].name, filename))
-				{
-					// found it!
-					file_from_pak = 1;
-					Com_DPrintf ("PackFile: %s : %s\n", pak->filename, filename);
+				// found it!
+				file_from_pak = 1;
+				Com_DPrintf ("PackFile: %s : %s\n", pak->filename, filename);
 
-					// open a new file on the pakfile
-					*file = fopen (pak->filename, "rb");
+				// open a new file on the pakfile
+				*file = fopen (pak->filename, "rb");
 
-					if (!*file)
-						Com_Error (ERR_FATAL, "Couldn't reopen %s", pak->filename);
+				if (!*file)
+					Com_Error (ERR_FATAL, "Couldn't reopen %s", pak->filename);
 
-					fseek (*file, pak->files[i].filepos, SEEK_SET);
+				fseek (*file, pf->filepos, SEEK_SET);
 
-					return pak->files[i].filelen;
-				}
+				return pf->filelen;
 			}
 		}
 		else
@@ -397,12 +433,11 @@ of the list so they override previous pack files.
 pack_t *FS_LoadPackFile (char *packfile)
 {
 	dpackheader_t	header;
-	int				i;
-	packfile_t		*newfiles;
+	int				i, j;
+	dpackfile_t		*newfiles;
 	int				numpackfiles;
 	pack_t			*pack;
 	FILE			*packhandle;
-	dpackfile_t		info[MAX_FILES_IN_PACK];
 	unsigned		checksum;
 
 	packhandle = fopen (packfile, "rb");
@@ -410,8 +445,10 @@ pack_t *FS_LoadPackFile (char *packfile)
 		return NULL;
 
 	fread (&header, 1, sizeof (header), packhandle);
+
 	if (LittleLong (header.ident) != IDPAKHEADER)
 		Com_Error (ERR_FATAL, "%s is not a packfile", packfile);
+
 	header.dirofs = LittleLong (header.dirofs);
 	header.dirlen = LittleLong (header.dirlen);
 
@@ -420,13 +457,13 @@ pack_t *FS_LoadPackFile (char *packfile)
 	if (numpackfiles > MAX_FILES_IN_PACK)
 		Com_Error (ERR_FATAL, "%s has %i files", packfile, numpackfiles);
 
-	newfiles = Z_Alloc (numpackfiles * sizeof (packfile_t));
+	newfiles = Z_Alloc (numpackfiles * sizeof (dpackfile_t));
 
 	fseek (packhandle, header.dirofs, SEEK_SET);
-	fread (info, 1, header.dirlen, packhandle);
+	fread (newfiles, 1, header.dirlen, packhandle);
 
 	// crc the directory to check for modifications
-	checksum = Com_BlockChecksum ((void *) info, header.dirlen);
+	checksum = Com_BlockChecksum ((void *) newfiles, header.dirlen);
 
 #ifdef NO_ADDONS
 	if (checksum != PAK0_CHECKSUM)
@@ -435,16 +472,33 @@ pack_t *FS_LoadPackFile (char *packfile)
 	// parse the directory
 	for (i = 0; i < numpackfiles; i++)
 	{
-		strcpy (newfiles[i].name, info[i].name);
-		newfiles[i].filepos = LittleLong (info[i].filepos);
-		newfiles[i].filelen = LittleLong (info[i].filelen);
+		_strlwr (newfiles[i].name); // force it to lower-case for binary search stuff
+		newfiles[i].filepos = LittleLong (newfiles[i].filepos);
+		newfiles[i].filelen = LittleLong (newfiles[i].filelen);
 	}
+
+	// sort the pack by name for faster searching
+	qsort (newfiles, numpackfiles, sizeof (dpackfile_t), (sortfunc_t) FS_SortPackFile);
 
 	pack = Z_Alloc (sizeof (pack_t));
 	strcpy (pack->filename, packfile);
 	pack->handle = packhandle;
 	pack->numfiles = numpackfiles;
 	pack->files = newfiles;
+
+	// set up default ranges such that the search won't run
+	for (i = 0; i < 256; i++)
+	{
+		pack->namesmin[i] = pack->numfiles - 1;
+		pack->namesmax[i] = 0;
+	}
+
+	// set up constrained ranges
+	for (i = 0, j = pack->numfiles - 1; i < pack->numfiles; i++, j--)
+	{
+		pack->namesmin[pack->files[j].name[0]] = j;
+		pack->namesmax[pack->files[i].name[0]] = i;
+	}
 
 	Com_Printf ("Added packfile %s (%i files)\n", packfile, numpackfiles);
 	return pack;
@@ -486,9 +540,8 @@ void FS_AddGameDirectory (char *dir)
 		search->next = fs_searchpaths;
 		fs_searchpaths = search;
 	}
-
-
 }
+
 
 /*
 ============

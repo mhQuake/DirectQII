@@ -28,7 +28,6 @@ static cvar_t *vid_mode;
 static cvar_t *vid_width;
 static cvar_t *vid_height;
 static cvar_t *vid_vsync;
-static cvar_t *gl_finish;
 
 void M_ForceMenuOff (void);
 void VID_ResetMode (void);
@@ -54,7 +53,6 @@ static menunumberlist_s	s_height_list;
 static menuslider_s		s_screensize_slider;
 static menuslider_s		s_brightness_slider;
 static menulist_s  		s_fs_box;
-static menulist_s  		s_finish_box;
 static menulist_s  		s_vsync_box;
 
 static menuaction_s		s_apply_action;
@@ -94,7 +92,6 @@ static void ApplyChanges (void *unused)
 {
 	// set the cvars
 	Cvar_SetValue ("vid_fullscreen", s_fs_box.curvalue);
-	Cvar_SetValue ("gl_finish", s_finish_box.curvalue);
 	Cvar_SetValue ("vid_mode", s_mode_list.curvalue);
 	Cvar_SetValue ("vid_vsync", s_vsync_box.curvalue);
 
@@ -136,7 +133,6 @@ void VID_MenuInit (void)
 	if (!vid_width) vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
 	if (!vid_height) vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
 	if (!vid_vsync) vid_vsync = Cvar_Get ("vid_vsync", "0", CVAR_ARCHIVE);
-	if (!gl_finish) gl_finish = Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE);
 	if (!scr_viewsize) scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
 
 	// setup current values
@@ -233,29 +229,22 @@ void VID_MenuInit (void)
 	s_vsync_box.curvalue = vid_vsync->value;
 	s_vsync_box.itemnames = yesno_names;
 
-	s_finish_box.generic.type = MTYPE_SPINCONTROL;
-	s_finish_box.generic.x = 0;
-	s_finish_box.generic.y = 80;
-	s_finish_box.generic.name = "sync every frame";
-	s_finish_box.curvalue = gl_finish->value;
-	s_finish_box.itemnames = yesno_names;
-
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to defaults";
 	s_defaults_action.generic.x = 0;
-	s_defaults_action.generic.y = 100;
+	s_defaults_action.generic.y = 90;
 	s_defaults_action.generic.callback = ResetDefaults;
 
 	s_cancel_action.generic.type = MTYPE_ACTION;
 	s_cancel_action.generic.name = "cancel";
 	s_cancel_action.generic.x = 0;
-	s_cancel_action.generic.y = 110;
+	s_cancel_action.generic.y = 100;
 	s_cancel_action.generic.callback = CancelChanges;
 
 	s_apply_action.generic.type = MTYPE_ACTION;
 	s_apply_action.generic.name = "apply changes";
 	s_apply_action.generic.x = 0;
-	s_apply_action.generic.y = 120;
+	s_apply_action.generic.y = 110;
 	s_apply_action.generic.callback = ApplyChanges;
 
 	Menu_AddItem (&s_windowed_menu, (void *) &s_fs_box);
@@ -264,7 +253,6 @@ void VID_MenuInit (void)
 	Menu_AddItem (&s_windowed_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_brightness_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_vsync_box);
-	Menu_AddItem (&s_windowed_menu, (void *) &s_finish_box);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_defaults_action);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_cancel_action);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_apply_action);
@@ -275,7 +263,6 @@ void VID_MenuInit (void)
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_brightness_slider);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_vsync_box);
-	Menu_AddItem (&s_fullscreen_menu, (void *) &s_finish_box);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_defaults_action);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_cancel_action);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_apply_action);
