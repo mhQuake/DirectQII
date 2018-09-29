@@ -38,6 +38,8 @@ cvar_t		*cl_testblend;
 
 cvar_t		*cl_stats;
 
+cvar_t		*intensity;
+
 
 int			r_numdlights;
 dlight_t	r_dlights[MAX_DLIGHTS];
@@ -159,8 +161,10 @@ void V_AddLightStyle (int style, float value)
 	if (style < 0 || style > MAX_LIGHTSTYLES)
 		Com_Error (ERR_DROP, "Bad light style %i", style);
 
-	// scale lightstyles to the overbright range when adding to the refresh (trictly speaking this should be intensity->value)
-	r_lightstyles[style] = value * 2.0f;
+	// scale lightstyles to the overbright range when adding to the refresh
+	if (intensity->value > 1.0f)
+		r_lightstyles[style] = value * intensity->value;
+	else r_lightstyles[style] = value;
 }
 
 
@@ -240,7 +244,7 @@ void V_TestLights (void)
 	float		f, r;
 	dlight_t	*dl;
 
-	r_numdlights = 32;
+	r_numdlights = MAX_DLIGHTS;
 	memset (r_dlights, 0, sizeof (r_dlights));
 
 	for (i = 0; i < r_numdlights; i++)
@@ -620,4 +624,6 @@ void V_Init (void)
 	cl_testlights = Cvar_Get ("cl_testlights", "0", 0);
 
 	cl_stats = Cvar_Get ("cl_stats", "0", 0);
+
+	intensity = Cvar_Get ("intensity", "2", 0);
 }

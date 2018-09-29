@@ -532,21 +532,21 @@ void R_BindLightmaps (void)
 }
 
 
-void D_SetupDynamicLight (dlight_t *dl)
+void D_SetupDynamicLight (dlight_t *dl, int rflags)
 {
-	// select the appropriate state (fixme - this rasterizer state is wrong for left-handed gun models)
+	// select the appropriate state
 	if (dl->color[0] < 0 || dl->color[1] < 0 || dl->color[2] < 0)
 	{
 		// anti-light - flip back to positive and set the appropriate state
 		Vector3Scalef (dl->color, dl->color, -1);
-		D_SetRenderStates (d3d_BSSubtractive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
+		D_SetRenderStates (d3d_BSSubtractive, d3d_DSEqualDepthNoWrite, R_GetRasterizerState (rflags));
 		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, dl, 0, 0);
 		Vector3Scalef (dl->color, dl->color, -1); // put it back so it will be correctly detected next time
 	}
 	else
 	{
 		// standard light can just go straight up as-is
-		D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, d3d_RSFullCull);
+		D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, R_GetRasterizerState (rflags));
 		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, dl, 0, 0);
 	}
 }
@@ -673,7 +673,7 @@ void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *local
 		// draw anything we got
 		if (dl->numsurfaces)
 		{
-			D_SetupDynamicLight (dl);
+			D_SetupDynamicLight (dl, e->flags);
 			R_DrawDlightChains (e, mod, localmatrix);
 			dl->numsurfaces = 0;
 		}

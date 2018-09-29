@@ -199,6 +199,14 @@ void GL_SetDefaultState (void)
 }
 
 
+ID3D11RasterizerState *R_GetRasterizerState (int rflags)
+{
+	if ((rflags & RF_WEAPONMODEL) && r_lefthand->value)
+		return d3d_RSReverseCull;
+	else return d3d_RSFullCull;
+}
+
+
 void D_BindSamplers (void)
 {
 	// rebind in case state gets chucked

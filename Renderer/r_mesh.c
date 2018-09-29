@@ -443,10 +443,10 @@ void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 }
 
 
-void R_TransformAliasModel (entity_t *e, dmdl_t *hdr, meshconstants_t *consts)
+void R_TransformAliasModel (entity_t *e, dmdl_t *hdr, meshconstants_t *consts, QMATRIX *localmatrix)
 {
 	// set up the lerp transform
-	float move[3], delta[3], vectors[3][3];
+	float move[3], delta[3];
 	float frontlerp = 1.0 - e->backlerp;
 
 	// get current and previous frames
@@ -454,14 +454,14 @@ void R_TransformAliasModel (entity_t *e, dmdl_t *hdr, meshconstants_t *consts)
 	daliasframe_t *prevframe = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + e->prevframe * hdr->framesize);
 
 	// move should be the delta back to the previous frame * backlerp
-	VectorSubtract (e->prevorigin, e->currorigin, delta);
-	AngleVectors (e->angles, vectors[0], vectors[1], vectors[2]);
+	Vector3Subtract (delta, e->prevorigin, e->currorigin);
 
-	move[0] = Vector3Dot (delta, vectors[0]);	// forward
-	move[1] = -Vector3Dot (delta, vectors[1]);	// left
-	move[2] = Vector3Dot (delta, vectors[2]);	// up
+	// take these from the local matrix
+	move[0] = Vector3Dot (delta, localmatrix->m4x4[0]);	// forward
+	move[1] = Vector3Dot (delta, localmatrix->m4x4[1]);	// left
+	move[2] = Vector3Dot (delta, localmatrix->m4x4[2]);	// up
 
-	VectorAdd (move, prevframe->translate, move);
+	Vector3Add (move, move, prevframe->translate);
 
 	Vector3Set (consts->move,
 		e->backlerp * move[0] + frontlerp * currframe->translate[0],
@@ -632,6 +632,9 @@ static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 		}
 	}
 
+	// take a radius for dlight interaction tests
+	mod->radius = Mod_RadiusFromBounds (mod->mins, mod->maxs);
+
 	// and run the cull
 	return R_CullForEntity (mod->mins, mod->maxs, localmatrix);
 }
@@ -639,10 +642,8 @@ static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 
 qboolean R_AliasLightInteraction (entity_t *e, model_t *mod, dlight_t *dl)
 {
-	// fixme - do a proper sphere/box test
-	if ((dl->intensity - Vector3Dist (e->currorigin, dl->origin)) > -64)
-		return true;
-	else return false;
+	// sphere/sphere intersection test
+	return (Vector3Dist (e->currorigin, dl->origin) < (dl->intensity + mod->radius));
 }
 
 
@@ -666,7 +667,7 @@ void R_AliasDlights (entity_t *e, model_t *mod, dmdl_t *hdr, QMATRIX *localMatri
 			R_VectorInverseTransform (localMatrix, dl->origin, origin);
 
 			// set up the light
-			D_SetupDynamicLight (dl);
+			D_SetupDynamicLight (dl, e->flags);
 
 			// set up the shaders
 			D_BindShaderBundle (d3d_MeshDynamicShader);
@@ -705,18 +706,12 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 
 	if (e->flags & RF_TRANSLUCENT)
 	{
-		if ((e->flags & RF_WEAPONMODEL) && r_lefthand->value)
-			D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSReverseCull);
-		else D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSFullCull);
-
+		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, R_GetRasterizerState (e->flags));
 		R_UpdateAlpha (e->alpha);
 	}
 	else
 	{
-		if ((e->flags & RF_WEAPONMODEL) && r_lefthand->value)
-			D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, d3d_RSReverseCull);
-		else D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, d3d_RSFullCull);
-
+		D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, R_GetRasterizerState (e->flags));
 		R_UpdateAlpha (1);
 	}
 
@@ -724,7 +719,7 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 
 	// set up our mesh constants
 	R_LightAliasModel (e, &consts);
-	R_TransformAliasModel (e, hdr, &consts);
+	R_TransformAliasModel (e, hdr, &consts, localmatrix);
 
 	// and update to the cbuffer
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MeshConstants, 0, NULL, &consts, 0, 0);

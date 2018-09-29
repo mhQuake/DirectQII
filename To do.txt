@@ -15,8 +15,6 @@ Menu background should be solid black if console is full-screen.
 
 s_khz is wrong in the menu.
 
-Dlights rasterizer state is wrong for left-handed gun models
-
 CVAR_VIDEO should not write to console if in the menus
 
 

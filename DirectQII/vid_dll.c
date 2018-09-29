@@ -45,8 +45,6 @@ qboolean reflib_active = false; // true if the refresh has been loaded successfu
 
 HWND        cl_hwnd;            // Main window handle for life of program
 
-LONG WINAPI MainWndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
 extern	unsigned	sys_msg_time;
 extern qboolean		ActiveApp, Minimized;
 

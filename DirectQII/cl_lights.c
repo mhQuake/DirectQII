@@ -229,10 +229,12 @@ void CL_ParseMuzzleFlash (void)
 	AngleVectors (pl->current.angles, fv, rv, NULL);
 	VectorMA (dl->origin, 18, fv, dl->origin);
 	VectorMA (dl->origin, 16, rv, dl->origin);
+
 	if (silenced)
 		dl->radius = 100 + (rand () & 31);
 	else
 		dl->radius = 200 + (rand () & 31);
+
 	dl->minlight = 32;
 	dl->die = cl.time + 100;
 

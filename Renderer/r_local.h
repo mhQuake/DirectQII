@@ -187,7 +187,6 @@ extern	int			gl_filter_min, gl_filter_max;
 extern	vec3_t	vup;
 extern	vec3_t	vpn;
 extern	vec3_t	vright;
-extern	vec3_t	r_origin;
 
 //
 // screen size info
@@ -377,6 +376,7 @@ extern ID3D11RasterizerState *d3d_RSNoCull;
 
 void D_SetRenderStates (ID3D11BlendState *bs, ID3D11DepthStencilState *ds, ID3D11RasterizerState *rs);
 void D_BindSamplers (void);
+ID3D11RasterizerState *R_GetRasterizerState (int rflags);
 
 void D_BindVertexBuffer (UINT Slot, ID3D11Buffer *Buffer, UINT Stride, UINT Offset);
 void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
@@ -458,7 +458,7 @@ void Image_ApplyTranslationRGB (byte *rgb, int size, byte *table);
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // lights
 void R_BindLightmaps (void);
-void D_SetupDynamicLight (dlight_t *dl);
+void D_SetupDynamicLight (dlight_t *dl, int rflags);
 void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix);
 void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *localmatrix, int visframe);
 void R_SetEntityLighting (entity_t *e, float *shadelight, float *shadevector);

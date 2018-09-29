@@ -143,7 +143,7 @@ float4 GenericDynamicPS (PS_DYNAMICLIGHT ps_in) : SV_TARGET0
 	float Angle = dot (normalize (ps_in.Normal), normalize (ps_in.LightVector)) * 0.5f + 0.5f;
 
 	// light.exe used a 0..255 scale whereas shaders use a 0..1 scale so bring it down; but using 256 which the hardware might optimize better
-	float Add = len * (1.0f / 256.0f) * Angle;
+	float Add = len * (1.0f / 256.0f) * Angle; // should this be 128 or 256????
 
 	// and done
 	return float4 (diff.rgb * LightColour * Add, 0.0f);

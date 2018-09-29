@@ -23,8 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 image_t		gltextures[MAX_GLTEXTURES];
 
-cvar_t		*intensity;
-
 unsigned	d_8to24table[256];
 
 
@@ -453,13 +451,6 @@ GL_InitImages
 void GL_InitImages (void)
 {
 	r_registration_sequence = 1;
-
-	// init intensity conversions
-	intensity = ri.Cvar_Get ("intensity", "2", 0);
-
-	if (intensity->value <= 1)
-		ri.Cvar_Set ("intensity", "1");
-
 	Draw_GetPalette ();
 }
 

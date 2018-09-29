@@ -137,7 +137,6 @@ QMATRIX r_local_matrix[MAX_ENTITIES];
 vec3_t	vup;
 vec3_t	vpn;
 vec3_t	vright;
-vec3_t	r_origin;
 
 // screen size info
 refdef_t	r_newrefdef;
@@ -390,16 +389,12 @@ void R_SetupFrame (void)
 
 	r_framecount++;
 
-	// build the transformation matrix for the given view angles
-	VectorCopy (r_newrefdef.vieworg, r_origin);
-	AngleVectors (r_newrefdef.viewangles, vpn, vright, vup);
-
 	// current viewcluster
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
 		r_oldviewcluster = r_viewcluster;
 		r_oldviewcluster2 = r_viewcluster2;
-		leaf = Mod_PointInLeaf (r_origin, r_worldmodel);
+		leaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
 		r_viewcluster = r_viewcluster2 = leaf->cluster;
 
 		// check above and below so crossing solid water doesn't draw wrong
@@ -408,7 +403,7 @@ void R_SetupFrame (void)
 			// look down a bit
 			vec3_t	temp;
 
-			VectorCopy (r_origin, temp);
+			VectorCopy (r_newrefdef.vieworg, temp);
 			temp[2] -= 16;
 			leaf = Mod_PointInLeaf (temp, r_worldmodel);
 			if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != r_viewcluster2))
@@ -419,7 +414,7 @@ void R_SetupFrame (void)
 			// look up a bit
 			vec3_t	temp;
 
-			VectorCopy (r_origin, temp);
+			VectorCopy (r_newrefdef.vieworg, temp);
 			temp[2] += 16;
 			leaf = Mod_PointInLeaf (temp, r_worldmodel);
 			if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != r_viewcluster2))
@@ -559,7 +554,7 @@ R_Clear
 */
 void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
 {
-	mleaf_t *leaf = Mod_PointInLeaf (r_origin, r_worldmodel);
+	mleaf_t *leaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
 
 	if (leaf->contents & CONTENTS_SOLID)
 	{
