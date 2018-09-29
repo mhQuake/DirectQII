@@ -272,7 +272,7 @@ float Mod_RadiusFromBounds (vec3_t mins, vec3_t maxs)
 	for (i = 0; i < 3; i++)
 		corner[i] = fabs (mins[i]) > fabs (maxs[i]) ? fabs (mins[i]) : fabs (maxs[i]);
 
-	return VectorLength (corner);
+	return Vector3Length (corner);
 }
 
 

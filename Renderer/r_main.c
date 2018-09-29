@@ -403,7 +403,7 @@ void R_SetupFrame (void)
 			// look down a bit
 			vec3_t	temp;
 
-			VectorCopy (r_newrefdef.vieworg, temp);
+			Vector3Copy (temp, r_newrefdef.vieworg);
 			temp[2] -= 16;
 			leaf = Mod_PointInLeaf (temp, r_worldmodel);
 			if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != r_viewcluster2))
@@ -414,7 +414,7 @@ void R_SetupFrame (void)
 			// look up a bit
 			vec3_t	temp;
 
-			VectorCopy (r_newrefdef.vieworg, temp);
+			Vector3Copy (temp, r_newrefdef.vieworg);
 			temp[2] += 16;
 			leaf = Mod_PointInLeaf (temp, r_worldmodel);
 			if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != r_viewcluster2))

@@ -113,7 +113,7 @@ int R_RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 		dt >>= 4;
 
 		lightmap = surf->samples;
-		VectorCopy (vec3_origin, pointcolor);
+		Vector3Set (pointcolor, 0, 0, 0);
 
 		if (lightmap)
 		{
