@@ -188,7 +188,7 @@ void Draw_UpdateConstants (void)
 	R_MatrixOrtho (&consts.OrthoMatrix, 0, vid.conwidth, vid.conheight, 0, -1, 1);
 
 	consts.gamma = vid_gamma->value;
-	consts.contrast = 1.0f;
+	consts.contrast = vid_brightness->value;
 
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DrawConstants, 0, NULL, &consts, 0, 0);
 }

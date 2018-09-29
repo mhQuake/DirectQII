@@ -791,15 +791,42 @@ void SCR_ExecuteLayoutString (char *s)
 
 		if (!strcmp (token, "pic"))
 		{
+			int statnum;
+
 			// draw a pic from a stat number
 			token = COM_Parse (&s);
-			value = cl.frame.playerstate.stats[atoi (token)];
+			statnum = atoi (token);
+			value = cl.frame.playerstate.stats[statnum];
 
 			if (value >= MAX_IMAGES)
 				Com_Error (ERR_DROP, "Pic >= MAX_IMAGES");
 
 			if (cl.configstrings[CS_IMAGES + value])
 				re.DrawPic (x, y, cl.configstrings[CS_IMAGES + value]);
+
+			if (statnum == STAT_SELECTED_ICON)
+			{
+				if (cl.lastitem == -1)
+				{
+					// wipe on entry
+					cl.itemtime = cl.time;
+					cl.lastitem = cl.frame.playerstate.stats[STAT_SELECTED_ITEM];
+				}
+
+				if (cl.frame.playerstate.stats[STAT_SELECTED_ITEM] != cl.lastitem)
+				{
+					// item changed
+					cl.itemtime = cl.time + 1500;
+					cl.lastitem = cl.frame.playerstate.stats[STAT_SELECTED_ITEM];
+				}
+
+				// display
+				if (cl.time < cl.itemtime)
+				{
+					// this is a bit hacky cos a mod's custom layout could stomp it
+					DrawString (x + 32, y + 8, cl.configstrings[CS_ITEMS + cl.frame.playerstate.stats[STAT_SELECTED_ITEM]]);
+				}
+			}
 
 			continue;
 		}

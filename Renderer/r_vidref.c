@@ -43,6 +43,7 @@ void R_Register (void)
 
 	vid_fullscreen = ri.Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE | CVAR_VIDEO);
 	vid_gamma = ri.Cvar_Get ("vid_gamma", "1.0", CVAR_ARCHIVE);
+	vid_brightness = ri.Cvar_Get ("vid_brightness", "1.0", CVAR_ARCHIVE);
 
 	vid_width = ri.Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
 	vid_height = ri.Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);

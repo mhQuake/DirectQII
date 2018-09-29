@@ -566,9 +566,13 @@ void CL_ClearState (void)
 	memset (&cl, 0, sizeof (cl));
 	memset (&cl_entities, 0, sizeof (cl_entities));
 
-	SZ_Clear (&cls.netchan.message);
+	// update item change notification vars
+	cl.itemtime = 0;
+	cl.lastitem = -1;
 
+	SZ_Clear (&cls.netchan.message);
 }
+
 
 /*
 =====================

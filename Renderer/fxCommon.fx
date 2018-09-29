@@ -120,9 +120,9 @@ Texture2DArray<float4> charTexture : register(t6);	// characters and numbers
 float4 GetGamma (float4 colorin)
 {
 	// gamma is not applied to alpha
-	//float3 contrasted = colorin.rgb * v_contrast;	// this isn't actually "contrast" but it's consistent with what other engines do
-	//return float4 (pow (max (contrasted, 0.0f), v_gamma), colorin.a);
-	return float4 (pow (max (colorin.rgb, 0.0f), v_gamma), colorin.a);
+	// this isn't actually "contrast" but it's consistent with what other engines do
+	return float4 (pow (max (colorin.rgb * v_contrast, 0.0f), v_gamma), colorin.a);
+	//return float4 (pow (max (colorin.rgb, 0.0f), v_gamma), colorin.a);
 }
 
 // common to mesh and surf

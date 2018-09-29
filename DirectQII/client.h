@@ -133,6 +133,10 @@ typedef struct client_state_s
 	char		layout[1024];		// general 2D overlay
 	int			inventory[MAX_ITEMS];
 
+	// item change notification
+	int			itemtime;
+	int			lastitem;
+
 	// non-gameserver infornamtion
 	// FIXME: move this cinematic stuff into the cin_t structure
 	FILE		*cinematic_file;

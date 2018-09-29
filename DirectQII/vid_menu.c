@@ -216,7 +216,7 @@ void VID_MenuInit (void)
 	s_brightness_slider.generic.type = MTYPE_SLIDER;
 	s_brightness_slider.generic.x = 0;
 	s_brightness_slider.generic.y = 60;
-	s_brightness_slider.generic.name = "brightness";
+	s_brightness_slider.generic.name = "gamma";
 	s_brightness_slider.generic.callback = BrightnessCallback;
 	s_brightness_slider.minvalue = 5;
 	s_brightness_slider.maxvalue = 13;

@@ -31,6 +31,7 @@ refexport_t	re;
 
 // Console variables that we need to access from this module
 cvar_t		*vid_gamma;
+cvar_t		*vid_brightness;
 cvar_t		*vid_xpos;			// X coordinate of window position
 cvar_t		*vid_ypos;			// Y coordinate of window position
 cvar_t		*vid_fullscreen;
@@ -421,6 +422,7 @@ void VID_Init (void)
 	vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE | CVAR_VIDEO);
 	vid_gamma = Cvar_Get ("vid_gamma", "1", CVAR_ARCHIVE);
+	vid_brightness = Cvar_Get ("vid_brightness", "1", CVAR_ARCHIVE);
 
 	vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
 	vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);

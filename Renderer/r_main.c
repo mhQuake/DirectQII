@@ -161,6 +161,7 @@ cvar_t	*gl_lockpvs;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
+cvar_t	*vid_brightness;
 
 cvar_t	*vid_width;
 cvar_t	*vid_height;
