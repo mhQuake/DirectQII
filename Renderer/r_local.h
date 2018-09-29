@@ -57,6 +57,10 @@ extern QMATRIX	r_view_matrix;
 extern QMATRIX	r_proj_matrix;
 extern QMATRIX	r_gun_matrix;
 extern QMATRIX	r_mvp_matrix;
+extern QMATRIX	r_local_matrix[MAX_ENTITIES];
+
+void R_PrepareAliasModel (entity_t *e, QMATRIX *localmatrix);
+void R_PrepareBrushModel (entity_t *e, QMATRIX *localmatrix);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -238,17 +242,20 @@ int R_Init (void *hinstance, void *wndproc);
 void R_Shutdown (void);
 
 void GL_ScreenShot_f (void);
-void R_DrawAliasModel (entity_t *e);
-void R_DrawBrushModel (entity_t *e);
+void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix);
+void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix);
 void R_DrawSpriteModel (entity_t *e);
 void R_DrawBeam (entity_t *e);
 void R_DrawWorld (void);
 void R_DrawAlphaSurfaces (void);
 void R_CreateSpecialTextures (void);
 void Draw_InitLocal (void);
+
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 qboolean R_CullBoxClipflags (vec3_t mins, vec3_t maxs, int clipflags);
 qboolean R_CullSphere (float *center, float radius);
+qboolean R_CullForEntity (vec3_t mins, vec3_t maxs, QMATRIX *localmatrix);
+
 void R_MarkLeaves (void);
 
 void COM_StripExtension (char *in, char *out);

@@ -23,7 +23,26 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "client.h"
 
-static vec3_t avelocities[NUMVERTEXNORMALS];
+static vec3_t avelocities[NUMVERTEXNORMALS] = {
+	{2.55f, 2.49f, 1.48f}, {2.20f, 1.76f, 0.97f}, {0.55f, 1.65f, 1.19f}, {2.24f, 1.23f, 2.10f}, {0.69f, 1.84f, 1.12f}, {1.94f, 0.75f, 1.00f}, {1.13f, 2.43f, 0.96f}, {1.12f, 1.68f, 1.16f}, {1.63f, 1.42f, 2.13f},
+	{1.57f, 0.98f, 2.31f}, {0.74f, 2.53f, 0.59f}, {1.75f, 0.58f, 1.48f}, {1.29f, 2.52f, 0.52f}, {0.66f, 2.26f, 2.16f}, {2.35f, 1.28f, 0.70f}, {1.48f, 0.56f, 0.78f}, {2.49f, 0.96f, 0.98f}, {1.08f, 0.13f, 0.25f},
+	{1.56f, 2.05f, 2.50f}, {0.98f, 2.07f, 0.73f}, {1.36f, 2.46f, 1.54f}, {1.46f, 2.39f, 0.61f}, {1.52f, 1.05f, 0.60f}, {0.29f, 2.25f, 0.18f}, {2.46f, 0.18f, 2.11f}, {0.05f, 0.02f, 1.29f}, {0.18f, 2.30f, 1.96f},
+	{0.73f, 2.05f, 1.83f}, {1.35f, 1.56f, 0.67f}, {0.77f, 0.31f, 0.13f}, {1.34f, 0.00f, 2.04f}, {2.33f, 1.27f, 1.67f}, {0.98f, 2.03f, 0.51f}, {1.96f, 1.67f, 1.07f}, {0.68f, 2.51f, 2.53f}, {1.83f, 1.87f, 2.01f},
+	{0.65f, 0.37f, 0.04f}, {1.14f, 2.42f, 0.71f}, {0.58f, 0.59f, 1.50f}, {1.60f, 1.66f, 2.18f}, {0.89f, 1.82f, 1.30f}, {0.43f, 2.48f, 1.04f}, {0.02f, 0.36f, 2.21f}, {1.30f, 1.49f, 0.11f}, {1.40f, 1.43f, 1.04f},
+	{2.30f, 0.61f, 2.38f}, {0.43f, 0.52f, 2.02f}, {0.40f, 0.25f, 2.18f}, {2.04f, 1.29f, 0.50f}, {0.96f, 0.01f, 2.05f}, {2.03f, 0.93f, 2.42f}, {1.33f, 0.73f, 0.48f}, {2.10f, 0.26f, 0.42f}, {2.41f, 1.68f, 1.37f},
+	{0.69f, 1.68f, 1.77f}, {0.48f, 0.82f, 1.88f}, {2.55f, 2.24f, 1.72f}, {1.74f, 1.03f, 0.51f}, {0.86f, 0.06f, 1.54f}, {0.32f, 0.60f, 1.42f}, {1.46f, 2.04f, 1.88f}, {1.91f, 0.48f, 1.63f}, {1.01f, 1.21f, 0.35f},
+	{1.68f, 2.55f, 2.47f}, {0.11f, 0.09f, 2.03f}, {0.01f, 2.22f, 2.47f}, {0.12f, 0.99f, 1.39f}, {1.80f, 1.97f, 1.59f}, {2.22f, 2.38f, 1.97f}, {2.23f, 1.64f, 0.75f}, {2.25f, 0.45f, 0.15f}, {0.69f, 1.29f, 2.30f},
+	{0.92f, 0.56f, 0.94f}, {1.08f, 1.78f, 1.85f}, {1.37f, 0.28f, 0.78f}, {0.42f, 1.76f, 1.28f}, {2.21f, 1.39f, 1.57f}, {1.97f, 0.41f, 1.47f}, {2.55f, 1.11f, 2.48f}, {0.00f, 1.09f, 0.75f}, {0.49f, 0.43f, 1.68f},
+	{1.65f, 0.65f, 2.23f}, {0.32f, 1.88f, 1.89f}, {1.07f, 1.86f, 1.15f}, {0.73f, 2.46f, 2.09f}, {0.73f, 1.84f, 0.19f}, {1.23f, 1.39f, 1.17f}, {1.50f, 0.13f, 2.01f}, {0.33f, 1.65f, 2.25f}, {1.34f, 1.25f, 0.18f},
+	{0.86f, 0.51f, 1.39f}, {2.32f, 0.25f, 0.95f}, {2.40f, 0.67f, 1.63f}, {0.40f, 1.57f, 1.01f}, {0.03f, 2.45f, 1.74f}, {0.07f, 2.22f, 1.03f}, {1.46f, 2.37f, 1.80f}, {1.40f, 1.09f, 1.89f}, {1.00f, 0.86f, 1.86f},
+	{0.17f, 2.43f, 0.76f}, {0.53f, 2.03f, 1.37f}, {1.28f, 2.48f, 1.69f}, {1.88f, 1.93f, 2.28f}, {0.25f, 0.17f, 0.17f}, {0.66f, 0.78f, 1.92f}, {0.90f, 1.70f, 1.47f}, {1.84f, 0.92f, 0.36f}, {2.23f, 2.27f, 2.34f},
+	{1.42f, 1.70f, 1.71f}, {0.86f, 0.62f, 0.00f}, {1.89f, 0.42f, 2.32f}, {2.12f, 0.13f, 0.24f}, {1.93f, 1.50f, 0.26f}, {0.52f, 2.28f, 0.08f}, {1.15f, 0.97f, 2.45f}, {0.77f, 1.22f, 0.09f}, {0.05f, 0.66f, 1.04f},
+	{0.18f, 1.82f, 0.18f}, {1.45f, 0.13f, 1.60f}, {0.05f, 2.34f, 1.76f}, {2.43f, 1.53f, 2.00f}, {1.34f, 0.93f, 2.12f}, {2.34f, 2.29f, 0.46f}, {2.16f, 1.86f, 0.33f}, {1.86f, 1.84f, 2.08f}, {2.55f, 2.54f, 1.38f},
+	{1.84f, 1.08f, 1.35f}, {1.90f, 2.45f, 1.11f}, {1.44f, 1.74f, 0.69f}, {0.93f, 1.07f, 1.17f}, {0.39f, 0.76f, 0.34f}, {0.05f, 1.55f, 2.01f}, {0.93f, 1.16f, 0.41f}, {2.06f, 1.34f, 1.51f}, {0.36f, 2.38f, 0.44f},
+	{2.10f, 0.48f, 2.11f}, {1.65f, 0.46f, 0.02f}, {2.34f, 2.48f, 1.72f}, {1.03f, 0.93f, 2.50f}, {2.18f, 1.36f, 0.66f}, {1.82f, 1.63f, 1.08f}, {0.18f, 0.18f, 1.07f}, {1.90f, 0.92f, 1.76f}, {0.92f, 2.09f, 1.86f},
+	{0.19f, 2.50f, 2.25f}, {0.05f, 0.03f, 2.54f}, {1.56f, 1.97f, 0.50f}, {0.97f, 2.24f, 2.35f}, {0.31f, 1.83f, 1.99f}, {1.95f, 0.59f, 1.90f}, {2.25f, 0.36f, 0.75f}, {0.55f, 1.92f, 2.34f}, {0.13f, 2.44f, 1.86f},
+	{1.65f, 0.30f, 0.51f}, {2.34f, 1.47f, 0.27f}, {0.42f, 1.20f, 2.04f}, {0.06f, 2.27f, 0.26f}, {1.89f, 2.36f, 0.74f}, {2.19f, 2.15f, 1.97f}, {1.33f, 0.28f, 1.36f}, {1.56f, 1.31f, 2.16f}, {1.07f, 2.40f, 2.16f}
+};
 
 
 /*
@@ -892,31 +911,23 @@ void CL_FlyParticles (vec3_t origin, int count)
 	float		sr, sp, sy, cr, cp, cy;
 	vec3_t		forward;
 	float		dist = 64;
-	float		ltime;
-
-
-	if (count > NUMVERTEXNORMALS)
-		count = NUMVERTEXNORMALS;
-
-	if (!avelocities[0][0])
-	{
-		for (i = 0; i < NUMVERTEXNORMALS * 3; i++)
-			avelocities[0][i] = (rand () & 255) * 0.01;
-	}
-
-	ltime = (float) cl.time / 1000.0;
+	float		ltime = (float) cl.time / 1000.0;
 
 	for (i = 0; i < count; i += 2)
 	{
-		angle = ltime * avelocities[i][0];
+		// allow > NUMVERTEXNORMALS flies
+		float *avel = avelocities[i % NUMVERTEXNORMALS];
+		float *bdir = bytedirs[i % NUMVERTEXNORMALS];
+
+		angle = (ltime + i) * avel[0];
 		sy = sin (angle);
 		cy = cos (angle);
 
-		angle = ltime * avelocities[i][1];
+		angle = (ltime + i) * avel[1];
 		sp = sin (angle);
 		cp = cos (angle);
 
-		angle = ltime * avelocities[i][2];
+		angle = (ltime + i) * avel[2];
 		sr = sin (angle);
 		cr = cos (angle);
 
@@ -928,9 +939,9 @@ void CL_FlyParticles (vec3_t origin, int count)
 
 		dist = sin (ltime + i) * 64;
 
-		p->org[0] = origin[0] + bytedirs[i][0] * dist + forward[0] * BEAMLENGTH;
-		p->org[1] = origin[1] + bytedirs[i][1] * dist + forward[1] * BEAMLENGTH;
-		p->org[2] = origin[2] + bytedirs[i][2] * dist + forward[2] * BEAMLENGTH;
+		p->org[0] = origin[0] + bdir[0] * dist + forward[0] * BEAMLENGTH;
+		p->org[1] = origin[1] + bdir[1] * dist + forward[1] * BEAMLENGTH;
+		p->org[2] = origin[2] + bdir[2] * dist + forward[2] * BEAMLENGTH;
 
 		VectorClear (p->vel);
 		VectorClear (p->accel);
@@ -953,20 +964,15 @@ void CL_FlyEffect (centity_t *ent, vec3_t origin)
 		ent->fly_stoptime = cl.time + 60000;
 	}
 	else
-	{
 		starttime = ent->fly_stoptime - 60000;
-	}
 
-	n = cl.time - starttime;
-	if (n < 20000)
-		count = n * 162 / 20000.0;
+	if ((n = cl.time - starttime) < 20000)
+		count = n * NUMVERTEXNORMALS / 20000.0;
 	else
 	{
-		n = ent->fly_stoptime - cl.time;
-		if (n < 20000)
-			count = n * 162 / 20000.0;
-		else
-			count = 162;
+		if ((n = ent->fly_stoptime - cl.time) < 20000)
+			count = n * NUMVERTEXNORMALS / 20000.0;
+		else count = NUMVERTEXNORMALS;
 	}
 
 	CL_FlyParticles (origin, count);
@@ -989,24 +995,18 @@ void CL_BfgParticles (entity_t *ent)
 	vec3_t		forward;
 	float		dist = 64;
 	vec3_t		v;
-	float		ltime;
+	float		ltime = (float) cl.time / 1000.0;
 
-	if (!avelocities[0][0])
-	{
-		for (i = 0; i < NUMVERTEXNORMALS * 3; i++)
-			avelocities[0][i] = (rand () & 255) * 0.01;
-	}
-
-
-	ltime = (float) cl.time / 1000.0;
 	for (i = 0; i < NUMVERTEXNORMALS; i++)
 	{
 		angle = ltime * avelocities[i][0];
 		sy = sin (angle);
 		cy = cos (angle);
+
 		angle = ltime * avelocities[i][1];
 		sp = sin (angle);
 		cp = cos (angle);
+
 		angle = ltime * avelocities[i][2];
 		sr = sin (angle);
 		cr = cos (angle);
@@ -1018,6 +1018,7 @@ void CL_BfgParticles (entity_t *ent)
 		if ((p = CL_GetParticle ()) == NULL) return;
 
 		dist = sin (ltime + i) * 64;
+
 		p->org[0] = ent->currorigin[0] + bytedirs[i][0] * dist + forward[0] * BEAMLENGTH;
 		p->org[1] = ent->currorigin[1] + bytedirs[i][1] * dist + forward[1] * BEAMLENGTH;
 		p->org[2] = ent->currorigin[2] + bytedirs[i][2] * dist + forward[2] * BEAMLENGTH;

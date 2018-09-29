@@ -131,6 +131,7 @@ QMATRIX	r_view_matrix;
 QMATRIX	r_proj_matrix;
 QMATRIX	r_gun_matrix;
 QMATRIX	r_mvp_matrix;
+QMATRIX r_local_matrix[MAX_ENTITIES];
 
 // view origin
 vec3_t	vup;
@@ -288,6 +289,41 @@ qboolean R_CullBoxClipflags (vec3_t mins, vec3_t maxs, int clipflags)
 }
 
 
+qboolean R_CullForEntity (vec3_t mins, vec3_t maxs, QMATRIX *localmatrix)
+{
+	int i;
+	vec3_t emins = {999999, 999999, 999999};
+	vec3_t emaxs = {-999999, -999999, -999999};
+
+	// compute a full bounding box
+	for (i = 0; i < 8; i++)
+	{
+		vec3_t tmp1, tmp2;
+
+		// get this corner point
+		if (i & 1) tmp1[0] = mins[0]; else tmp1[0] = maxs[0];
+		if (i & 2) tmp1[1] = mins[1]; else tmp1[1] = maxs[1];
+		if (i & 4) tmp1[2] = mins[2]; else tmp1[2] = maxs[2];
+
+		// transform it
+		R_VectorTransform (localmatrix, tmp2, tmp1);
+
+		// derive new mins
+		if (tmp2[0] < emins[0]) emins[0] = tmp2[0];
+		if (tmp2[1] < emins[1]) emins[1] = tmp2[1];
+		if (tmp2[2] < emins[2]) emins[2] = tmp2[2];
+
+		// derive new maxs
+		if (tmp2[0] > emaxs[0]) emaxs[0] = tmp2[0];
+		if (tmp2[1] > emaxs[1]) emaxs[1] = tmp2[1];
+		if (tmp2[2] > emaxs[2]) emaxs[2] = tmp2[2];
+	}
+
+	// now cullbox using the new derived mins and maxs
+	return R_CullBox (emins, emaxs);
+}
+
+
 //==================================================================================
 
 
@@ -320,11 +356,11 @@ void R_DrawEntitiesOnList (qboolean trans)
 			switch (e->model->type)
 			{
 			case mod_alias:
-				R_DrawAliasModel (e);
+				R_DrawAliasModel (e, &r_local_matrix[i]);
 				break;
 
 			case mod_brush:
-				R_DrawBrushModel (e);
+				R_DrawBrushModel (e, &r_local_matrix[i]);
 				break;
 
 			case mod_sprite:
@@ -575,6 +611,32 @@ void R_PolyBlend (void)
 }
 
 
+void R_PrepareEntities (void)
+{
+	int		i;
+
+	if (!r_drawentities->value)
+		return;
+
+	for (i = 0; i < r_newrefdef.num_entities; i++)
+	{
+		entity_t *e = &r_newrefdef.entities[i];
+
+		if (e->flags & RF_BEAM) continue;
+		if (!e->model) continue;
+
+		if (e->model->type == mod_alias)
+		{
+			R_PrepareAliasModel (e, &r_local_matrix[i]);
+		}
+		else if (e->model->type == mod_brush)
+		{
+			R_PrepareBrushModel (e, &r_local_matrix[i]);
+		}
+	}
+}
+
+
 void R_RenderScene (void)
 {
 	R_DrawWorld ();
@@ -622,6 +684,8 @@ void R_RenderFrame (refdef_t *fd)
 	R_MarkLeaves ();	// done here so we know if we're in water
 
 	R_PrepareDlights ();
+
+	R_PrepareEntities ();
 
 	if (D_BeginWaterWarp ())
 	{

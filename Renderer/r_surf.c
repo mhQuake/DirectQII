@@ -383,15 +383,20 @@ void R_ChainSurface (msurface_t *surf)
 
 /*
 =================
-R_DrawInlineBModel
+R_DrawBrushModel
 =================
 */
-void R_DrawInlineBModel (entity_t *e, QMATRIX *localmatrix)
+void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix)
 {
 	int			i;
 	int			numsurfaces = 0;
 	model_t		*mod = e->model;
 	msurface_t	*psurf = &mod->surfaces[mod->firstmodelsurface];
+
+	if (R_CullForEntity (mod->mins, mod->maxs, localmatrix))
+		return;
+
+	R_VectorInverseTransform (localmatrix, modelorg, r_newrefdef.vieworg);
 
 	// draw texture
 	for (i = 0; i < mod->nummodelsurfaces; i++, psurf++)
@@ -417,46 +422,12 @@ void R_DrawInlineBModel (entity_t *e, QMATRIX *localmatrix)
 }
 
 
-/*
-=================
-R_DrawBrushModel
-=================
-*/
-void R_DrawBrushModel (entity_t *e)
+void R_PrepareBrushModel (entity_t *e, QMATRIX *localmatrix)
 {
-	vec3_t		mins, maxs;
-	int			i;
-	QMATRIX		localmatrix;
-	model_t		*mod = e->model;
-
-	if (mod->nummodelsurfaces == 0)
-		return;
-
-	if (e->angles[0] || e->angles[1] || e->angles[2])
-	{
-		for (i = 0; i < 3; i++)
-		{
-			mins[i] = e->currorigin[i] - mod->radius;
-			maxs[i] = e->currorigin[i] + mod->radius;
-		}
-	}
-	else
-	{
-		VectorAdd (e->currorigin, mod->mins, mins);
-		VectorAdd (e->currorigin, mod->maxs, maxs);
-	}
-
-	if (R_CullBox (mins, maxs))
-		return;
-
 	// get the transform in local space so that we can correctly handle dlights
-	R_MatrixIdentity (&localmatrix);
-	R_MatrixTranslate (&localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
-	R_MatrixRotate (&localmatrix, e->angles[0], e->angles[1], e->angles[2]);
-
-	R_VectorInverseTransform (&localmatrix, modelorg, r_newrefdef.vieworg);
-
-	R_DrawInlineBModel (e, &localmatrix);
+	R_MatrixIdentity (localmatrix);
+	R_MatrixTranslate (localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
+	R_MatrixRotate (localmatrix, e->angles[0], e->angles[1], e->angles[2]);
 }
 
 

@@ -598,74 +598,42 @@ void R_LightAliasModel (entity_t *e, meshconstants_t *consts)
 }
 
 
-static qboolean R_CullAliasModel (vec3_t bbox[8], entity_t *e)
+static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 {
-	int i, aggregatemask = ~0;
-	vec3_t mins, maxs;
-	vec3_t vectors[3];
-	vec3_t angles;
-
+	int i;
+	model_t *mod = e->model;
 	dmdl_t *hdr = (dmdl_t *) e->model->extradata;
 
-	// the frames were fixed-up in R_DrawAliasModel so we don't need to do so here
-	daliasframe_t *pcurrframe = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + e->currframe * hdr->framesize);
-	daliasframe_t *pprevframe = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + e->prevframe * hdr->framesize);
+	// the frames were fixed-up in R_PrepareAliasModel so we don't need to do so here
+	daliasframe_t *currframe = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + e->currframe * hdr->framesize);
+	daliasframe_t *prevframe = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + e->prevframe * hdr->framesize);
 
 	// compute axially aligned mins and maxs
-	if (pcurrframe == pprevframe)
+	if (currframe == prevframe)
 	{
 		for (i = 0; i < 3; i++)
 		{
-			mins[i] = pcurrframe->translate[i];
-			maxs[i] = mins[i] + pcurrframe->scale[i] * 255;
+			mod->mins[i] = currframe->translate[i];
+			mod->maxs[i] = mod->mins[i] + currframe->scale[i] * 255;
 		}
 	}
 	else
 	{
 		for (i = 0; i < 3; i++)
 		{
-			float thismins = pcurrframe->translate[i];
-			float thismaxs = thismins + pcurrframe->scale[i] * 255;
+			float currmins = currframe->translate[i];
+			float currmaxs = currmins + currframe->scale[i] * 255;
 
-			float oldmins = pprevframe->translate[i];
-			float oldmaxs = oldmins + pprevframe->scale[i] * 255;
+			float prevmins = prevframe->translate[i];
+			float prevmaxs = prevmins + prevframe->scale[i] * 255;
 
-			if (thismins < oldmins) mins[i] = thismins; else mins[i] = oldmins;
-			if (thismaxs > oldmaxs) maxs[i] = thismaxs; else maxs[i] = oldmaxs;
+			if (currmins < prevmins) mod->mins[i] = currmins; else mod->mins[i] = prevmins;
+			if (currmaxs > prevmaxs) mod->maxs[i] = currmaxs; else mod->maxs[i] = prevmaxs;
 		}
 	}
 
-	// compute a full bounding box
-	for (i = 0; i < 8; i++)
-	{
-		if (i & 1) bbox[i][0] = mins[0]; else bbox[i][0] = maxs[0];
-		if (i & 2) bbox[i][1] = mins[1]; else bbox[i][1] = maxs[1];
-		if (i & 4) bbox[i][2] = mins[2]; else bbox[i][2] = maxs[2];
-	}
-
-	// rotate the bounding box
-	Vector3Copy (angles, e->angles);
-	angles[1] = -angles[1];
-	AngleVectors (angles, vectors[0], vectors[1], vectors[2]);
-
-	for (i = 0; i < 8; i++)
-	{
-		int mask = 0;
-		float tmp[] = {Vector3Dot (vectors[0], bbox[i]), -Vector3Dot (vectors[1], bbox[i]), Vector3Dot (vectors[2], bbox[i])};
-
-		Vector3Add (tmp, tmp, e->currorigin);
-
-		if ((Vector3Dot (frustum[0].normal, tmp) - frustum[0].dist) < 0) mask |= (1 << 0);
-		if ((Vector3Dot (frustum[1].normal, tmp) - frustum[1].dist) < 0) mask |= (1 << 1);
-		if ((Vector3Dot (frustum[2].normal, tmp) - frustum[2].dist) < 0) mask |= (1 << 2);
-		if ((Vector3Dot (frustum[3].normal, tmp) - frustum[3].dist) < 0) mask |= (1 << 3);
-
-		aggregatemask &= mask;
-	}
-
-	if (aggregatemask)
-		return true;
-	else return false;
+	// and run the cull
+	return R_CullForEntity (mod->mins, mod->maxs, localmatrix);
 }
 
 
@@ -678,7 +646,7 @@ qboolean R_AliasLightInteraction (entity_t *e, model_t *mod, dlight_t *dl)
 }
 
 
-void R_AliasDlights (entity_t *e, model_t *mod, dmdl_t *hdr, QMATRIX *localMatrix, vec3_t bbox[8])
+void R_AliasDlights (entity_t *e, model_t *mod, dmdl_t *hdr, QMATRIX *localMatrix)
 {
 	int	i;
 
@@ -716,34 +684,17 @@ void R_AliasDlights (entity_t *e, model_t *mod, dmdl_t *hdr, QMATRIX *localMatri
 }
 
 
-void R_DrawAliasModel (entity_t *e)
+void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 {
 	model_t		*mod = e->model;
 	dmdl_t		*hdr = (dmdl_t *) mod->extradata;
-	vec3_t		bbox[8];
-	QMATRIX		localmatrix;
 
 	// per-mesh cbuffer constants
 	meshconstants_t consts;
 
-	// fix up the frames in advance of culling because it needs them
-	if ((e->currframe >= hdr->num_frames) || (e->currframe < 0))
-	{
-		ri.Con_Printf (PRINT_ALL, "R_DrawAliasModel %s: no such currframe %d\n", mod->name, e->currframe);
-		e->currframe = 0;
-		e->prevframe = 0;
-	}
-
-	if ((e->prevframe >= hdr->num_frames) || (e->prevframe < 0))
-	{
-		ri.Con_Printf (PRINT_ALL, "R_DrawAliasModel %s: no such prevframe %d\n", mod->name, e->prevframe);
-		e->currframe = 0;
-		e->prevframe = 0;
-	}
-
 	if (!(e->flags & RF_WEAPONMODEL))
 	{
-		if (R_CullAliasModel (bbox, e))
+		if (R_CullAliasModel (e, localmatrix))
 			return;
 	}
 	else
@@ -751,11 +702,6 @@ void R_DrawAliasModel (entity_t *e)
 		if (r_lefthand->value == 2)
 			return;
 	}
-
-	// get the transform in local space so that we can correctly handle dlights
-	R_MatrixIdentity (&localmatrix);
-	R_MatrixTranslate (&localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
-	R_MatrixRotate (&localmatrix, e->angles[0], e->angles[1], -e->angles[2]);
 
 	if (e->flags & RF_TRANSLUCENT)
 	{
@@ -774,7 +720,7 @@ void R_DrawAliasModel (entity_t *e)
 		R_UpdateAlpha (1);
 	}
 
-	R_UpdateEntityConstants (&localmatrix, NULL, e->flags);
+	R_UpdateEntityConstants (localmatrix, NULL, e->flags);
 
 	// set up our mesh constants
 	R_LightAliasModel (e, &consts);
@@ -799,6 +745,33 @@ void R_DrawAliasModel (entity_t *e)
 	if (!(e->flags & RF_DYNAMICLIGHT)) return;
 
 	// add dynamic lighting to the entity
-	R_AliasDlights (e, mod, hdr, &localmatrix, bbox);
+	R_AliasDlights (e, mod, hdr, localmatrix);
+}
+
+
+void R_PrepareAliasModel (entity_t *e, QMATRIX *localmatrix)
+{
+	model_t		*mod = e->model;
+	dmdl_t		*hdr = (dmdl_t *) mod->extradata;
+
+	// fix up the frames in advance of culling because it needs them
+	if ((e->currframe >= hdr->num_frames) || (e->currframe < 0))
+	{
+		ri.Con_Printf (PRINT_ALL, "R_DrawAliasModel %s: no such currframe %d\n", mod->name, e->currframe);
+		e->currframe = 0;
+		e->prevframe = 0;
+	}
+
+	if ((e->prevframe >= hdr->num_frames) || (e->prevframe < 0))
+	{
+		ri.Con_Printf (PRINT_ALL, "R_DrawAliasModel %s: no such prevframe %d\n", mod->name, e->prevframe);
+		e->currframe = 0;
+		e->prevframe = 0;
+	}
+
+	// get the transform in local space so that we can correctly handle dlights
+	R_MatrixIdentity (localmatrix);
+	R_MatrixTranslate (localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
+	R_MatrixRotate (localmatrix, e->angles[0], e->angles[1], -e->angles[2]);
 }
 

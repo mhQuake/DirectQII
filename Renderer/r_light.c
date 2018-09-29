@@ -43,7 +43,7 @@ vec3_t			pointcolor;
 cplane_t		*lightplane;		// used as shadow plane
 vec3_t			lightspot;
 
-int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
+int R_RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 {
 	float		front, back, frac;
 	int			side;
@@ -68,7 +68,7 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	side = front < 0;
 
 	if ((back < 0) == side)
-		return RecursiveLightPoint (node->children[side], start, end);
+		return R_RecursiveLightPoint (node->children[side], start, end);
 
 	frac = front / (front - back);
 	mid[0] = start[0] + (end[0] - start[0]) * frac;
@@ -76,7 +76,7 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	mid[2] = start[2] + (end[2] - start[2]) * frac;
 
 	// go down front side	
-	if ((r = RecursiveLightPoint (node->children[side], start, mid)) >= 0)
+	if ((r = R_RecursiveLightPoint (node->children[side], start, mid)) >= 0)
 		return r;		// hit something
 
 	if ((back < 0) == side)
@@ -138,7 +138,7 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	}
 
 	// go down back side
-	return RecursiveLightPoint (node->children[!side], mid, end);
+	return R_RecursiveLightPoint (node->children[!side], mid, end);
 }
 
 /*
@@ -148,22 +148,75 @@ R_LightPoint
 */
 void R_LightPoint (vec3_t p, vec3_t color)
 {
-	vec3_t		end;
-	float		r;
+	int i;
+	vec3_t end, hit, lightspot2;
 
-	if (!r_worldmodel->lightdata || r_fullbright->value)
+	if (!r_worldmodel->lightdata)
 	{
-		color[0] = color[1] = color[2] = 1.0;
+		Vector3Set (color, 1.0f, 1.0f, 1.0f);
 		return;
 	}
 
-	end[0] = p[0];
-	end[1] = p[1];
-	end[2] = r_worldmodel->mins[2] - 10.0f; // trace the extent of the world model
+	// don't go outside of the world's bounds
+	Vector3Set (end, p[0], p[1], r_worldmodel->mins[2] - 10.0f);
 
-	if ((r = RecursiveLightPoint (r_worldmodel->nodes, p, end)) == -1)
-		Vector3Copy (color, vec3_origin);
-	else Vector3Copy (color, pointcolor);
+	if ((R_RecursiveLightPoint (r_worldmodel->nodes, p, end)) < 0)
+	{
+		// objects outside the world (such as Strogg Viper flybys on base1) should be lit if they hit nothing
+		// the new end point (based on mins of r_worldmodel) ensures that we'll always hit if inside the world so this is OK
+		// don't make them too bright or they'll look like shit/
+		Vector3Set (color, 0.5f, 0.5f, 0.5f);
+		Vector3Copy (hit, end);
+	}
+	else
+	{
+		Vector3Copy (color, pointcolor);
+		Vector3Copy (hit, lightspot);
+	}
+
+	// find bmodels under the lightpoint - move the point to bmodel space, trace down, then check; if r < 0
+	// it didn't find a bmodel, otherwise it did (a bmodel under a valid world hit will hit here too)
+	// fixme: is it possible for a bmodel to not be in the PVS but yet be a valid candidate for this???
+	for (i = 0; i < r_newrefdef.num_entities; i++)
+	{
+		entity_t *e = &r_newrefdef.entities[i];
+		float estart[3], eend[3];
+
+		// beam and translucent ents don't light
+		if (e->flags & RF_BEAM) continue;
+		if (e->flags & RF_TRANSLUCENT) continue;
+
+		// NULL models don't light
+		if (!e->model) continue;
+
+		// only bmodel entities give light
+		if (e->model->type != mod_brush) continue;
+
+		// this happens on boss1
+		if (e->model->firstnode < 0) continue;
+
+		// move start and end points into the entity's frame of reference
+		R_VectorInverseTransform (&r_local_matrix[i], estart, p);
+		R_VectorInverseTransform (&r_local_matrix[i], eend, end);
+
+		// and run the recursive light point on it too
+		if (!(R_RecursiveLightPoint (e->model->nodes + e->model->firstnode, estart, eend) < 0))
+		{
+			// a bmodel under a valid world hit will hit here too so take the highest lightspot on all hits
+			// move lightspot back to world space
+			R_VectorTransform (&r_local_matrix[i], lightspot2, lightspot);
+
+			if (lightspot2[2] > hit[2])
+			{
+				// found a bmodel so copy it over
+				Vector3Copy (color, pointcolor);
+				Vector3Copy (hit, lightspot2);
+			}
+		}
+	}
+
+	// the final hit point is the valid lightspot
+	Vector3Copy (lightspot, hit);
 }
 
 

@@ -19,15 +19,8 @@ s_khz is wrong in the menu.
 
 Dlights rasterizer state is wrong for left-handed gun models
 
-r_lightpoint with bmodels
-
 CVAR_VIDEO should not write to console if in the menus
 
-Can customizer controls have a banner? 
-Highlight the word "or" 
-
-precalc and save out avelocities like anorms
-
-split up keybinds menu
-
 binary search PAK files
+
+
