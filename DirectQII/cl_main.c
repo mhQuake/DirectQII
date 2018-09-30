@@ -1603,6 +1603,40 @@ void CL_SendCommand (void)
 }
 
 
+qboolean CL_FilterTime (int extratime)
+{
+	static int	targettime = 100; // so that first entry doesn't accumulate too much time
+
+	// if we're not in an active state reset the timer
+	if (cls.key_dest != key_game || cls.state != ca_active)
+		targettime = (1000 / cl_maxfps->value);
+
+	if (!cl_timedemo->value)
+	{
+		if (cls.state == ca_connected && extratime < 100)
+		{
+			// don't flood packets out while connecting
+			targettime = (1000 / cl_maxfps->value);
+			return false;
+		}
+
+		if (cl_maxfps->value > 0)
+		{
+			if (extratime < targettime)
+				return false;
+
+			// dynamically adjust the target time so that frames will average out correctly
+			targettime += (1000 / cl_maxfps->value) - extratime;
+			return true;
+		}
+	}
+
+	// always run a frame but reset target time so that it will start adjusting again next time a normal frame runs
+	targettime = (1000 / cl_maxfps->value);
+	return true;
+}
+
+
 /*
 ==================
 CL_Frame
@@ -1612,45 +1646,23 @@ CL_Frame
 void CL_Frame (int msec)
 {
 	static int	extratime = 0;
-	static int	targettime = 100; // so that first entry doesn't accumulate too much time
 
 	if (dedicated->value)
-	{
-		targettime = (1000 / cl_maxfps->value);
 		return;
-	}
 
 	// keep the random time-dependent
 	srand (cl.time);
 
 	extratime += msec;
 
-	if (cls.key_dest != key_game || cls.state != ca_connected)
-		targettime = (1000 / cl_maxfps->value);
-
-	if (!cl_timedemo->value)
-	{
-		if (cls.state == ca_connected && extratime < 100)
-		{
-			// don't flood packets out while connecting
-			targettime = (1000 / cl_maxfps->value);
-			return;
-		}
-
-		if (cl_maxfps->value > 0)
-		{
-			if (extratime < targettime)
-				return;
-
-			// dynamically adjust the target time so that frames will average out correctly
-			targettime += (1000 / cl_maxfps->value) - extratime;
-		}
-		else targettime = (1000 / cl_maxfps->value);
-	}
-	else targettime = (1000 / cl_maxfps->value);
-
 	// let the mouse activate or deactivate
 	IN_Frame ();
+
+	// accumulate mouse movement even if we're not running a client frame
+	IN_SampleMouse ();
+
+	if (!CL_FilterTime (extratime))
+		return;
 
 	// decide the simulation time
 	cls.frametime = extratime / 1000.0;
@@ -1658,16 +1670,12 @@ void CL_Frame (int msec)
 	cls.realtime = sys_currmsec;
 
 	extratime = 0;
-#if 0
-	if (cls.frametime > (1.0 / cl_minfps->value))
-		cls.frametime = (1.0 / cl_minfps->value);
-#else
+
 	if (cls.frametime > (1.0 / 5))
 		cls.frametime = (1.0 / 5);
-#endif
 
 	// if in the debugger last frame, don't timeout
-	if (msec > 5000)
+	if (msec > 1000)
 		cls.netchan.last_received = Sys_Milliseconds ();
 
 	// fetch results from server

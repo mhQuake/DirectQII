@@ -17,4 +17,5 @@ s_khz is wrong in the menu.
 
 CVAR_VIDEO should not write to console if in the menus
 
+Music sometimes stops when it shouldn't...
 

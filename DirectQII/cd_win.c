@@ -355,16 +355,20 @@ LONG CDAudio_MessageHandler (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case MCI_NOTIFY_ABORTED:
+		Com_Printf ("MCI_NOTIFY_ABORTED\n");
+		break;
+
 	case MCI_NOTIFY_SUPERSEDED:
+		Com_Printf ("MCI_NOTIFY_SUPERSEDED\n");
 		break;
 
 	case MCI_NOTIFY_FAILURE:
-		Com_DPrintf ("MCI_NOTIFY_FAILURE\n");
+		Com_Printf ("MCI_NOTIFY_FAILURE\n");
 		CDAudio_Stop ();
 		break;
 
 	default:
-		Com_DPrintf ("Unexpected MM_MCINOTIFY type (%i)\n", wParam);
+		Com_Printf ("Unexpected MM_MCINOTIFY type (%i)\n", wParam);
 		return 1;
 	}
 

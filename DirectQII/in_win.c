@@ -52,6 +52,9 @@ qboolean	mlooking;
 int			mouse_oldbuttonstate;
 qboolean	mouseinitialized;
 
+int in_mouse_x;
+int in_mouse_y;
+
 
 void IN_MLookDown (void) { mlooking = true; }
 
@@ -64,6 +67,21 @@ void IN_MLookUp (void)
 
 
 /*
+===================
+IN_ClearStates
+
+if the mouse activates or deactivates the accumulated states must be cleared
+===================
+*/
+void IN_ClearStates (void)
+{
+	mouse_oldbuttonstate = 0;
+	in_mouse_x = 0;
+	in_mouse_y = 0;
+}
+
+
+/*
 ===========
 IN_DeactivateMouse
 
@@ -72,6 +90,8 @@ Called when the window loses focus
 */
 void IN_DeactivateMouse (void)
 {
+	IN_ClearStates ();
+
 	if (di_Mouse)
 	{
 		di_Mouse->lpVtbl->Release (di_Mouse);
@@ -133,6 +153,8 @@ void IN_ActivateMouse (void)
 	// center the cursor in the window so that we don't accidentally click outside
 	IN_CenterCursor ();
 
+	IN_ClearStates ();
+
 	// everything must succeed
 	if (SUCCEEDED (DirectInput8Create (GetModuleHandle (NULL), DIRECTINPUT_VERSION, &IID_IDirectInput8, (void **) &di_Object, NULL)))
 		if (SUCCEEDED (di_Object->lpVtbl->CreateDevice (di_Object, &GUID_SysMouse, &di_Mouse, NULL)))
@@ -158,6 +180,7 @@ void IN_StartupMouse (void)
 	if (!cv->value)
 		return;
 
+	IN_ClearStates ();
 	mouseinitialized = true;
 }
 
@@ -174,8 +197,8 @@ void IN_MouseEvent (int mstate)
 	// perform button actions
 	for (i = 0; i < 8; i++)
 	{
-		if ((mstate & (1 << i)) && !(mouse_oldbuttonstate & (1 << i))) Key_Event (K_MOUSE1 + i, true, sys_msg_time);
-		if (!(mstate & (1 << i)) && (mouse_oldbuttonstate & (1 << i))) Key_Event (K_MOUSE1 + i, false, sys_msg_time);
+		if ((mstate & (1 << i)) && !(mouse_oldbuttonstate & (1 << i))) Key_Event (K_MOUSE1 + i, true);
+		if (!(mstate & (1 << i)) && (mouse_oldbuttonstate & (1 << i))) Key_Event (K_MOUSE1 + i, false);
 	}
 
 	mouse_oldbuttonstate = mstate;
@@ -187,13 +210,13 @@ void IN_MouseWheelEvent (signed int dir)
 	// explicit cast to signed int so that callers can know that it needs a signed datatype
 	if (dir > 0)
 	{
-		Key_Event (K_MWHEELUP, true, sys_msg_time);
-		Key_Event (K_MWHEELUP, false, sys_msg_time);
+		Key_Event (K_MWHEELUP, true);
+		Key_Event (K_MWHEELUP, false);
 	}
 	else if (dir < 0)
 	{
-		Key_Event (K_MWHEELDOWN, true, sys_msg_time);
-		Key_Event (K_MWHEELDOWN, false, sys_msg_time);
+		Key_Event (K_MWHEELDOWN, true);
+		Key_Event (K_MWHEELDOWN, false);
 	}
 }
 
@@ -225,15 +248,9 @@ qboolean IN_ReadDirectInput (DIMOUSESTATE2 *di_State)
 }
 
 
-/*
-===========
-IN_MouseMove
-===========
-*/
-void IN_MouseMove (usercmd_t *cmd)
+void IN_SampleMouse (void)
 {
 	int i;
-	float mouse_x, mouse_y;
 	DIMOUSESTATE2 di_State;
 	int di_ButtonState = 0;
 
@@ -254,19 +271,35 @@ void IN_MouseMove (usercmd_t *cmd)
 	// run wheel
 	IN_MouseWheelEvent ((signed int) di_State.lZ);
 
-	// run movement
+	// accumulate movement
+	in_mouse_x += di_State.lX;
+	in_mouse_y += di_State.lY;
+}
+
+
+/*
+===========
+IN_MouseMove
+===========
+*/
+void IN_MouseMove (usercmd_t *cmd)
+{
 	// dinput has lower sensitivity and no ballistics so we need to boost it a little
-	mouse_x = (float) di_State.lX * sensitivity->value * 1.75;
-	mouse_y = (float) di_State.lY * sensitivity->value * 1.75;
+	float mx = (float) in_mouse_x * sensitivity->value * 1.5;
+	float my = (float) in_mouse_y * sensitivity->value * 1.5;
 
 	// add mouse X/Y movement to cmd
 	if ((in_strafe.state & 1) || (lookstrafe->value && mlooking))
-		cmd->sidemove += m_side->value * mouse_x;
-	else cl.viewangles[1] -= m_yaw->value * mouse_x;
+		cmd->sidemove += m_side->value * mx;
+	else cl.viewangles[1] -= m_yaw->value * mx;
 
 	if ((mlooking || freelook->value) && !(in_strafe.state & 1))
-		cl.viewangles[0] += m_pitch->value * mouse_y;
-	else cmd->forwardmove -= m_forward->value * mouse_y;
+		cl.viewangles[0] += m_pitch->value * my;
+	else cmd->forwardmove -= m_forward->value * my;
+
+	// and reset the accumulated move
+	in_mouse_x = 0;
+	in_mouse_y = 0;
 }
 
 
@@ -364,18 +397,8 @@ void IN_Frame (void)
 		}
 	}
 
+	// activate if required
 	IN_ActivateMouse ();
-}
-
-
-/*
-===================
-IN_ClearStates
-===================
-*/
-void IN_ClearStates (void)
-{
-	mouse_oldbuttonstate = 0;
 }
 
 
@@ -454,12 +477,12 @@ BOOL IN_InputProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		// fall through
 	case WM_KEYDOWN:
-		Key_Event (IN_MapKey (lParam), true, sys_msg_time);
+		Key_Event (IN_MapKey (lParam), true);
 		return TRUE;
 
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
-		Key_Event (IN_MapKey (lParam), false, sys_msg_time);
+		Key_Event (IN_MapKey (lParam), false);
 		return TRUE;
 
 	case WM_SYSCHAR:

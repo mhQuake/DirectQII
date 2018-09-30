@@ -491,6 +491,8 @@ void R_TransformAliasModel (entity_t *e, dmdl_t *hdr, meshconstants_t *consts, Q
 
 void R_LightAliasModel (entity_t *e, meshconstants_t *consts, QMATRIX *localmatrix)
 {
+	// optionally allow using the software renderer light vector; we don't do this by default because it messes up some of the
+	// lighting on certain objects (it wouldn't if we were using the full software renderer lighting model)
 	if (r_lightmodel->value)
 	{
 		// this is the light vector from the GL renderer

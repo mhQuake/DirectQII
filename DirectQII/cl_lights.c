@@ -34,12 +34,12 @@ LIGHT STYLE MANAGEMENT
 typedef struct clightstyle_s
 {
 	int		length;
-	float	value;
+	float	intensity;
 	float	map[MAX_QPATH];
 } clightstyle_t;
 
 clightstyle_t	cl_lightstyle[MAX_LIGHTSTYLES];
-int			lastofs;
+
 
 /*
 ================
@@ -49,34 +49,39 @@ CL_ClearLightStyles
 void CL_ClearLightStyles (void)
 {
 	memset (cl_lightstyle, 0, sizeof (cl_lightstyle));
-	lastofs = -1;
 }
 
 /*
 ================
 CL_RunLightStyles
+
+interpolated
 ================
 */
 void CL_RunLightStyles (void)
 {
-	int		ofs;
-	int		i;
-	clightstyle_t	*ls;
+	int i;
 
-	ofs = cl.time / 100;
+	// with GPU lightmaps we can now interpolate the lightstyles without fear of perf hit
+	int flight = (int) floor ((float) cl.time / 100.0f);
+	int clight = (int) ceil ((float) cl.time / 100.0f);
+	float lerpfrac = (float) (((float) cl.time / 100.0f) - flight);
 
-	if (ofs == lastofs)
-		return;
-
-	lastofs = ofs;
-
-	for (i = 0, ls = cl_lightstyle; i < MAX_LIGHTSTYLES; i++, ls++)
+	for (i = 0; i < MAX_LIGHTSTYLES; i++)
 	{
+		clightstyle_t *ls = &cl_lightstyle[i];
+
 		if (!ls->length)
-			ls->value = 1.0;
+			ls->intensity = 1.0;
 		else if (ls->length == 1)
-			ls->value = ls->map[0];
-		else ls->value = ls->map[ofs % ls->length];
+			ls->intensity = ls->map[0];
+		else
+		{
+			float loval = ls->map[flight % ls->length];
+			float hival = ls->map[clight % ls->length];
+
+			ls->intensity = loval  * (1.0f - lerpfrac) + hival * lerpfrac;
+		}
 	}
 }
 
@@ -109,7 +114,7 @@ void CL_AddLightStyles (void)
 	clightstyle_t	*ls;
 
 	for (i = 0, ls = cl_lightstyle; i < MAX_LIGHTSTYLES; i++, ls++)
-		V_AddLightStyle (i, ls->value);
+		V_AddLightStyle (i, ls->intensity);
 }
 
 /*

@@ -736,7 +736,7 @@ Called by the system between frames for both key up and key down events
 Should NOT be called during an interrupt!
 ===================
 */
-void Key_Event (int key, qboolean down, unsigned time)
+void Key_Event (int key, qboolean down)
 {
 	char	*kb;
 	char	cmd[1024];
@@ -914,7 +914,7 @@ void Key_ClearStates (void)
 	for (i = 0; i < 256; i++)
 	{
 		if (keydown[i] || key_repeats[i])
-			Key_Event (i, false, 0);
+			Key_Event (i, false);
 		keydown[i] = 0;
 		key_repeats[i] = 0;
 	}
