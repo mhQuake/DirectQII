@@ -1,5 +1,4 @@
 Timer catch up from debug break
-Split out mmdl_t from dmdl_t, remove offsets and replace with pointers, don't store everything in memory.
 
 dropped frames in cinematics (it's 2018, this shouldn't happen)
 implement ri.Set2D/ri.End2D and bring on framework for vid.conwidth/vid.conheight
@@ -19,3 +18,6 @@ CVAR_VIDEO should not write to console if in the menus
 
 Music sometimes stops when it shouldn't...
 
+qfiles.h should only be in the model-loading functions with m* variants of the structs in use elsewhere
+
+take mmdl_t vertex buffers from triangles and stverts rather than from glcmds

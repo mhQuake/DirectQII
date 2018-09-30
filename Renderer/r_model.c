@@ -343,14 +343,15 @@ struct model_s *R_RegisterModel (char *name)
 			for (i = 0; i < sprout->numframes; i++)
 				mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite);
 
+			// create vertex buffers
 			D_MakeSpriteBuffers (mod);
 		}
 		else if (mod->type == mod_alias)
 		{
-			dmdl_t *pheader = (dmdl_t *) mod->extradata;
+			mmdl_t *pheader = (mmdl_t *) mod->extradata;
 
 			for (i = 0; i < pheader->num_skins; i++)
-				mod->skins[i] = GL_FindImage ((char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
+				mod->skins[i] = GL_FindImage (pheader->skinnames[i], it_skin);
 
 			mod->numframes = pheader->num_frames;
 

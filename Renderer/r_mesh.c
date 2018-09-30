@@ -148,7 +148,7 @@ void D_MakeAliasPolyverts (aliasbuffers_t *set, int numposes, int nummesh, alias
 }
 
 
-void D_SetupAliasPolyVerts (dmdl_t *hdr, aliasbuffers_t *set)
+void D_SetupAliasPolyVerts (mmdl_t *hdr, aliasbuffers_t *set)
 {
 	aliaspolyvert_t *polyverts = ri.Load_AllocMemory (set->NumVerts * hdr->num_frames * sizeof (aliaspolyvert_t));
 	aliaspolyvert_t *verts = polyverts;
@@ -157,8 +157,8 @@ void D_SetupAliasPolyVerts (dmdl_t *hdr, aliasbuffers_t *set)
 	for (f = 0; f < hdr->num_frames; f++)
 	{
 		// retrieve the current frame
-		int *order = (int *) ((byte *) hdr + hdr->ofs_glcmds);
-		daliasframe_t *frame = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + f * hdr->framesize);
+		int *order = hdr->glcmds;
+		maliasframe_t *frame = &hdr->frames[f];
 
 		// and now build the data for this frame
 		for (;;)
@@ -172,10 +172,10 @@ void D_SetupAliasPolyVerts (dmdl_t *hdr, aliasbuffers_t *set)
 			for (i = 0; i < count; i++, verts++, order += 3)
 			{
 				// copy over the data
-				verts->position[0] = frame->verts[order[2]].v[0];
-				verts->position[1] = frame->verts[order[2]].v[1];
-				verts->position[2] = frame->verts[order[2]].v[2];
-				verts->position[3] = frame->verts[order[2]].lightnormalindex;
+				verts->position[0] = frame->triverts[order[2]].v[0];
+				verts->position[1] = frame->triverts[order[2]].v[1];
+				verts->position[2] = frame->triverts[order[2]].v[2];
+				verts->position[3] = frame->triverts[order[2]].lightnormalindex;
 			}
 		}
 	}
@@ -204,12 +204,12 @@ void D_MakeAliasTexCoords (aliasbuffers_t *set, int numtexcoords, aliastexcoord_
 }
 
 
-void D_SetupAliasTexCoords (dmdl_t *hdr, aliasbuffers_t *set)
+void D_SetupAliasTexCoords (mmdl_t *hdr, aliasbuffers_t *set)
 {
 	aliastexcoord_t *texcoords = ri.Load_AllocMemory (set->NumVerts * sizeof (aliastexcoord_t));
 	aliastexcoord_t *st = texcoords;
 
-	int *order = (int *) ((byte *) hdr + hdr->ofs_glcmds);
+	int *order = hdr->glcmds;
 
 	for (;;)
 	{
@@ -250,12 +250,12 @@ void D_MakeAliasIndexes (aliasbuffers_t *set, int numindexes, unsigned short *in
 }
 
 
-void D_SetupAliasIndexes (dmdl_t *hdr, aliasbuffers_t *set)
+void D_SetupAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set)
 {
 	unsigned short *indexes = ri.Load_AllocMemory (set->NumIndexes * sizeof (unsigned short));
 	unsigned short *ndx = indexes;
 
-	int *order = (int *) ((byte *) hdr + hdr->ofs_glcmds);
+	int *order = hdr->glcmds;
 	int i, firstvertex = 0, numindexes = 0;
 
 	for (;;)
@@ -292,11 +292,10 @@ void D_SetupAliasIndexes (dmdl_t *hdr, aliasbuffers_t *set)
 }
 
 
-void D_CreateAliasBufferSet (model_t *mod, dmdl_t *hdr)
+void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr)
 {
 	// get the counts for everything we need
-	int *order = (int *) ((byte *) hdr + hdr->ofs_glcmds);
-
+	int *order = hdr->glcmds;
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
 
 	set->NumVerts = 0;
@@ -377,7 +376,7 @@ void D_MakeAliasBuffers (model_t *mod)
 		set->registration_sequence = r_registration_sequence;
 
 		// now build everything from the model data
-		D_CreateAliasBufferSet (mod, (dmdl_t *) mod->extradata);
+		D_CreateAliasBufferSet (mod, (mmdl_t *) mod->extradata);
 
 		// and done
 		return;
@@ -443,15 +442,15 @@ void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 }
 
 
-void R_TransformAliasModel (entity_t *e, dmdl_t *hdr, meshconstants_t *consts, QMATRIX *localmatrix)
+void R_TransformAliasModel (entity_t *e, mmdl_t *hdr, meshconstants_t *consts, QMATRIX *localmatrix)
 {
 	// set up the lerp transform
 	float move[3], delta[3];
 	float frontlerp = 1.0 - e->backlerp;
 
 	// get current and previous frames
-	daliasframe_t *currframe = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + e->currframe * hdr->framesize);
-	daliasframe_t *prevframe = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + e->prevframe * hdr->framesize);
+	maliasframe_t *currframe = &hdr->frames[e->currframe];
+	maliasframe_t *prevframe = &hdr->frames[e->prevframe];
 
 	// move should be the delta back to the previous frame * backlerp
 	Vector3Subtract (delta, e->prevorigin, e->currorigin);
@@ -632,11 +631,11 @@ static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 {
 	int i;
 	model_t *mod = e->model;
-	dmdl_t *hdr = (dmdl_t *) e->model->extradata;
+	mmdl_t *hdr = (mmdl_t *) e->model->extradata;
 
 	// the frames were fixed-up in R_PrepareAliasModel so we don't need to do so here
-	daliasframe_t *currframe = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + e->currframe * hdr->framesize);
-	daliasframe_t *prevframe = (daliasframe_t *) ((byte *) hdr + hdr->ofs_frames + e->prevframe * hdr->framesize);
+	maliasframe_t *currframe = &hdr->frames[e->currframe];
+	maliasframe_t *prevframe = &hdr->frames[e->prevframe];
 
 	// compute axially aligned mins and maxs
 	if (currframe == prevframe)
@@ -677,7 +676,7 @@ qboolean R_AliasLightInteraction (entity_t *e, model_t *mod, dlight_t *dl)
 }
 
 
-void R_AliasDlights (entity_t *e, model_t *mod, dmdl_t *hdr, QMATRIX *localMatrix)
+void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatrix)
 {
 	int	i;
 
@@ -718,7 +717,7 @@ void R_AliasDlights (entity_t *e, model_t *mod, dmdl_t *hdr, QMATRIX *localMatri
 void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 {
 	model_t		*mod = e->model;
-	dmdl_t		*hdr = (dmdl_t *) mod->extradata;
+	mmdl_t		*hdr = (mmdl_t *) mod->extradata;
 
 	// per-mesh cbuffer constants
 	meshconstants_t consts;
@@ -777,7 +776,7 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 void R_PrepareAliasModel (entity_t *e, QMATRIX *localmatrix)
 {
 	model_t		*mod = e->model;
-	dmdl_t		*hdr = (dmdl_t *) mod->extradata;
+	mmdl_t		*hdr = (mmdl_t *) mod->extradata;
 
 	// fix up the frames in advance of culling because it needs them
 	if ((e->currframe >= hdr->num_frames) || (e->currframe < 0))
