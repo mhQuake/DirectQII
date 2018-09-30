@@ -516,7 +516,7 @@ void V_Init (void);
 void V_RenderView (void);
 void V_AddEntity (entity_t *ent);
 void V_AddParticle (vec3_t org, vec3_t vel, vec3_t accel, float time, int color, float alpha);
-void V_AddLight (vec3_t org, float intensity, float r, float g, float b);
+void V_AddLight (vec3_t org, float radius, float r, float g, float b);
 void V_AddLightStyle (int style, float value);
 
 //

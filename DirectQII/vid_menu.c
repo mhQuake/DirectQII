@@ -65,6 +65,16 @@ static menuaction_s		s_apply_action;
 vidmenu_t *modedata;
 
 
+void VIDMenu_GetCvars (void)
+{
+	if (!vid_mode) vid_mode = Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE | CVAR_VIDEO);
+	if (!vid_width) vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
+	if (!vid_height) vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
+	if (!vid_vsync) vid_vsync = Cvar_Get ("vid_vsync", "0", CVAR_ARCHIVE);
+	if (!scr_viewsize) scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
+}
+
+
 static void ScreenSizeCallback (void *s)
 {
 	menuslider_s *slider = (menuslider_s *) s;
@@ -110,6 +120,7 @@ static void CancelChanges (void *unused)
 {
 	extern void M_PopMenu (void);
 
+	VID_MenuInit ();
 	M_PopMenu ();
 }
 
@@ -129,11 +140,7 @@ void VID_MenuInit (void)
 	};
 
 	// get cvars
-	if (!vid_mode) vid_mode = Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE | CVAR_VIDEO);
-	if (!vid_width) vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
-	if (!vid_height) vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
-	if (!vid_vsync) vid_vsync = Cvar_Get ("vid_vsync", "0", CVAR_ARCHIVE);
-	if (!scr_viewsize) scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
+	VIDMenu_GetCvars ();
 
 	// setup current values
 	if (vid_mode->value < 1)
@@ -230,7 +237,7 @@ void VID_MenuInit (void)
 	s_vsync_box.itemnames = yesno_names;
 
 	s_defaults_action.generic.type = MTYPE_ACTION;
-	s_defaults_action.generic.name = "reset to defaults";
+	s_defaults_action.generic.name = "reset";
 	s_defaults_action.generic.x = 0;
 	s_defaults_action.generic.y = 90;
 	s_defaults_action.generic.callback = ResetDefaults;
@@ -368,9 +375,7 @@ void VID_PrepVideoMenu (vidmenu_t *md)
 {
 	int i;
 
-	// get width and height cvars
-	if (!vid_width) vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
-	if (!vid_height) vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
+	VIDMenu_GetCvars ();
 
 	// see is width in the list
 	for (i = 0; i < md->numwidths; i++)

@@ -26,6 +26,7 @@ extern vidmenu_t vid_modedata;
 void R_Register (void)
 {
 	r_lightmap = ri.Cvar_Get ("r_lightmap", "0", CVAR_CHEAT);
+	r_lightmodel = ri.Cvar_Get ("r_lightmodel", "1", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_CHEAT);
 	r_beamdetail = ri.Cvar_Get ("r_beamdetail", "24", CVAR_ARCHIVE);
 	r_lefthand = ri.Cvar_Get ("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);

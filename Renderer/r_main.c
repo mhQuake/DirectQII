@@ -144,6 +144,7 @@ refdef_t	r_newrefdef;
 int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
 cvar_t	*r_lightmap;
+cvar_t	*r_lightmodel;
 cvar_t	*r_fullbright;
 cvar_t	*r_beamdetail;
 cvar_t	*r_drawentities;

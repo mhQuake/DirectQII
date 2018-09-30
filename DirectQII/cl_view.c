@@ -127,7 +127,7 @@ V_AddLight
 
 =====================
 */
-void V_AddLight (vec3_t org, float intensity, float r, float g, float b)
+void V_AddLight (vec3_t org, float radius, float r, float g, float b)
 {
 	if (r_numdlights >= MAX_DLIGHTS)
 		return;
@@ -136,7 +136,7 @@ void V_AddLight (vec3_t org, float intensity, float r, float g, float b)
 		dlight_t *dl = &r_dlights[r_numdlights];
 
 		VectorCopy (org, dl->origin);
-		dl->intensity = intensity;
+		dl->radius = radius;
 
 		dl->color[0] = r;
 		dl->color[1] = g;
@@ -144,6 +144,11 @@ void V_AddLight (vec3_t org, float intensity, float r, float g, float b)
 
 		// normalize lighting to 1, 1, 1 scale
 		VectorNormalize (dl->color);
+
+		// scale by intensity
+		dl->color[0] *= intensity->value;
+		dl->color[1] *= intensity->value;
+		dl->color[2] *= intensity->value;
 
 		r_numdlights++;
 	}
@@ -260,7 +265,16 @@ void V_TestLights (void)
 		dl->color[0] = ((i % 6) + 1) & 1;
 		dl->color[1] = (((i % 6) + 1) & 2) >> 1;
 		dl->color[2] = (((i % 6) + 1) & 4) >> 2;
-		dl->intensity = 200;
+
+		// normalize lighting to 1, 1, 1 scale
+		VectorNormalize (dl->color);
+
+		// scale by intensity
+		dl->color[0] *= intensity->value;
+		dl->color[1] *= intensity->value;
+		dl->color[2] *= intensity->value;
+
+		dl->radius = 200;
 	}
 }
 

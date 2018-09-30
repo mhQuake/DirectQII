@@ -229,7 +229,7 @@ void R_DynamicLightPoint (vec3_t p, vec3_t color)
 	// passes for null models and setting r_lightlevel do
 	for (lnum = 0; lnum < r_newrefdef.num_dlights; lnum++, dl++)
 	{
-		float add = (dl->intensity - Vector3Dist (p, dl->origin)) * (1.0f / 256.0f);
+		float add = (dl->radius - Vector3Dist (p, dl->origin)) * (1.0f / 256.0f);
 
 		if (add > 0)
 		{
@@ -237,27 +237,6 @@ void R_DynamicLightPoint (vec3_t p, vec3_t color)
 			Vector3Madf (color, dl->color, add, color);
 		}
 	}
-}
-
-
-void R_SetEntityLighting (entity_t *e, float *shadelight, float *shadevector)
-{
-	// split out so that we can use it for NULL models and any others
-	float an;
-
-	// PGM	ir goggles override
-	if ((r_newrefdef.rdflags & RDF_IRGOGGLES) && (e->flags & RF_IR_VISIBLE))
-	{
-		shadelight[0] = 1.0;
-		shadelight[1] = 0.0;
-		shadelight[2] = 0.0;
-	}
-
-	an = (e->angles[0] + e->angles[1]) / 180 * M_PI;
-	shadevector[0] = cos (-an);
-	shadevector[1] = sin (-an);
-	shadevector[2] = 1;
-	Vector3Normalize (shadevector);
 }
 
 
@@ -584,7 +563,7 @@ qboolean R_SurfaceDLImpact (msurface_t *surf, dlight_t *dl, float dist)
 	t = l - t;
 
 	// compare to minimum light
-	return ((s * s + t * t + dist * dist) < (dl->intensity * dl->intensity));
+	return ((s * s + t * t + dist * dist) < (dl->radius * dl->radius));
 }
 
 
@@ -603,13 +582,13 @@ void R_MarkLights (dlight_t *dl, mnode_t *node, int visframe)
 	splitplane = node->plane;
 	dist = Vector3Dot (dl->origin, splitplane->normal) - splitplane->dist;
 
-	if (dist > dl->intensity)
+	if (dist > dl->radius)
 	{
 		R_MarkLights (dl, node->children[0], visframe);
 		return;
 	}
 
-	if (dist < -dl->intensity)
+	if (dist < -dl->radius)
 	{
 		R_MarkLights (dl, node->children[1], visframe);
 		return;
@@ -658,7 +637,7 @@ void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *local
 		dlight_t *dl = &r_newrefdef.dlights[i];
 
 		// a dl that's been culled will have it's intensity set to 0
-		if (!(dl->intensity > 0)) continue;
+		if (!(dl->radius > 0)) continue;
 
 		// copy off the origin, then move the light into entity local space
 		Vector3Copy (origin, dl->origin);
@@ -729,9 +708,9 @@ void R_PrepareDlights (void)
 		dlight_t *dl = &r_newrefdef.dlights[i];
 
 		// fast cullsphere elimination first
-		if (R_CullSphere (dl->origin, dl->intensity))
+		if (R_CullSphere (dl->origin, dl->radius))
 		{
-			dl->intensity = 0;
+			dl->radius = 0;
 			continue;
 		}
 

@@ -100,7 +100,7 @@ typedef struct entity_s
 typedef struct dlight_s {
 	// this layout allows us to use the dlight struct directly in a cbuffer
 	vec3_t	origin;
-	float	intensity;
+	float	radius;
 	vec3_t	color;
 	int		numsurfaces;	// cbuffer padding; count of surfaces with light
 } dlight_t;

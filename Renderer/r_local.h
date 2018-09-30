@@ -195,6 +195,7 @@ extern	refdef_t	r_newrefdef;
 extern	int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
 extern	cvar_t	*r_lightmap;
+extern	cvar_t	*r_lightmodel;
 extern	cvar_t	*r_fullbright;
 extern	cvar_t	*r_beamdetail;
 extern	cvar_t	*r_lefthand;
@@ -462,7 +463,6 @@ void R_BindLightmaps (void);
 void D_SetupDynamicLight (dlight_t *dl, int rflags);
 void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix);
 void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *localmatrix, int visframe);
-void R_SetEntityLighting (entity_t *e, float *shadelight, float *shadevector);
 
 extern int	r_dlightframecount;
 

@@ -489,10 +489,40 @@ void R_TransformAliasModel (entity_t *e, dmdl_t *hdr, meshconstants_t *consts, Q
 }
 
 
-void R_LightAliasModel (entity_t *e, meshconstants_t *consts)
+void R_LightAliasModel (entity_t *e, meshconstants_t *consts, QMATRIX *localmatrix)
 {
+	if (r_lightmodel->value)
+	{
+		// this is the light vector from the GL renderer
+		float an = (e->angles[0] + e->angles[1]) / 180 * M_PI;
+
+		consts->shadevector[0] = cos (-an);
+		consts->shadevector[1] = sin (-an);
+		consts->shadevector[2] = 1;
+	}
+	else
+	{
+		// this is the light vector from the software renderer
+		float lightvec[3] = {-1, 0, 0};
+
+		consts->shadevector[0] = Vector3Dot (lightvec, localmatrix->m4x4[0]);
+		consts->shadevector[1] = Vector3Dot (lightvec, localmatrix->m4x4[1]);
+		consts->shadevector[2] = Vector3Dot (lightvec, localmatrix->m4x4[2]);
+	}
+
+	Vector3Normalize (consts->shadevector);
+
 	// clear the dynamic lighting flag
 	e->flags &= ~RF_DYNAMICLIGHT;
+
+	// PGM	ir goggles override
+	if ((r_newrefdef.rdflags & RDF_IRGOGGLES) && (e->flags & RF_IR_VISIBLE))
+	{
+		consts->shadelight[0] = 1.0;
+		consts->shadelight[1] = 0.0;
+		consts->shadelight[2] = 0.0;
+		return;
+	}
 
 	// get lighting information
 	// PMM - rewrote, reordered to handle new shells & mixing
@@ -593,8 +623,6 @@ void R_LightAliasModel (entity_t *e, meshconstants_t *consts)
 				consts->shadelight[i] = min;
 		}
 	}
-
-	R_SetEntityLighting (e, consts->shadelight, consts->shadevector);
 }
 
 
@@ -643,7 +671,7 @@ static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 qboolean R_AliasLightInteraction (entity_t *e, model_t *mod, dlight_t *dl)
 {
 	// sphere/sphere intersection test
-	return (Vector3Dist (e->currorigin, dl->origin) < (dl->intensity + mod->radius));
+	return (Vector3Dist (e->currorigin, dl->origin) < (dl->radius + mod->radius));
 }
 
 
@@ -656,7 +684,7 @@ void R_AliasDlights (entity_t *e, model_t *mod, dmdl_t *hdr, QMATRIX *localMatri
 		dlight_t *dl = &r_newrefdef.dlights[i];
 
 		// a dl that's been culled will have it's intensity set to 0
-		if (!(dl->intensity > 0)) continue;
+		if (!(dl->radius > 0)) continue;
 
 		if (R_AliasLightInteraction (e, mod, dl))
 		{
@@ -718,7 +746,7 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 	R_UpdateEntityConstants (localmatrix, NULL, e->flags);
 
 	// set up our mesh constants
-	R_LightAliasModel (e, &consts);
+	R_LightAliasModel (e, &consts, localmatrix);
 	R_TransformAliasModel (e, hdr, &consts, localmatrix);
 
 	// and update to the cbuffer

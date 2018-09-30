@@ -122,30 +122,26 @@ float4 GetGamma (float4 colorin)
 	// gamma is not applied to alpha
 	// this isn't actually "contrast" but it's consistent with what other engines do
 	return float4 (pow (max (colorin.rgb * v_contrast, 0.0f), v_gamma), colorin.a);
-	//return float4 (pow (max (colorin.rgb, 0.0f), v_gamma), colorin.a);
 }
 
-// common to mesh and surf
+
+// dlights for all surf and mesh objects, keeping dynamic lighting consistent across object types; this is based on the lighting performed
+// by qrad.exe and light.exe rather than any of the dynamic lighting systems in the original fixed-pipeline code in the engine.
 float4 GenericDynamicPS (PS_DYNAMICLIGHT ps_in) : SV_TARGET0
 {
-	// dlights for all surf and mesh objects, keeping dynamic lighting consistent across object types; this is based on the lighting performed
-	// by qrad.exe and light.exe rather than any of the dynamic lighting systems in the original fixed-pipeline code in the engine.
-	float dist = length (ps_in.LightVector);
-	float len = LightRadius - dist;
-
-	// too far away
-	clip (len);
+	// this clip is sufficient to exclude unlit portions; Add below may still bring it to 0
+	// but in practice it's rare and it runs faster without a second clip
+	clip ((LightRadius * LightRadius) - dot (ps_in.LightVector, ps_in.LightVector));
 
 	// reading the diffuse texture early so that it should interleave with some ALU ops
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
 
-	// same calculation (slightly re-ordered) as light.exe and qrad.exe
-	float Angle = dot (normalize (ps_in.Normal), normalize (ps_in.LightVector)) * 0.5f + 0.5f;
+	// this calc isn't correct per-theory but it matches with the calc used by light.exe and qrad.exe
+	float Angle = ((dot (normalize (ps_in.Normal), normalize (ps_in.LightVector)) * 0.5f) + 0.5f) / 256.0f;
 
-	// light.exe used a 0..255 scale whereas shaders use a 0..1 scale so bring it down; but using 256 which the hardware might optimize better
-	float Add = len * (1.0f / 256.0f) * Angle; // should this be 128 or 256????
+	// using our own custom attenuation, again it's not correct per-theory but matches the Quake tools
+	float Add = max ((LightRadius - length (ps_in.LightVector)) * Angle, 0.0f);
 
-	// and done
 	return float4 (diff.rgb * LightColour * Add, 0.0f);
 }
 #endif
