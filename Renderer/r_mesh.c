@@ -55,9 +55,6 @@ typedef struct aliaspolyvert_s {
 	byte position[4];
 } aliaspolyvert_t;
 
-typedef struct aliastexcoord_s {
-	float texcoord[2];
-} aliastexcoord_t;
 
 static aliasbuffers_t d3d_AliasBuffers[MAX_MOD_KNOWN];
 
@@ -155,10 +152,12 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedu
 
 		for (i = 0; i < hdr->num_verts; i++, polyverts++)
 		{
-			polyverts->position[0] = frame->triverts[dedupe[i].index_xyz].v[0];
-			polyverts->position[1] = frame->triverts[dedupe[i].index_xyz].v[1];
-			polyverts->position[2] = frame->triverts[dedupe[i].index_xyz].v[2];
-			polyverts->position[3] = frame->triverts[dedupe[i].index_xyz].lightnormalindex;
+			mtrivertx_t *tv = &frame->triverts[dedupe[i].index_xyz];
+
+			polyverts->position[0] = tv->v[0];
+			polyverts->position[1] = tv->v[1];
+			polyverts->position[2] = tv->v[2];
+			polyverts->position[3] = tv->lightnormalindex;
 		}
 	}
 
@@ -169,11 +168,11 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedu
 
 void D_CreateAliasTexCoords (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
-	aliastexcoord_t *texcoords = ri.Load_AllocMemory (hdr->num_verts * sizeof (aliastexcoord_t));
+	float *texcoords = ri.Load_AllocMemory (hdr->num_verts * sizeof (float) * 2);
 	int i;
 
 	D3D11_BUFFER_DESC vbDesc = {
-		hdr->num_verts * sizeof (aliastexcoord_t),
+		hdr->num_verts * sizeof (float) * 2,
 		D3D11_USAGE_DEFAULT,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
@@ -184,10 +183,12 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedu
 	// alloc a buffer to write the verts to and create the VB from
 	D3D11_SUBRESOURCE_DATA srd = {texcoords, 0, 0};
 
-	for (i = 0; i < hdr->num_verts; i++, texcoords++)
+	for (i = 0; i < hdr->num_verts; i++, texcoords += 2)
 	{
-		texcoords->texcoord[0] = ((float) hdr->stverts[dedupe[i].index_st].s + 0.5f) / hdr->skinwidth;
-		texcoords->texcoord[1] = ((float) hdr->stverts[dedupe[i].index_st].t + 0.5f) / hdr->skinheight;
+		mstvert_t *st = &hdr->stverts[dedupe[i].index_st];
+
+		texcoords[0] = ((float) st->s + 0.5f) / hdr->skinwidth;
+		texcoords[1] = ((float) st->t + 0.5f) / hdr->skinheight;
 	}
 
 	// create the new vertex buffer
@@ -393,7 +394,7 @@ void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 
 	D_BindVertexBuffer (0, set->PolyVerts, sizeof (aliaspolyvert_t), e->prevframe * sizeof (aliaspolyvert_t) * hdr->num_verts);
 	D_BindVertexBuffer (1, set->PolyVerts, sizeof (aliaspolyvert_t), e->currframe * sizeof (aliaspolyvert_t) * hdr->num_verts);
-	D_BindVertexBuffer (2, set->TexCoords, sizeof (aliastexcoord_t), 0);
+	D_BindVertexBuffer (2, set->TexCoords, sizeof (float) * 2, 0);
 
 	D_BindIndexBuffer (set->Indexes, DXGI_FORMAT_R16_UINT);
 }
@@ -495,7 +496,7 @@ void R_LightAliasModel (entity_t *e, meshconstants_t *consts, QMATRIX *localmatr
 		}
 		else if (e->flags & (RF_SHELL_RED | RF_SHELL_BLUE | RF_SHELL_DOUBLE))
 		{
-			VectorClear (consts->shadelight);
+			Vector3Clear (consts->shadelight);
 
 			if (e->flags & RF_SHELL_RED)
 			{
@@ -521,7 +522,7 @@ void R_LightAliasModel (entity_t *e, meshconstants_t *consts, QMATRIX *localmatr
 		}
 		else if (e->flags & (RF_SHELL_HALF_DAM | RF_SHELL_GREEN))
 		{
-			VectorClear (consts->shadelight);
+			Vector3Clear (consts->shadelight);
 
 			// PMM - new colors
 			if (e->flags & RF_SHELL_HALF_DAM)

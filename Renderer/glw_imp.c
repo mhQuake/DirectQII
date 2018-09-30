@@ -665,6 +665,7 @@ void GLimp_Shutdown (void)
 
 	if (glw_state.hWnd)
 	{
+		ShowWindow (glw_state.hWnd, SW_HIDE);
 		DestroyWindow (glw_state.hWnd);
 		glw_state.hWnd = NULL;
 	}

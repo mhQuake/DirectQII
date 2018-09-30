@@ -21,7 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // qcommon.h -- definitions common between client and server, but not game.dll
 
 #include "q_shared.h"
+
+#ifdef INCLUDE_QFILES
 #include "qfiles.h"
+#endif
 
 // make qsort prettier
 typedef int (*sortfunc_t) (const void *, const void *);

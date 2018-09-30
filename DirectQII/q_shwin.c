@@ -104,17 +104,30 @@ char *Sys_FindFirst (char *path, unsigned musthave, unsigned canthave)
 
 	if (findhandle)
 		Sys_Error ("Sys_BeginFind without close");
+
 	findhandle = 0;
 
 	COM_FilePath (path, findbase);
 	findhandle = _findfirst (path, &findinfo);
-	if (findhandle == -1)
-		return NULL;
-	if (!CompareAttributes (findinfo.attrib, musthave, canthave))
-		return NULL;
-	Com_sprintf (findpath, sizeof (findpath), "%s/%s", findbase, findinfo.name);
-	return findpath;
+
+	while ((findhandle != -1))
+	{
+		if (CompareAttributes (findinfo.attrib, musthave, canthave))
+		{
+			Com_sprintf (findpath, sizeof (findpath), "%s/%s", findbase, findinfo.name);
+			return findpath;
+		}
+		else if (_findnext (findhandle, &findinfo) == -1)
+		{
+			_findclose (findhandle);
+			findhandle = -1;
+		}
+	}
+
+	return NULL;
 }
+
+
 
 char *Sys_FindNext (unsigned musthave, unsigned canthave)
 {
@@ -122,14 +135,19 @@ char *Sys_FindNext (unsigned musthave, unsigned canthave)
 
 	if (findhandle == -1)
 		return NULL;
-	if (_findnext (findhandle, &findinfo) == -1)
-		return NULL;
-	if (!CompareAttributes (findinfo.attrib, musthave, canthave))
-		return NULL;
 
-	Com_sprintf (findpath, sizeof (findpath), "%s/%s", findbase, findinfo.name);
-	return findpath;
+	while (_findnext (findhandle, &findinfo) != -1)
+	{
+		if (CompareAttributes (findinfo.attrib, musthave, canthave))
+		{
+			Com_sprintf (findpath, sizeof (findpath), "%s/%s", findbase, findinfo.name);
+			return findpath;
+		}
+	}
+
+	return NULL;
 }
+
 
 void Sys_FindClose (void)
 {

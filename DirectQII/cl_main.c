@@ -1611,6 +1611,9 @@ qboolean CL_FilterTime (int extratime)
 	if (cls.key_dest != key_game || cls.state != ca_active)
 		targettime = (1000 / cl_maxfps->value);
 
+	if (targettime < 0)
+		targettime = (1000 / cl_maxfps->value);
+
 	if (!cl_timedemo->value)
 	{
 		if (cls.state == ca_connected && extratime < 100)
