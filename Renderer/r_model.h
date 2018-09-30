@@ -228,47 +228,43 @@ typedef struct model_s
 } model_t;
 
 
-typedef struct mstvert_s
-{
-	float	s;
-	float	t;
+typedef struct mstvert_s {
+	short	s;
+	short	t;
 } mstvert_t;
 
-typedef struct mtriangle_s
-{
+typedef struct mtriangle_s {
 	short	index_xyz[3];
 	short	index_st[3];
 } mtriangle_t;
 
-typedef struct mtrivertx_s
-{
+typedef struct mtrivertx_s {
 	byte	v[3];			// scaled byte to fit in frame mins/maxs
 	byte	lightnormalindex;
 } mtrivertx_t;
 
 
-typedef struct maliasframe_s
-{
+typedef struct maliasframe_s {
 	float		scale[3];	// multiply byte verts by this
 	float		translate[3];	// then add this
 	mtrivertx_t	*triverts;
 } maliasframe_t;
 
 
-typedef struct mmdl_s
-{
+typedef struct mmdl_s {
 	int			skinwidth;
 	int			skinheight;
 
 	int			num_skins;
 	int			num_tris;
+	int			num_verts;
+	int			num_indexes;
 	int			num_frames;
 
 	char			*skinnames[MAX_MD2SKINS];
 	maliasframe_t	*frames;
 	mtriangle_t		*triangles;
 	mstvert_t		*stverts;
-	int				*glcmds;
 } mmdl_t;
 
 

@@ -22,14 +22,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 
 
+// deduplication
+typedef struct aliasmesh_s {
+	short index_xyz;
+	short index_st;
+} aliasmesh_t;
+
+
 typedef struct aliasbuffers_s {
 	ID3D11Buffer *PolyVerts;
 	ID3D11Buffer *TexCoords;
 	ID3D11Buffer *Indexes;
-
-	int NumVerts;
-	int NumIndexes;
-	int NumTris;
 
 	char Name[256];
 	int registration_sequence;
@@ -129,10 +132,13 @@ void R_FreeUnusedAliasBuffers (void)
 }
 
 
-void D_MakeAliasPolyverts (aliasbuffers_t *set, int numposes, int nummesh, aliaspolyvert_t *polyverts)
+void D_CreateAliasPolyVerts (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
+	aliaspolyvert_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (aliaspolyvert_t));
+	int f, i;
+
 	D3D11_BUFFER_DESC vbDesc = {
-		sizeof (aliaspolyvert_t) * numposes * nummesh,
+		hdr->num_verts * hdr->num_frames * sizeof (aliaspolyvert_t),
 		D3D11_USAGE_DEFAULT,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
@@ -143,52 +149,31 @@ void D_MakeAliasPolyverts (aliasbuffers_t *set, int numposes, int nummesh, alias
 	// alloc a buffer to write the verts to and create the VB from
 	D3D11_SUBRESOURCE_DATA srd = {polyverts, 0, 0};
 
+	for (f = 0; f < hdr->num_frames; f++)
+	{
+		maliasframe_t *frame = &hdr->frames[f];
+
+		for (i = 0; i < hdr->num_verts; i++, polyverts++)
+		{
+			polyverts->position[0] = frame->triverts[dedupe[i].index_xyz].v[0];
+			polyverts->position[1] = frame->triverts[dedupe[i].index_xyz].v[1];
+			polyverts->position[2] = frame->triverts[dedupe[i].index_xyz].v[2];
+			polyverts->position[3] = frame->triverts[dedupe[i].index_xyz].lightnormalindex;
+		}
+	}
+
 	// create the new vertex buffer
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
 }
 
 
-void D_SetupAliasPolyVerts (mmdl_t *hdr, aliasbuffers_t *set)
+void D_CreateAliasTexCoords (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
-	aliaspolyvert_t *polyverts = ri.Load_AllocMemory (set->NumVerts * hdr->num_frames * sizeof (aliaspolyvert_t));
-	aliaspolyvert_t *verts = polyverts;
-	int f;
+	aliastexcoord_t *texcoords = ri.Load_AllocMemory (hdr->num_verts * sizeof (aliastexcoord_t));
+	int i;
 
-	for (f = 0; f < hdr->num_frames; f++)
-	{
-		// retrieve the current frame
-		int *order = hdr->glcmds;
-		maliasframe_t *frame = &hdr->frames[f];
-
-		// and now build the data for this frame
-		for (;;)
-		{
-			// get the vertex count and primitive type
-			int i, count = *order++;
-
-			if (!count) break;
-			if (count < 0) count = -count;
-
-			for (i = 0; i < count; i++, verts++, order += 3)
-			{
-				// copy over the data
-				verts->position[0] = frame->triverts[order[2]].v[0];
-				verts->position[1] = frame->triverts[order[2]].v[1];
-				verts->position[2] = frame->triverts[order[2]].v[2];
-				verts->position[3] = frame->triverts[order[2]].lightnormalindex;
-			}
-		}
-	}
-
-	D_MakeAliasPolyverts (set, hdr->num_frames, set->NumVerts, polyverts);
-	ri.Load_FreeMemory ();
-}
-
-
-void D_MakeAliasTexCoords (aliasbuffers_t *set, int numtexcoords, aliastexcoord_t *texcoords)
-{
 	D3D11_BUFFER_DESC vbDesc = {
-		sizeof (aliastexcoord_t) * numtexcoords,
+		hdr->num_verts * sizeof (aliastexcoord_t),
 		D3D11_USAGE_DEFAULT,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
@@ -199,42 +184,21 @@ void D_MakeAliasTexCoords (aliasbuffers_t *set, int numtexcoords, aliastexcoord_
 	// alloc a buffer to write the verts to and create the VB from
 	D3D11_SUBRESOURCE_DATA srd = {texcoords, 0, 0};
 
+	for (i = 0; i < hdr->num_verts; i++, texcoords++)
+	{
+		texcoords->texcoord[0] = ((float) hdr->stverts[dedupe[i].index_st].s + 0.5f) / hdr->skinwidth;
+		texcoords->texcoord[1] = ((float) hdr->stverts[dedupe[i].index_st].t + 0.5f) / hdr->skinheight;
+	}
+
 	// create the new vertex buffer
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->TexCoords);
 }
 
 
-void D_SetupAliasTexCoords (mmdl_t *hdr, aliasbuffers_t *set)
-{
-	aliastexcoord_t *texcoords = ri.Load_AllocMemory (set->NumVerts * sizeof (aliastexcoord_t));
-	aliastexcoord_t *st = texcoords;
-
-	int *order = hdr->glcmds;
-
-	for (;;)
-	{
-		// get the vertex count and primitive type
-		int i, count = *order++;
-
-		if (!count) break;
-		if (count < 0) count = -count;
-
-		for (i = 0; i < count; i++, st++, order += 3)
-		{
-			st->texcoord[0] = ((float *) order)[0];
-			st->texcoord[1] = ((float *) order)[1];
-		}
-	}
-
-	D_MakeAliasTexCoords (set, set->NumVerts, texcoords);
-	ri.Load_FreeMemory ();
-}
-
-
-void D_MakeAliasIndexes (aliasbuffers_t *set, int numindexes, unsigned short *indexes)
+void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *indexes)
 {
 	D3D11_BUFFER_DESC ibDesc = {
-		sizeof (unsigned short) * numindexes,
+		hdr->num_indexes * sizeof (unsigned short),
 		D3D11_USAGE_DEFAULT,
 		D3D11_BIND_INDEX_BUFFER,
 		0,
@@ -250,78 +214,67 @@ void D_MakeAliasIndexes (aliasbuffers_t *set, int numindexes, unsigned short *in
 }
 
 
-void D_SetupAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set)
-{
-	unsigned short *indexes = ri.Load_AllocMemory (set->NumIndexes * sizeof (unsigned short));
-	unsigned short *ndx = indexes;
-
-	int *order = hdr->glcmds;
-	int i, firstvertex = 0, numindexes = 0;
-
-	for (;;)
-	{
-		// get the vertex count and primitive type
-		int count = *order++;
-		if (!count) break;
-
-		if (count < 0)
-		{
-			for (i = 2, count = -count; i < count; i++, ndx += 3, numindexes += 3)
-			{
-				ndx[0] = firstvertex + 0;
-				ndx[1] = firstvertex + (i - 1);
-				ndx[2] = firstvertex + i;
-			}
-		}
-		else
-		{
-			for (i = 2; i < count; i++, ndx += 3, numindexes += 3)
-			{
-				ndx[0] = firstvertex + i - 2;
-				ndx[1] = firstvertex + ((i & 1) ? i : (i - 1));
-				ndx[2] = firstvertex + ((i & 1) ? (i - 1) : i);
-			}
-		}
-
-		order += count * 3;
-		firstvertex += count;
-	}
-
-	D_MakeAliasIndexes (set, numindexes, indexes);
-	ri.Load_FreeMemory ();
-}
-
-
 void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr)
 {
-	// get the counts for everything we need
-	int *order = hdr->glcmds;
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
 
-	set->NumVerts = 0;
-	set->NumTris = 0;
+	int i, j;
 
-	for (;;)
+	aliasmesh_t *dedupe = (aliasmesh_t *) ri.Load_AllocMemory (hdr->num_verts * sizeof (aliasmesh_t));
+	unsigned short *indexes = (unsigned short *) ri.Load_AllocMemory (hdr->num_indexes * sizeof (unsigned short));
+
+	int num_verts = 0;
+	int num_indexes = 0;
+
+	for (i = 0; i < hdr->num_tris; i++)
 	{
-		// get the vertex count and primitive type
-		int count = *order++;
+		for (j = 0; j < 3; j++)
+		{
+			int v;
 
-		if (!count) break;
-		if (count < 0) count = -count;
+			for (v = 0; v < num_verts; v++)
+			{
+				if (hdr->triangles[i].index_xyz[j] != dedupe[v].index_xyz) continue;
+				if (hdr->triangles[i].index_st[j] != dedupe[v].index_st) continue;
 
-		order += (count * 3);
+				// exists; emit an index for it
+				indexes[num_indexes] = v;
 
-		set->NumTris += (count - 2);
-		set->NumVerts += count;
+				// no need to check any more
+				break;
+			}
+
+			if (v == num_verts)
+			{
+				// doesn't exist; emit a new index...
+				indexes[num_indexes] = num_verts;
+
+				// ...and a new vert
+				dedupe[num_verts].index_xyz = hdr->triangles[i].index_xyz[j];
+				dedupe[num_verts].index_st = hdr->triangles[i].index_st[j];
+
+				// go to the next vert
+				num_verts++;
+			}
+
+			// go to the next index
+			num_indexes++;
+		}
 	}
 
-	// detrive the correct index count
-	set->NumIndexes = set->NumTris * 3;
+	// ri.Con_Printf (PRINT_ALL, "%s has %i verts from %i\n", mod->name, num_verts, hdr->num_verts);
+
+	// store off the counts
+	hdr->num_verts = num_verts;		// this is expected to be significantly lower (one-third or less)
+	hdr->num_indexes = num_indexes; // this is expected to be unchanged (it's an error if it is
 
 	// and build them all
-	D_SetupAliasPolyVerts (hdr, set);
-	D_SetupAliasTexCoords (hdr, set);
-	D_SetupAliasIndexes (hdr, set);
+	D_CreateAliasPolyVerts (hdr, set, dedupe);
+	D_CreateAliasTexCoords (hdr, set, dedupe);
+	D_CreateAliasIndexes (hdr, set, indexes);
+
+	// release memory used for loading and building
+	ri.Load_FreeMemory ();
 }
 
 
@@ -417,12 +370,16 @@ image_t *R_GetAliasSkin (entity_t *e, model_t *mod)
 void GL_DrawAliasPolySet (model_t *mod)
 {
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
-	d3d_Context->lpVtbl->DrawIndexed (d3d_Context, set->NumIndexes, 0, 0);
+	mmdl_t *hdr = (mmdl_t *) mod->extradata;
+
+	d3d_Context->lpVtbl->DrawIndexed (d3d_Context, hdr->num_indexes, 0, 0);
 }
 
 
 void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
+	mmdl_t *hdr = (mmdl_t *) mod->extradata;
+
 	R_BindTexture (R_GetAliasSkin (e, mod)->SRV);
 
 	// figure the correct shaders to use
@@ -434,8 +391,8 @@ void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 		D_BindShaderBundle (d3d_MeshFullbrightShader);
 	else D_BindShaderBundle (d3d_MeshLightmapShader);
 
-	D_BindVertexBuffer (0, set->PolyVerts, sizeof (aliaspolyvert_t), e->prevframe * sizeof (aliaspolyvert_t) * set->NumVerts);
-	D_BindVertexBuffer (1, set->PolyVerts, sizeof (aliaspolyvert_t), e->currframe * sizeof (aliaspolyvert_t) * set->NumVerts);
+	D_BindVertexBuffer (0, set->PolyVerts, sizeof (aliaspolyvert_t), e->prevframe * sizeof (aliaspolyvert_t) * hdr->num_verts);
+	D_BindVertexBuffer (1, set->PolyVerts, sizeof (aliaspolyvert_t), e->currframe * sizeof (aliaspolyvert_t) * hdr->num_verts);
 	D_BindVertexBuffer (2, set->TexCoords, sizeof (aliastexcoord_t), 0);
 
 	D_BindIndexBuffer (set->Indexes, DXGI_FORMAT_R16_UINT);

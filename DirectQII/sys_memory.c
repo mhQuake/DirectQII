@@ -291,6 +291,7 @@ void *Load_AllocMemory (int size)
 	{
 		byte *buf = &load_buffer[load_buffer_mark];
 		load_buffer_mark += size;
+		memset (buf, 0, size);
 		return buf;
 	}
 }

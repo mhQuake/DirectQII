@@ -43,8 +43,8 @@ void Mod_LoadAliasSTVerts (dmdl_t *pinmodel, mmdl_t *pheader)
 
 	for (i = 0; i < pinmodel->num_st; i++)
 	{
-		poutst[i].s = (float) LittleShort (pinst[i].s) / (float) pinmodel->skinwidth;
-		poutst[i].t = (float) LittleShort (pinst[i].t) / (float) pinmodel->skinheight;
+		poutst[i].s = LittleShort (pinst[i].s);
+		poutst[i].t = LittleShort (pinst[i].t);
 	}
 
 	pheader->stverts = poutst;
@@ -107,21 +107,6 @@ void Mod_LoadAliasFrames (dmdl_t *pinmodel, mmdl_t *pheader)
 }
 
 
-void Mod_LoadAliasGLCommands (dmdl_t *pinmodel, mmdl_t *pheader)
-{
-	int i;
-
-	// load the glcmds
-	int *pincmd = (int *) ((byte *) pinmodel + pinmodel->ofs_glcmds);
-	int *poutcmd = (int *) ri.Hunk_Alloc (sizeof (int) * pinmodel->num_glcmds);
-
-	for (i = 0; i < pinmodel->num_glcmds; i++)
-		poutcmd[i] = LittleLong (pincmd[i]);
-
-	pheader->glcmds = poutcmd;
-}
-
-
 void Mod_LoadAliasSkins (dmdl_t *pinmodel, mmdl_t *pheader, model_t *mod)
 {
 	int i;
@@ -160,6 +145,8 @@ void Mod_LoadAliasHeader (dmdl_t *pinmodel, mmdl_t *pheader, model_t *mod)
 	pheader->num_frames = pinmodel->num_frames;
 	pheader->num_skins = pinmodel->num_skins;
 	pheader->num_tris = pinmodel->num_tris;
+	pheader->num_verts = pinmodel->num_tris * 3;
+	pheader->num_indexes = pinmodel->num_tris * 3;
 	pheader->skinheight = pinmodel->skinheight;
 	pheader->skinwidth = pinmodel->skinwidth;
 }
@@ -182,7 +169,6 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 	Mod_LoadAliasSTVerts (pinmodel, pheader);
 	Mod_LoadAliasTriangles (pinmodel, pheader);
 	Mod_LoadAliasFrames (pinmodel, pheader);
-	Mod_LoadAliasGLCommands (pinmodel, pheader);
 	Mod_LoadAliasSkins (pinmodel, pheader, mod);
 
 	mod->type = mod_alias;
