@@ -13,11 +13,7 @@ struct GS_PARTICLE {
 	float4 Color : COLOR;
 };
 
-struct VS_DRAWSPRITE {
-	float2 XYOffset : XYOFFSET;
-};
-
-struct PS_DRAWSPRITE {
+struct PS_SPRITE {
 	float4 Position : SV_POSITION;
 	float2 TexCoord : TEXCOORD;
 };
@@ -58,19 +54,46 @@ float4 BeamVS (float4 Position: POSITION) : SV_POSITION
 	return mul (LocalMatrix, Position);
 }
 
-PS_NULL NullVS (float3 Position : POSITION, float3 Normal : NORMAL)
+static const uint NULLIndexes[24] = {1, 4, 2, 1, 2, 5, 1, 5, 3, 1, 3, 4, 0, 4, 3, 0, 3, 5, 0, 5, 2, 0, 2, 4};
+
+static const float3 NULLPositions[6] = {
+	float3 (0.0f, 0.0f, 1.0f),
+	float3 (0.0f, 0.0f, -1.0f),
+	float3 (0.0f, 1.0f, 0.0f),
+	float3 (0.0f, -1.0f, 0.0f),
+	float3 (1.0f, 0.0f, 0.0f),
+	float3 (-1.0f, 0.0f, 0.0f)
+};
+
+float3 NullVS (uint vertexId : SV_VertexID) : POSITION
 {
-	PS_NULL vs_out;
-
-	vs_out.Position = mul (LocalMatrix, float4 (Position * 16.0f, 1));
-	vs_out.Normal = Normal;
-
-	return vs_out;
+	return NULLPositions[NULLIndexes[vertexId]];
 }
 #endif
 
 
 #ifdef GEOMETRYSHADER
+PS_NULL GetNullVert (float3 Position, float3 Normal)
+{
+	PS_NULL gs_out;
+
+	gs_out.Position = mul (LocalMatrix, float4 (Position * 16.0f, 1));
+	gs_out.Normal = Normal;
+
+	return gs_out;
+}
+
+[maxvertexcount (3)]
+void NullGS (triangle float3 gs_in[3] : POSITION, inout TriangleStream<PS_NULL> gs_out)
+{
+	// this is the same normal calculation as QBSP does
+	float3 Normal = normalize (cross (gs_in[0] - gs_in[1], gs_in[2] - gs_in[1]));
+
+	gs_out.Append (GetNullVert (gs_in[0], Normal));
+	gs_out.Append (GetNullVert (gs_in[1], Normal));
+	gs_out.Append (GetNullVert (gs_in[2], Normal));
+}
+
 PS_PARTICLE GetParticleVert (point GS_PARTICLE gs_in, float2 Offsets, float ScaleUp)
 {
 	PS_PARTICLE gs_out;
@@ -110,9 +133,9 @@ void ParticleSquareGS (point GS_PARTICLE gs_in[1], inout TriangleStream<PS_PARTI
 	ParticleCommonGS (gs_in[0], gs_out, 0.5f, 0.002f);
 }
 
-PS_DRAWSPRITE GetSpriteVert (float ofsx, float ofsy, float2 TexCoord)
+PS_SPRITE GetSpriteVert (float ofsx, float ofsy, float2 TexCoord)
 {
-	PS_DRAWSPRITE vs_out;
+	PS_SPRITE vs_out;
 
 	vs_out.Position = mul (mvpMatrix, float4 ((viewRight * ofsy) + (viewUp * ofsx) + SpriteOrigin, 1.0f));
 	vs_out.TexCoord = TexCoord;
@@ -121,7 +144,7 @@ PS_DRAWSPRITE GetSpriteVert (float ofsx, float ofsy, float2 TexCoord)
 }
 
 [maxvertexcount (4)]
-void SpriteGS (triangle float gs_in[3] : BULLSHIT, inout TriangleStream<PS_DRAWSPRITE> gs_out)
+void SpriteGS (triangle float gs_in[3] : BULLSHIT, inout TriangleStream<PS_SPRITE> gs_out)
 {
 	gs_out.Append (GetSpriteVert (SpriteXYWH.y, SpriteXYWH.x, float2 (0, 1)));
 	gs_out.Append (GetSpriteVert (SpriteXYWH.w, SpriteXYWH.x, float2 (0, 0)));
@@ -132,7 +155,7 @@ void SpriteGS (triangle float gs_in[3] : BULLSHIT, inout TriangleStream<PS_DRAWS
 
 
 #ifdef PIXELSHADER
-float4 SpritePS (PS_DRAWSPRITE ps_in) : SV_TARGET0
+float4 SpritePS (PS_SPRITE ps_in) : SV_TARGET0
 {
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
 	return float4 (diff.rgb, diff.a * SpriteAlpha);

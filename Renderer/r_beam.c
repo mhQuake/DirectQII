@@ -71,6 +71,18 @@ void R_CreateBeamIndexBuffer (void)
 		ndx[2] = (i & 1) ? (i - 1) : i;
 	}
 
+	if (0)
+	{
+		FILE *f = fopen (va ("beamindexes%i.txt", r_numbeamverts), "w");
+
+		for (i = 0; i < numindexes; i++)
+		{
+			fprintf (f, "%i, ", indexes[i]);
+		}
+
+		fclose (f);
+	}
+
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_BeamIndexes);
 }
 
@@ -99,6 +111,19 @@ void R_CreateBeamVertexes (int slices)
 
 		Vector3Set (verts[0].position, sin (angle) * 0.5f, cos (angle) * 0.5f, 1);
 		Vector3Set (verts[1].position, sin (angle) * 0.5f, cos (angle) * 0.5f, 0);
+	}
+
+	if (0)
+	{
+		FILE *f = fopen (va ("beamverts%i.txt", r_numbeamverts), "w");
+		verts = (beampolyvert_t *) srd.pSysMem;
+
+		for (i = 0; i < r_numbeamverts; i++)
+		{
+			fprintf (f, "{%f, %f, %f},\n", verts[i].position[0], verts[i].position[1], verts[i].position[2]);
+		}
+
+		fclose (f);
 	}
 
 	// create the buffers from the generated data
@@ -149,6 +174,7 @@ void R_DrawBeam (entity_t *e)
 	float dir[3], len, axis[3], color[3], upvec[3] = {0, 0, 1};
 	QMATRIX localmatrix;
 
+	// there's quite a bit of work in drawing these so they're worth cullboxing
 	for (i = 0; i < 3; i++)
 	{
 		if (e->currorigin[i] < mins[i]) mins[i] = e->currorigin[i];
@@ -170,9 +196,9 @@ void R_DrawBeam (entity_t *e)
 	Vector3Cross (axis, upvec, dir);
 
 	// catch 0 length beams
-	if ((len = Vector3Length (dir)) < 0.000001f) return;
+	if (!((len = Vector3Length (dir)) > 0)) return;
 
-	// and transform it
+	// and transform it (there really should be a better way of doing this)
 	R_MatrixTranslate (&localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
 	R_MatrixRotateAxis (&localmatrix, (180.0f / M_PI) * acos ((Vector3Dot (upvec, dir) / len)), axis[0], axis[1], axis[2]);
 	R_MatrixScale (&localmatrix, e->currframe, e->currframe, len);

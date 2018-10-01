@@ -194,6 +194,7 @@ extern	vec3_t	vright;
 extern	refdef_t	r_newrefdef;
 extern	int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
+extern	cvar_t	*r_testnullmodels;
 extern	cvar_t	*r_lightmap;
 extern	cvar_t	*r_lightmodel;
 extern	cvar_t	*r_fullbright;

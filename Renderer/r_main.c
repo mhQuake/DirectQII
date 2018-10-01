@@ -143,6 +143,7 @@ refdef_t	r_newrefdef;
 
 int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
+cvar_t	*r_testnullmodels;
 cvar_t	*r_lightmap;
 cvar_t	*r_lightmodel;
 cvar_t	*r_fullbright;
@@ -618,6 +619,12 @@ void R_PrepareEntities (void)
 	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
 		entity_t *e = &r_newrefdef.entities[i];
+
+		if (r_testnullmodels->value && !(e->flags & RF_WEAPONMODEL))
+		{
+			// hack for testing NULL models
+			e->model = NULL;
+		}
 
 		if (e->flags & RF_BEAM) continue;
 		if (!e->model) continue;

@@ -266,14 +266,11 @@ static void Keys_MenuDraw (void)
 	}
 
 	// set the correct status bar
-	/*
 	if (s_current_keys_menu->cursor == 0)
 		Menu_SetStatusBar (s_current_keys_menu, NULL);
 	else if (cls.bind_grab)
 		Menu_SetStatusBar (s_current_keys_menu, "press a key or button for this action");
 	else Menu_SetStatusBar (s_current_keys_menu, "enter to change, backspace to clear");
-	*/
-	Menu_SetStatusBar (s_current_keys_menu, va ("cursor at %i", s_current_keys_menu->cursor));
 
 	M_Banner ("m_banner_customize");
 	Menu_AdjustCursor (s_current_keys_menu, 1);
