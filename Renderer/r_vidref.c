@@ -51,7 +51,6 @@ void R_Register (void)
 	vid_vsync = ri.Cvar_Get ("vid_vsync", "0", CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand ("screenshot", GL_ScreenShot_f);
-	ri.Cmd_AddCommand ("modellist", Mod_Modellist_f);
 }
 
 
@@ -168,7 +167,6 @@ R_Shutdown
 */
 void R_Shutdown (void)
 {
-	ri.Cmd_RemoveCommand ("modellist");
 	ri.Cmd_RemoveCommand ("screenshot");
 
 	Mod_FreeAll ();

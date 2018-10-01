@@ -160,7 +160,7 @@ typedef struct refdef_s
 typedef struct refexport_s
 {
 	// if api_version is different, the dll cannot be used
-	int		api_version;
+	int api_version;
 
 	// called when the library is loaded
 	int (*Init) (void *hinstance, void *wndproc);
@@ -170,8 +170,7 @@ typedef struct refexport_s
 
 	// All data that will be used in a level should be
 	// registered before rendering any frames to prevent disk hits,
-	// but they can still be registered at a later time
-	// if necessary.
+	// but they can still be registered at a later time if necessary.
 
 	// EndRegistration will free any remaining data that wasn't registered.
 	// Any model_s or skin_s pointers from before the BeginRegistration
@@ -203,14 +202,12 @@ typedef struct refexport_s
 	// Draw images for cinematic rendering (which can have a different palette). Note that calls
 	void (*DrawStretchRaw) (int cols, int rows, byte *data, int frame);
 
-	/*
-	** video mode and refresh state management entry points
-	*/
-	void (*CinematicSetPalette)(const unsigned char *palette);	// NULL = game palette
-	void (*BeginFrame)(void);
+	// video mode and refresh state management entry points
+	void (*CinematicSetPalette) (const unsigned char *palette);	// NULL = game palette
+	void (*BeginFrame) (void);
 	void (*EndFrame) (qboolean allowvsync);
 
-	void (*AppActivate)(qboolean activate);
+	void (*AppActivate) (qboolean activate);
 	void (*EnumerateVideoModes) (void);
 } refexport_t;
 
@@ -221,20 +218,14 @@ typedef struct refimport_s
 	void (*SendKeyEvents) (void);
 	void (*Mkdir) (char *path);
 
-	// large block stack allocation routines
-	void *(*Hunk_Begin) (int maxsize);
-	void *(*Hunk_Alloc) (int size);
-	void (*Hunk_Free) (void *buf);
-	int (*Hunk_End) (void);
-
 	// loading temp allocations
 	void (*Load_FreeMemory) (void);
 	void *(*Load_AllocMemory) (int size);
 
-	void (*Cmd_AddCommand) (char *name, void (*cmd)(void));
+	void (*Cmd_AddCommand) (char *name, void (*cmd) (void));
 	void (*Cmd_RemoveCommand) (char *name);
 	int (*Cmd_Argc) (void);
-	char	*(*Cmd_Argv) (int i);
+	char *(*Cmd_Argv) (int i);
 	void (*Cmd_ExecuteText) (int exec_when, char *text);
 
 	void (*Con_Printf) (int print_level, char *str, ...);
@@ -249,15 +240,15 @@ typedef struct refimport_s
 
 	// gamedir will be the current directory that generated
 	// files should be stored to, ie: "f:\quake\id1"
-	char	*(*FS_Gamedir) (void);
+	char *(*FS_Gamedir) (void);
 
-	cvar_t	*(*Cvar_Get) (char *name, char *value, int flags);
-	cvar_t	*(*Cvar_Set)(char *name, char *value);
-	void (*Cvar_SetValue)(char *name, float value);
+	cvar_t *(*Cvar_Get) (char *name, char *value, int flags);
+	cvar_t *(*Cvar_Set) (char *name, char *value);
+	void (*Cvar_SetValue) (char *name, float value);
 
-	void (*Vid_MenuInit)(void);
+	void (*Vid_MenuInit) (void);
 	void (*Vid_PrepVideoMenu) (vidmenu_t *md);
-	void (*Vid_NewWindow)(viddef_t *vd);
+	void (*Vid_NewWindow) (viddef_t *vd);
 } refimport_t;
 
 

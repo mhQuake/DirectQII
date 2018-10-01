@@ -39,11 +39,13 @@ Mod_LoadSpriteModel
 */
 void Mod_LoadSpriteModel (model_t *mod, void *buffer)
 {
-	dsprite_t	*sprin, *sprout;
-	int			i;
+	int	i;
 
-	sprin = (dsprite_t *) buffer;
-	sprout = ri.Hunk_Alloc (modfilelen);
+	dsprite_t *sprin = (dsprite_t *) buffer;
+	dsprite_t *sprout = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, modfilelen);
+
+	mod->md2header = NULL;
+	mod->sprheader = sprout;
 
 	sprout->ident = LittleLong (sprin->ident);
 	sprout->version = LittleLong (sprin->version);

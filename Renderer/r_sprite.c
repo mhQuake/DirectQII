@@ -145,7 +145,7 @@ void D_MakeSpriteBuffers (model_t *mod)
 		set->registration_sequence = r_registration_sequence;
 
 		// now build everything from the model data
-		D_CreateSpriteBufferSet (mod, (dsprite_t *) mod->extradata);
+		D_CreateSpriteBufferSet (mod, mod->sprheader);
 
 		// and done
 		return;
@@ -234,7 +234,7 @@ void R_DrawSpriteModel (entity_t *e)
 
 	// don't even bother culling, because it's just a single polygon without a surface cache
 	// (note - widht hardware it might make sense to cull)
-	dsprite_t *psprite = (dsprite_t *) mod->extradata;
+	dsprite_t *psprite = mod->sprheader;
 	int framenum = e->currframe % psprite->numframes;
 	dsprframe_t *frame = &psprite->frames[framenum];
 

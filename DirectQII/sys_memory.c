@@ -192,75 +192,6 @@ void Z_Init (void)
 /*
 ==============================================================================
 
-HUNK MEMORY ALLOCATION
-
-==============================================================================
-*/
-
-int		hunkcount;
-
-byte	*membase;
-int		hunkmaxsize;
-int		cursize;
-int		currPageBoundary;
-
-void *Hunk_Begin (int maxsize)
-{
-	// round to page size granularity
-	maxsize = (maxsize + 4095) & ~4095;
-
-	// reserve a huge chunk of memory, but don't commit any yet
-	cursize = 0;
-	currPageBoundary = 0;
-	hunkmaxsize = maxsize;
-	membase = VirtualAlloc (NULL, maxsize, MEM_RESERVE, PAGE_NOACCESS);
-
-	if (!membase)
-		Sys_Error ("VirtualAlloc reserve failed");
-	return (void *) membase;
-}
-
-void *Hunk_Alloc (int size)
-{
-	byte *buf = NULL;
-
-	// round to cacheline
-	size = (size + 31) & ~31;
-
-	// Make VirtualAlloc operate on page size granularity
-	while (cursize + size > currPageBoundary)
-	{
-		VirtualAlloc (&membase[currPageBoundary], 4096, MEM_COMMIT, PAGE_READWRITE);
-		currPageBoundary += 4096;
-	}
-
-	buf = &membase[cursize];
-	cursize += size;
-
-	if (cursize > hunkmaxsize)
-		Sys_Error ("Hunk_Alloc overflow");
-
-	return (void *) buf;
-}
-
-int Hunk_End (void)
-{
-	hunkcount++;
-	return cursize;
-}
-
-void Hunk_Free (void *base)
-{
-	if (base)
-		VirtualFree (base, 0, MEM_RELEASE);
-
-	hunkcount--;
-}
-
-
-/*
-==============================================================================
-
 LOAD MEMORY ALLOCATION
 
 Temporary memory used for loading is a 64mb buffer; call Load_AllocMemory to draw down memory from the buffer, Load_FreeMemory when completed to reset the buffer
@@ -300,11 +231,6 @@ void *Load_AllocMemory (int size)
 void Sys_SetupMemoryRefImports (refimport_t	*ri)
 {
 	// so that we don't have namespace pollution with externing the Hunk_* funcs we register the OS-specific memory allocation functions separately here
-	ri->Hunk_Alloc = Hunk_Alloc;
-	ri->Hunk_Begin = Hunk_Begin;
-	ri->Hunk_End = Hunk_End;
-	ri->Hunk_Free = Hunk_Free;
-
 	ri->Load_FreeMemory = Load_FreeMemory;
 	ri->Load_AllocMemory = Load_AllocMemory;
 }

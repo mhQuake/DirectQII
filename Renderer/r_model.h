@@ -156,6 +156,27 @@ typedef struct dbsp_s
 } dbsp_t;
 
 
+typedef struct maliasframe_s {
+	float		scale[3];	// multiply byte verts by this
+	float		translate[3];	// then add this
+} maliasframe_t;
+
+
+typedef struct mmdl_s {
+	int			skinwidth;
+	int			skinheight;
+
+	int			num_skins;
+	int			num_tris;
+	int			num_verts;
+	int			num_indexes;
+	int			num_frames;
+
+	char			*skinnames[MAX_MD2SKINS];
+	maliasframe_t	*frames;
+} mmdl_t;
+
+
 typedef struct model_s
 {
 	char		name[MAX_QPATH];
@@ -176,8 +197,8 @@ typedef struct model_s
 	vec3_t		clipmins, clipmaxs;
 
 	// brush model
-	int			firstmodelsurface, nummodelsurfaces;
-	int			mlightmap;		// only for submodels
+	int			firstmodelsurface;
+	int			nummodelsurfaces;
 
 	int			numsubmodels;
 	mmodel_t	*submodels;
@@ -204,36 +225,20 @@ typedef struct model_s
 	dvis_t		*vis;
 	byte		*lightdata;
 
-	// buffer set used for BSPs and MDLs (sprites are pushed through the quad batcher)
+	// buffer set used
 	int			bufferset;
 
-	// for alias models and skins
+	// for alias models and sprites
 	image_t		*skins[MAX_MD2SKINS];
 
-	int			extradatasize;
-	void		*extradata;
+	// Heap memory handle for this model
+	HANDLE		hHeap;
+
+	// headers for MD2 and SPR (to do - move BSP here too)
+	// these were a union but we want it to be more explicit and make it an error if the wrong header type is accessed for a model
+	mmdl_t *md2header;
+	dsprite_t *sprheader;
 } model_t;
-
-
-typedef struct maliasframe_s {
-	float		scale[3];	// multiply byte verts by this
-	float		translate[3];	// then add this
-} maliasframe_t;
-
-
-typedef struct mmdl_s {
-	int			skinwidth;
-	int			skinheight;
-
-	int			num_skins;
-	int			num_tris;
-	int			num_verts;
-	int			num_indexes;
-	int			num_frames;
-
-	char			*skinnames[MAX_MD2SKINS];
-	maliasframe_t	*frames;
-} mmdl_t;
 
 
 //============================================================================
@@ -247,8 +252,6 @@ mleaf_t *Mod_PointInLeaf (float *p, model_t *model);
 byte *Mod_ClusterPVS (int cluster, model_t *model);
 float Mod_RadiusFromBounds (vec3_t mins, vec3_t maxs);
 int Mod_SignbitsForPlane (cplane_t *out);
-
-void Mod_Modellist_f (void);
 
 void Mod_FreeAll (void);
 void Mod_Free (model_t *mod);

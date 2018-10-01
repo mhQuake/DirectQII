@@ -54,7 +54,7 @@ void Mod_LoadLighting (lump_t *l, dbsp_t *bsp)
 		return;
 	}
 
-	loadmodel->lightdata = ri.Hunk_Alloc (l->filelen);
+	loadmodel->lightdata = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, l->filelen);
 	memcpy (loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
 }
 
@@ -74,7 +74,7 @@ void Mod_LoadVisibility (lump_t *l, dbsp_t *bsp)
 		return;
 	}
 
-	loadmodel->vis = ri.Hunk_Alloc (l->filelen);
+	loadmodel->vis = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, l->filelen);
 	memcpy (loadmodel->vis, mod_base + l->fileofs, l->filelen);
 
 	loadmodel->vis->numclusters = LittleLong (loadmodel->vis->numclusters);
@@ -127,7 +127,7 @@ void Mod_LoadSubmodels (lump_t *l, dbsp_t *bsp)
 		ri.Sys_Error (ERR_DROP, "Mod_LoadSubmodels: funny lump size in %s", loadmodel->name);
 
 	count = l->filelen / sizeof (dmodel_t);
-	out = ri.Hunk_Alloc (count * sizeof (mmodel_t));
+	out = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, count * sizeof (mmodel_t));
 
 	loadmodel->submodels = out;
 	loadmodel->numsubmodels = count;
@@ -189,7 +189,7 @@ void Mod_LoadTexinfo (lump_t *l, dbsp_t *bsp)
 		ri.Sys_Error (ERR_DROP, "Mod_LoadTexinfo: funny lump size in %s", loadmodel->name);
 
 	count = l->filelen / sizeof (texinfo_t);
-	out = ri.Hunk_Alloc (count * sizeof (mtexinfo_t));
+	out = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, count * sizeof (mtexinfo_t));
 
 	loadmodel->texinfo = out;
 	loadmodel->numtexinfo = count;
@@ -305,7 +305,7 @@ void Mod_LoadFaces (lump_t *l, dbsp_t *bsp)
 		ri.Sys_Error (ERR_DROP, "Mod_LoadFaces: funny lump size in %s", loadmodel->name);
 
 	count = l->filelen / sizeof (dface_t);
-	out = ri.Hunk_Alloc (count * sizeof (msurface_t));
+	out = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, count * sizeof (msurface_t));
 
 	loadmodel->surfaces = out;
 	loadmodel->numsurfaces = count;
@@ -396,7 +396,7 @@ void Mod_LoadNodes (lump_t *l, dbsp_t *bsp)
 		ri.Sys_Error (ERR_DROP, "Mod_LoadNodes: funny lump size in %s", loadmodel->name);
 
 	count = l->filelen / sizeof (dnode_t);
-	out = ri.Hunk_Alloc (count * sizeof (mnode_t));
+	out = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, count * sizeof (mnode_t));
 
 	loadmodel->nodes = out;
 	loadmodel->numnodes = count;
@@ -444,7 +444,7 @@ void Mod_LoadLeafs (lump_t *l, dbsp_t *bsp)
 		ri.Sys_Error (ERR_DROP, "Mod_LoadLeafs: funny lump size in %s", loadmodel->name);
 
 	count = l->filelen / sizeof (dleaf_t);
-	out = ri.Hunk_Alloc (count * sizeof (mleaf_t));
+	out = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, count * sizeof (mleaf_t));
 
 	loadmodel->leafs = out;
 	loadmodel->numleafs = count;
@@ -484,7 +484,7 @@ void Mod_LoadMarksurfaces (lump_t *l, dbsp_t *bsp)
 		ri.Sys_Error (ERR_DROP, "Mod_LoadMarksurfaces: funny lump size in %s", loadmodel->name);
 
 	count = l->filelen / sizeof (short);
-	out = ri.Hunk_Alloc (count * sizeof (msurface_t *));
+	out = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, count * sizeof (msurface_t *));
 
 	loadmodel->marksurfaces = out;
 	loadmodel->nummarksurfaces = count;
@@ -540,7 +540,7 @@ void Mod_LoadPlanes (lump_t *l, dbsp_t *bsp)
 	count = l->filelen / sizeof (dplane_t);
 
 	// this had an extra "* 2" - which was also in GLQuake and may be a legacy from when an earlier varaint didn't have SURF_PLANEBACK
-	out = ri.Hunk_Alloc (count * sizeof (cplane_t));
+	out = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, count * sizeof (cplane_t));
 
 	loadmodel->planes = out;
 	loadmodel->numplanes = count;

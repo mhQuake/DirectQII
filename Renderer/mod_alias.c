@@ -73,7 +73,7 @@ void Mod_LoadAliasFrames (dmdl_t *pinmodel, mmdl_t *pheader)
 	int i, j;
 
 	// alloc the frames
-	pheader->frames = (maliasframe_t *) ri.Hunk_Alloc (pheader->num_frames * sizeof (maliasframe_t));
+	pheader->frames = (maliasframe_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, pheader->num_frames * sizeof (maliasframe_t));
 
 	// load the frames
 	for (i = 0; i < pheader->num_frames; i++)
@@ -101,7 +101,7 @@ void Mod_LoadAliasSkins (dmdl_t *pinmodel, mmdl_t *pheader, model_t *mod)
 	{
 		char *srcskin = (char *) pinmodel + pinmodel->ofs_skins + i * MAX_SKINNAME;
 
-		pheader->skinnames[i] = ri.Hunk_Alloc (strlen (srcskin) + 1);
+		pheader->skinnames[i] = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, strlen (srcskin) + 1);
 		strcpy (pheader->skinnames[i], srcskin);
 
 		mod->skins[i] = GL_FindImage (pheader->skinnames[i], it_skin);
@@ -145,7 +145,10 @@ Mod_LoadAliasModel
 void Mod_LoadAliasModel (model_t *mod, void *buffer)
 {
 	dmdl_t *pinmodel = (dmdl_t *) buffer;
-	mmdl_t *pheader = (mmdl_t *) ri.Hunk_Alloc (sizeof (mmdl_t));
+	mmdl_t *pheader = (mmdl_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (mmdl_t));
+
+	mod->sprheader = NULL;
+	mod->md2header = pheader;
 
 	// load and set up the header
 	Mod_LoadAliasHeader (pinmodel, pheader, mod);

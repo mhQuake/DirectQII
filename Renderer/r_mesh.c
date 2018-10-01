@@ -338,7 +338,7 @@ void D_MakeAliasBuffers (model_t *mod, dmdl_t *src)
 		set->registration_sequence = r_registration_sequence;
 
 		// now build everything from the model data
-		D_CreateAliasBufferSet (mod, (mmdl_t *) mod->extradata, src);
+		D_CreateAliasBufferSet (mod, mod->md2header, src);
 
 		// and done
 		return;
@@ -379,7 +379,7 @@ image_t *R_GetAliasSkin (entity_t *e, model_t *mod)
 void GL_DrawAliasPolySet (model_t *mod)
 {
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
-	mmdl_t *hdr = (mmdl_t *) mod->extradata;
+	mmdl_t *hdr = mod->md2header;
 
 	d3d_Context->lpVtbl->DrawIndexed (d3d_Context, hdr->num_indexes, 0, 0);
 }
@@ -387,7 +387,7 @@ void GL_DrawAliasPolySet (model_t *mod)
 
 void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
-	mmdl_t *hdr = (mmdl_t *) mod->extradata;
+	mmdl_t *hdr = mod->md2header;
 
 	R_BindTexture (R_GetAliasSkin (e, mod)->SRV);
 
@@ -597,7 +597,7 @@ static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 {
 	int i;
 	model_t *mod = e->model;
-	mmdl_t *hdr = (mmdl_t *) e->model->extradata;
+	mmdl_t *hdr = mod->md2header;
 
 	// the frames were fixed-up in R_PrepareAliasModel so we don't need to do so here
 	maliasframe_t *currframe = &hdr->frames[e->currframe];
@@ -683,7 +683,7 @@ void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatri
 void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 {
 	model_t		*mod = e->model;
-	mmdl_t		*hdr = (mmdl_t *) mod->extradata;
+	mmdl_t		*hdr = mod->md2header;
 
 	// per-mesh cbuffer constants
 	meshconstants_t consts;
@@ -742,7 +742,7 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 void R_PrepareAliasModel (entity_t *e, QMATRIX *localmatrix)
 {
 	model_t		*mod = e->model;
-	mmdl_t		*hdr = (mmdl_t *) mod->extradata;
+	mmdl_t		*hdr = mod->md2header;
 
 	// fix up the frames in advance of culling because it needs them
 	if ((e->currframe >= hdr->num_frames) || (e->currframe < 0))

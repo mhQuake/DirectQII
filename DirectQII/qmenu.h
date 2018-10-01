@@ -59,7 +59,7 @@ typedef struct _tag_menuframework
 	const char *statusbar;
 	qboolean saveCfgOnExit;
 
-	void (*cursordraw)(struct _tag_menuframework *m);
+	void (*cursordraw) (struct _tag_menuframework *m);
 
 } menuframework_s;
 
@@ -75,10 +75,10 @@ typedef struct _menucommon_s
 
 	const char *statusbar;
 
-	void (*callback)(void *self);
-	void (*statusbarfunc)(void *self);
-	void (*ownerdraw)(void *self);
-	void (*cursordraw)(void *self);
+	void (*callback) (void *self);
+	void (*statusbarfunc) (void *self);
+	void (*ownerdraw) (void *self);
+	void (*cursordraw) (void *self);
 } menucommon_s;
 
 typedef struct _menufield_s

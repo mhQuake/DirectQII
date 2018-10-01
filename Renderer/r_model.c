@@ -133,28 +133,6 @@ byte *Mod_ClusterPVS (int cluster, model_t *model)
 
 //===============================================================================
 
-/*
-================
-Mod_Modellist_f
-================
-*/
-void Mod_Modellist_f (void)
-{
-	int		i;
-	model_t	*mod;
-	int		total;
-
-	total = 0;
-	ri.Con_Printf (PRINT_ALL, "Loaded models:\n");
-	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
-	{
-		if (!mod->name[0])
-			continue;
-		ri.Con_Printf (PRINT_ALL, "%8i : %s\n", mod->extradatasize, mod->name);
-		total += mod->extradatasize;
-	}
-	ri.Con_Printf (PRINT_ALL, "Total resident: %i\n", total);
-}
 
 /*
 ===============
@@ -188,8 +166,10 @@ model_t *Mod_ForName (char *name, qboolean crash)
 	if (name[0] == '*')
 	{
 		i = atoi (name + 1);
+
 		if (i < 1 || !r_worldmodel || i >= r_worldmodel->numsubmodels)
 			ri.Sys_Error (ERR_DROP, "bad inline model number");
+
 		return &mod_inline[i];
 	}
 
@@ -208,43 +188,53 @@ model_t *Mod_ForName (char *name, qboolean crash)
 		if (!mod->name[0])
 			break;	// free spot
 	}
+
 	if (i == mod_numknown)
 	{
 		if (mod_numknown == MAX_MOD_KNOWN)
 			ri.Sys_Error (ERR_DROP, "mod_numknown == MAX_MOD_KNOWN");
+
 		mod_numknown++;
 	}
+
 	strcpy (mod->name, name);
 
 	// load the file
 	modfilelen = ri.FS_LoadFile (mod->name, &buf);
+
 	if (!buf)
 	{
 		if (crash)
-			ri.Sys_Error (ERR_DROP, "Mod_NumForName: %s not found", mod->name);
+			ri.Sys_Error (ERR_DROP, "Mod_ForName: %s not found", mod->name);
+
 		memset (mod->name, 0, sizeof (mod->name));
 		return NULL;
 	}
 
 	loadmodel = mod;
 
-	// fill it in
-	// call the apropriate loader
+	// this should never happen unless we fail to call Mod_Free properly
+	if (loadmodel->hHeap)
+	{
+		HeapDestroy (loadmodel->hHeap);
+		loadmodel->hHeap = NULL;
+	}
+
+	// create the memory heap used by this model
+	loadmodel->hHeap = HeapCreate (0, 0, 0);
+
+	// fill it in - call the apropriate loader
 	switch (LittleLong (*(unsigned *) buf))
 	{
-		// note - we could store a HANDLE i nthe model, HeapCreate and HeapAlloc the memory for it, then HeapDestroy when done.
 	case IDALIASHEADER:
-		loadmodel->extradata = ri.Hunk_Begin (0x10000); // using a smaller hunk size because the MDL now stores nothing in memory
 		Mod_LoadAliasModel (mod, buf);
 		break;
 
 	case IDSPRITEHEADER:
-		loadmodel->extradata = ri.Hunk_Begin (0x10000);
 		Mod_LoadSpriteModel (mod, buf);
 		break;
 
 	case IDBSPHEADER:
-		loadmodel->extradata = ri.Hunk_Begin (0x1000000);
 		Mod_LoadBrushModel (mod, buf);
 		break;
 
@@ -253,7 +243,6 @@ model_t *Mod_ForName (char *name, qboolean crash)
 		break;
 	}
 
-	loadmodel->extradatasize = ri.Hunk_End ();
 	ri.FS_FreeFile (buf);
 
 	return mod;
@@ -339,7 +328,7 @@ struct model_s *R_RegisterModel (char *name)
 		// register any images used by the models
 		if (mod->type == mod_sprite)
 		{
-			dsprite_t *sprout = (dsprite_t *) mod->extradata;
+			dsprite_t *sprout = mod->sprheader;
 
 			for (i = 0; i < sprout->numframes; i++)
 				mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite);
@@ -349,7 +338,7 @@ struct model_s *R_RegisterModel (char *name)
 		}
 		else if (mod->type == mod_alias)
 		{
-			mmdl_t *pheader = (mmdl_t *) mod->extradata;
+			mmdl_t *pheader = mod->md2header;
 
 			for (i = 0; i < pheader->num_skins; i++)
 				mod->skins[i] = GL_FindImage (pheader->skinnames[i], it_skin);
@@ -409,7 +398,12 @@ Mod_Free
 */
 void Mod_Free (model_t *mod)
 {
-	ri.Hunk_Free (mod->extradata);
+	if (mod->hHeap)
+	{
+		HeapDestroy (mod->hHeap);
+		mod->hHeap = NULL;
+	}
+
 	memset (mod, 0, sizeof (*mod));
 }
 
@@ -424,11 +418,9 @@ void Mod_FreeAll (void)
 	int		i;
 
 	for (i = 0; i < mod_numknown; i++)
-	{
-		if (mod_known[i].extradatasize)
-			Mod_Free (&mod_known[i]);
+		Mod_Free (&mod_known[i]);
 
-		memset (&mod_known[i], 0, sizeof (mod_known[i]));
-	}
+	memset (mod_known, 0, sizeof (mod_known));
 }
+
 

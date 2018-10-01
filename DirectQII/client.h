@@ -332,7 +332,7 @@ typedef struct cl_sustain
 	int			color;
 	int			count;
 	int			magnitude;
-	void (*think)(struct cl_sustain *self);
+	void (*think) (struct cl_sustain *self);
 } cl_sustain_t;
 
 #define MAX_SUSTAINS		32

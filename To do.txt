@@ -18,4 +18,5 @@ CVAR_VIDEO should not write to console if in the menus
 
 Music sometimes stops when it shouldn't...
 
+dsprite_t/msprite_t
 
