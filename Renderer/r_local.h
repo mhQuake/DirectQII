@@ -62,6 +62,7 @@ extern QMATRIX	r_local_matrix[MAX_ENTITIES];
 
 void R_PrepareAliasModel (entity_t *e, QMATRIX *localmatrix);
 void R_PrepareBrushModel (entity_t *e, QMATRIX *localmatrix);
+void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -247,7 +248,7 @@ void GL_ScreenShot_f (void);
 void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix);
 void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix);
 void R_DrawSpriteModel (entity_t *e);
-void R_DrawBeam (entity_t *e);
+void R_DrawBeam (entity_t *e, QMATRIX *localmatrix);
 void R_DrawWorld (void);
 void R_DrawAlphaSurfaces (void);
 void R_CreateSpecialTextures (void);

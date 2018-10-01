@@ -18,5 +18,7 @@ CVAR_VIDEO should not write to console if in the menus
 
 Music sometimes stops when it shouldn't...
 
-dsprite_t/msprite_t
+we have the palette on the VS as a texture so read it as a colour for beams (how???)
+
+beam transform is messy - this should be quuuick and easy to calculate...
 

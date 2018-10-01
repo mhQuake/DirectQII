@@ -166,71 +166,65 @@ void R_ShutdownBeam (void)
 R_DrawBeam
 =============
 */
-void R_DrawBeam (entity_t *e)
+void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 {
-	int i;
-	float mins[3] = {999999, 999999, 999999};
-	float maxs[3] = {-999999, -999999, -999999};
-	float dir[3], len, axis[3], color[3], upvec[3] = {0, 0, 1};
-	QMATRIX localmatrix;
-
-	// there's quite a bit of work in drawing these so they're worth cullboxing
-	for (i = 0; i < 3; i++)
+	// don't draw fully translucent beams
+	if (e->alpha > 0)
 	{
-		if (e->currorigin[i] < mins[i]) mins[i] = e->currorigin[i];
-		if (e->currorigin[i] > maxs[i]) maxs[i] = e->currorigin[i];
-		if (e->prevorigin[i] < mins[i]) mins[i] = e->prevorigin[i];
-		if (e->prevorigin[i] > maxs[i]) maxs[i] = e->prevorigin[i];
+		float color[3] = {
+			(float) ((byte *) &d_8to24table[e->skinnum & 0xff])[0] / 255.0f,
+			(float) ((byte *) &d_8to24table[e->skinnum & 0xff])[1] / 255.0f,
+			(float) ((byte *) &d_8to24table[e->skinnum & 0xff])[2] / 255.0f
+		};
+
+		if (e->alpha < 1)
+		{
+			R_UpdateAlpha (e->alpha);
+			D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSFullCull);
+		}
+		else
+		{
+			R_UpdateAlpha (1);
+			D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, d3d_RSFullCull);
+		}
+
+		R_UpdateEntityConstants (localmatrix, color, 0);
+		D_BindShaderBundle (d3d_BeamShader);
+
+		if (r_beamdetail->modified)
+		{
+			R_ShutdownBeam ();
+			R_CreateBeamVertexes (r_beamdetail->value);
+			r_beamdetail->modified = false;
+		}
+
+		D_BindVertexBuffer (0, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
+		D_BindIndexBuffer (d3d_BeamIndexes, DXGI_FORMAT_R16_UINT);
+
+		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numbeamindexes, 0, 0);
 	}
+}
 
-	// currframe is a radius, so halve it (rounding up in case it's odd)
-	// we don't know the full orientation of the beam so just adjust all directions
-	Vector3Subtractf (mins, mins, (e->currframe + 1) / 2);
-	Vector3Addf (maxs, maxs, (e->currframe + 1) / 2);
 
-	if (R_CullBox (mins, maxs)) return;
-
-	R_MatrixIdentity (&localmatrix);
+void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix)
+{
+	float dir[3], len, axis[3], upvec[3] = {0, 0, 1};
 
 	Vector3Subtract (dir, e->prevorigin, e->currorigin);
 	Vector3Cross (axis, upvec, dir);
 
 	// catch 0 length beams
-	if (!((len = Vector3Length (dir)) > 0)) return;
+	if (!((len = Vector3Length (dir)) > 0))
+	{
+		// hack to not draw it
+		e->alpha = 0;
+		return;
+	}
 
 	// and transform it (there really should be a better way of doing this)
-	R_MatrixTranslate (&localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
-	R_MatrixRotateAxis (&localmatrix, (180.0f / M_PI) * acos ((Vector3Dot (upvec, dir) / len)), axis[0], axis[1], axis[2]);
-	R_MatrixScale (&localmatrix, e->currframe, e->currframe, len);
-
-	color[0] = (float) ((byte *) &d_8to24table[e->skinnum & 0xff])[0] / 255.0f;
-	color[1] = (float) ((byte *) &d_8to24table[e->skinnum & 0xff])[1] / 255.0f;
-	color[2] = (float) ((byte *) &d_8to24table[e->skinnum & 0xff])[2] / 255.0f;
-
-	if (e->alpha < 1)
-	{
-		R_UpdateAlpha (e->alpha);
-		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSFullCull);
-	}
-	else
-	{
-		R_UpdateAlpha (1);
-		D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, d3d_RSFullCull);
-	}
-
-	R_UpdateEntityConstants (&localmatrix, color, 0);
-	D_BindShaderBundle (d3d_BeamShader);
-
-	if (r_beamdetail->modified)
-	{
-		R_ShutdownBeam ();
-		R_CreateBeamVertexes (r_beamdetail->value);
-		r_beamdetail->modified = false;
-	}
-
-	D_BindVertexBuffer (0, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
-	D_BindIndexBuffer (d3d_BeamIndexes, DXGI_FORMAT_R16_UINT);
-
-	d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numbeamindexes, 0, 0);
+	R_MatrixIdentity (localmatrix);
+	R_MatrixTranslate (localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
+	R_MatrixRotateAxis (localmatrix, (180.0f / M_PI) * acos ((Vector3Dot (upvec, dir) / len)), axis[0], axis[1], axis[2]);
+	R_MatrixScale (localmatrix, e->currframe, e->currframe, len);
 }
 

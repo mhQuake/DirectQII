@@ -20,10 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_main.c
 #include "r_local.h"
 
-void R_DrawSpriteModel (entity_t *e);
 void R_DrawNullModel (entity_t *e);
 void R_DrawParticles (void);
-void R_DrawBeam (entity_t *e);
 void R_SetupSky (QMATRIX *SkyMatrix);
 void R_SetLightLevel (void);
 void R_PrepareDlights (void);
@@ -345,7 +343,7 @@ void R_DrawEntitiesOnList (qboolean trans)
 
 		if (e->flags & RF_BEAM)
 		{
-			R_DrawBeam (e);
+			R_DrawBeam (e, &r_local_matrix[i]);
 		}
 		else
 		{
@@ -626,16 +624,27 @@ void R_PrepareEntities (void)
 			e->model = NULL;
 		}
 
-		if (e->flags & RF_BEAM) continue;
-		if (!e->model) continue;
-
-		if (e->model->type == mod_alias)
+		if (e->flags & RF_BEAM)
 		{
-			R_PrepareAliasModel (e, &r_local_matrix[i]);
+			R_PrepareBeam (e, &r_local_matrix[i]);
 		}
-		else if (e->model->type == mod_brush)
+		else
 		{
-			R_PrepareBrushModel (e, &r_local_matrix[i]);
+			if (!e->model) continue;
+
+			switch (e->model->type)
+			{
+			case mod_alias:
+				R_PrepareAliasModel (e, &r_local_matrix[i]);
+				break;
+
+			case mod_brush:
+				R_PrepareBrushModel (e, &r_local_matrix[i]);
+				break;
+
+			default:
+				break;
+			}
 		}
 	}
 }
