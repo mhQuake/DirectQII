@@ -332,9 +332,6 @@ struct model_s *R_RegisterModel (char *name)
 
 			for (i = 0; i < sprout->numframes; i++)
 				mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite);
-
-			// create vertex buffers
-			D_MakeSpriteBuffers (mod);
 		}
 		else if (mod->type == mod_alias)
 		{
@@ -383,7 +380,6 @@ void R_EndRegistration (void)
 	}
 
 	R_FreeUnusedAliasBuffers ();
-	R_FreeUnusedSpriteBuffers ();
 	GL_FreeUnusedImages ();
 }
 

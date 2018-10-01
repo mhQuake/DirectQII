@@ -909,8 +909,7 @@ void CL_AddPacketEntities (frame_t *frame)
 
 		if (renderfx & (RF_FRAMELERP | RF_BEAM))
 		{
-			// step origin discretely, because the frames
-			// do the animation properly
+			// step origin discretely, because the frames do the animation properly
 			VectorCopy (cent->current.origin, ent.currorigin);
 			VectorCopy (cent->current.old_origin, ent.prevorigin);
 		}
@@ -1027,8 +1026,8 @@ void CL_AddPacketEntities (frame_t *frame)
 		if (s1->number == cl.playernum + 1)
 		{
 			ent.flags |= RF_VIEWERMODEL;	// only draw from mirrors
-			// FIXME: still pass to refresh
 
+			// FIXME: still pass to refresh
 			if (effects & EF_FLAG1)
 				V_AddLight (ent.currorigin, 225, 1.0, 0.1, 0.1);
 			else if (effects & EF_FLAG2)
@@ -1094,9 +1093,12 @@ void CL_AddPacketEntities (frame_t *frame)
 				// custom weapon
 				ci = &cl.clientinfo[s1->skinnum & 0xff];
 				i = (s1->skinnum >> 8); // 0 is default weapon model
+
 				if (!cl_vwep->value || i > MAX_CLIENTWEAPONMODELS - 1)
 					i = 0;
+
 				ent.model = ci->weaponmodel[i];
+
 				if (!ent.model)
 				{
 					if (i != 0)
@@ -1116,6 +1118,7 @@ void CL_AddPacketEntities (frame_t *frame)
 			//PGM
 			else
 				ent.model = cl.model_draw[s1->modelindex2];
+
 			V_AddEntity (&ent);
 
 			//PGM - make sure these get reset.
@@ -1123,11 +1126,13 @@ void CL_AddPacketEntities (frame_t *frame)
 			ent.alpha = 0;
 			//PGM
 		}
+
 		if (s1->modelindex3)
 		{
 			ent.model = cl.model_draw[s1->modelindex3];
 			V_AddEntity (&ent);
 		}
+
 		if (s1->modelindex4)
 		{
 			ent.model = cl.model_draw[s1->modelindex4];
@@ -1202,6 +1207,7 @@ void CL_AddPacketEntities (frame_t *frame)
 				{
 					i = bfg_lightramp[s1->frame];
 				}
+
 				V_AddLight (ent.currorigin, i, 0, 1, 0);
 			}
 			// RAFAEL
@@ -1278,7 +1284,6 @@ void CL_AddPacketEntities (frame_t *frame)
 		VectorCopy (ent.currorigin, cent->lerp_origin);
 	}
 }
-
 
 
 /*

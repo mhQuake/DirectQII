@@ -204,7 +204,7 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 
 		ID3DBlob *vsBlob = NULL;
 
-		if (SUCCEEDED (D_CompileShader (shadersource, shaderlength, vsdefines, vsentry, "vs_4_0", &vsBlob)))
+		if (SUCCEEDED (D_CompileShader (shadersource, shaderlength, vsdefines, vsentry, "vs_5_0", &vsBlob)))
 		{
 			if (vsBlob)
 			{
@@ -234,7 +234,7 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 
 		ID3DBlob *gsBlob = NULL;
 
-		if (SUCCEEDED (D_CompileShader (shadersource, shaderlength, gsdefines, gsentry, "gs_4_0", &gsBlob)))
+		if (SUCCEEDED (D_CompileShader (shadersource, shaderlength, gsdefines, gsentry, "gs_5_0", &gsBlob)))
 		{
 			if (gsBlob)
 			{
@@ -257,7 +257,7 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 
 		ID3DBlob *psBlob = NULL;
 
-		if (SUCCEEDED (D_CompileShader (shadersource, shaderlength, psdefines, psentry, "ps_4_0", &psBlob)))
+		if (SUCCEEDED (D_CompileShader (shadersource, shaderlength, psdefines, psentry, "ps_5_0", &psBlob)))
 		{
 			if (psBlob)
 			{

@@ -72,7 +72,6 @@ void R_InitSurfaces (void);
 void R_ShutdownSurfaces (void);
 void R_InitParticles (void);
 void R_InitSprites (void);
-void R_ShutdownSprite (void);
 void R_InitLight (void);
 void R_ShutdownLight (void);
 void R_InitWarp (void);
@@ -491,12 +490,6 @@ void D_RegisterAliasBuffers (model_t *mod);
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // memory
 extern HANDLE hRefHeap;
-
-
-// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-// sprite
-void R_FreeUnusedSpriteBuffers (void);
-void D_MakeSpriteBuffers (model_t *mod);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------

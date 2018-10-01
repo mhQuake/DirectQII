@@ -34,16 +34,10 @@ struct PS_NULL {
 };
 
 #ifdef VERTEXSHADER
-static const float2 SpriteTexCoords[4] = {float2 (0, 1), float2 (0, 0), float2 (1, 0), float2 (1, 1)};
-
-PS_DRAWSPRITE SpriteVS (VS_DRAWSPRITE vs_in, uint vertexId : SV_VertexID)
+float SpriteVS (uint vertexId : SV_VertexID) : BULLSHIT
 {
-	PS_DRAWSPRITE vs_out;
-
-	vs_out.Position = mul (mvpMatrix, float4 ((viewRight * vs_in.XYOffset.y) + (viewUp * vs_in.XYOffset.x) + SpriteOrigin, 1.0f));
-	vs_out.TexCoord = SpriteTexCoords[vertexId];
-
-	return vs_out;
+	// not sure if a NULL VS is allowed but that's what we really actually want here, so we just do it this way instead
+	return 1.0f;
 }
 
 GS_PARTICLE ParticleVS (VS_PARTICLE vs_in)
@@ -114,6 +108,25 @@ void ParticleCircleGS (point GS_PARTICLE gs_in[1], inout TriangleStream<PS_PARTI
 void ParticleSquareGS (point GS_PARTICLE gs_in[1], inout TriangleStream<PS_PARTICLE> gs_out)
 {
 	ParticleCommonGS (gs_in[0], gs_out, 0.5f, 0.002f);
+}
+
+PS_DRAWSPRITE GetSpriteVert (float ofsx, float ofsy, float2 TexCoord)
+{
+	PS_DRAWSPRITE vs_out;
+
+	vs_out.Position = mul (mvpMatrix, float4 ((viewRight * ofsy) + (viewUp * ofsx) + SpriteOrigin, 1.0f));
+	vs_out.TexCoord = TexCoord;
+
+	return vs_out;
+}
+
+[maxvertexcount (4)]
+void SpriteGS (triangle float gs_in[3] : BULLSHIT, inout TriangleStream<PS_DRAWSPRITE> gs_out)
+{
+	gs_out.Append (GetSpriteVert (SpriteXYWH.y, SpriteXYWH.x, float2 (0, 1)));
+	gs_out.Append (GetSpriteVert (SpriteXYWH.w, SpriteXYWH.x, float2 (0, 0)));
+	gs_out.Append (GetSpriteVert (SpriteXYWH.y, SpriteXYWH.z, float2 (1, 1)));
+	gs_out.Append (GetSpriteVert (SpriteXYWH.w, SpriteXYWH.z, float2 (1, 0)));
 }
 #endif
 

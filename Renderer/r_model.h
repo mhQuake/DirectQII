@@ -37,8 +37,7 @@ BRUSH MODELS
 //
 // in memory representation
 //
-typedef struct mmodel_s
-{
+typedef struct mmodel_s {
 	vec3_t		mins, maxs;
 	vec3_t		origin;		// for sounds or lights
 	float		radius;
@@ -65,8 +64,7 @@ typedef struct mtexinfo_s {
 } mtexinfo_t;
 
 
-typedef struct msurface_s
-{
+typedef struct msurface_s {
 	int			visframe;		// should be drawn when node is crossed
 
 	cplane_t	*plane;
@@ -98,8 +96,7 @@ typedef struct msurface_s
 	byte		*samples;		// [numstyles * surfsize]
 } msurface_t;
 
-typedef struct mnode_s
-{
+typedef struct mnode_s {
 	// common with leaf
 	int			contents;		// -1, to differentiate from leafs
 	int			visframe;		// node needs to be traversed if current
@@ -118,8 +115,7 @@ typedef struct mnode_s
 } mnode_t;
 
 
-typedef struct mleaf_s
-{
+typedef struct mleaf_s {
 	// common with node
 	int			contents;		// wil be a negative contents number
 	int			visframe;		// node needs to be traversed if current
@@ -147,8 +143,7 @@ typedef struct mleaf_s
 typedef enum { mod_bad, mod_brush, mod_sprite, mod_alias } modtype_t;
 
 
-typedef struct dbsp_s
-{
+typedef struct dbsp_s {
 	// stores BSP file data that is only used during loading and can be thrown away afterwards
 	dvertex_t	*vertexes;
 	int			*surfedges;
@@ -177,8 +172,7 @@ typedef struct mmdl_s {
 } mmdl_t;
 
 
-typedef struct model_s
-{
+typedef struct model_s {
 	char		name[MAX_QPATH];
 
 	int			registration_sequence;

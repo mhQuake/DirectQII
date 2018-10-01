@@ -58,6 +58,7 @@ cbuffer cbAlphaVal : register(b5) {
 cbuffer cbPerSprite : register(b6) {
 	float3 SpriteOrigin : packoffset(c0.x);
 	float SpriteAlpha : packoffset(c0.w);
+	float4 SpriteXYWH : packoffset(c1);
 };
 
 cbuffer cbCinematic : register(b7) {
