@@ -142,7 +142,7 @@ void CMod_LoadSubmodels (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadSubmodels: funny lump size");
 	count = l->filelen / sizeof (*in);
 
 	if (count < 1)
@@ -181,7 +181,7 @@ void CMod_LoadSurfaces (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadSurfaces: funny lump size");
 	count = l->filelen / sizeof (*in);
 	if (count < 1)
 		Com_Error (ERR_DROP, "Map with no surfaces");
@@ -216,7 +216,7 @@ void CMod_LoadNodes (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadNodes: funny lump size");
 	count = l->filelen / sizeof (*in);
 
 	if (count < 1)
@@ -225,7 +225,6 @@ void CMod_LoadNodes (lump_t *l)
 		Com_Error (ERR_DROP, "Map has too many nodes");
 
 	out = map_nodes;
-
 	numnodes = count;
 
 	for (i = 0; i < count; i++, out++, in++)
@@ -237,8 +236,8 @@ void CMod_LoadNodes (lump_t *l)
 			out->children[j] = child;
 		}
 	}
-
 }
+
 
 /*
 =================
@@ -254,7 +253,7 @@ void CMod_LoadBrushes (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadBrushes: funny lump size");
 	count = l->filelen / sizeof (*in);
 
 	if (count > MAX_MAP_BRUSHES)
@@ -287,7 +286,7 @@ void CMod_LoadLeafs (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadLeafs: funny lump size");
 	count = l->filelen / sizeof (*in);
 
 	if (count < 1)
@@ -343,7 +342,7 @@ void CMod_LoadPlanes (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadPlanes: funny lump size");
 	count = l->filelen / sizeof (*in);
 
 	if (count < 1)
@@ -385,7 +384,7 @@ void CMod_LoadLeafBrushes (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadLeafBrushes: funny lump size");
 	count = l->filelen / sizeof (*in);
 
 	if (count < 1)
@@ -416,7 +415,7 @@ void CMod_LoadBrushSides (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadBrushSides: funny lump size");
 	count = l->filelen / sizeof (*in);
 
 	// need to save space for box planes
@@ -451,7 +450,7 @@ void CMod_LoadAreas (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadAreas: funny lump size");
 	count = l->filelen / sizeof (*in);
 
 	if (count > MAX_MAP_AREAS)
@@ -483,7 +482,7 @@ void CMod_LoadAreaPortals (lump_t *l)
 
 	in = (void *) (cmod_base + l->fileofs);
 	if (l->filelen % sizeof (*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error (ERR_DROP, "CMod_LoadAreaPortals: funny lump size");
 	count = l->filelen / sizeof (*in);
 
 	if (count > MAX_MAP_AREAS)

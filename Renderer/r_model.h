@@ -37,12 +37,6 @@ BRUSH MODELS
 //
 // in memory representation
 //
-// !!! if this is changed, it must be changed in asm_draw.h too !!!
-typedef struct mvertex_s
-{
-	vec3_t		position;
-} mvertex_t;
-
 typedef struct mmodel_s
 {
 	vec3_t		mins, maxs;
@@ -60,12 +54,6 @@ typedef struct mmodel_s
 
 
 #define	SURF_PLANEBACK		2
-
-// !!! if this is changed, it must be changed in asm_draw.h too !!!
-typedef struct medge_s
-{
-	unsigned short	v[2];
-} medge_t;
 
 typedef struct mtexinfo_s {
 	float		vecs[2][4];
@@ -130,7 +118,6 @@ typedef struct mnode_s
 } mnode_t;
 
 
-
 typedef struct mleaf_s
 {
 	// common with node
@@ -159,6 +146,16 @@ typedef struct mleaf_s
 
 typedef enum { mod_bad, mod_brush, mod_sprite, mod_alias } modtype_t;
 
+
+typedef struct dbsp_s
+{
+	// stores BSP file data that is only used during loading and can be thrown away afterwards
+	dvertex_t	*vertexes;
+	int			*surfedges;
+	dedge_t		*edges;
+} dbsp_t;
+
+
 typedef struct model_s
 {
 	char		name[MAX_QPATH];
@@ -180,7 +177,7 @@ typedef struct model_s
 
 	// brush model
 	int			firstmodelsurface, nummodelsurfaces;
-	int			lightmap;		// only for submodels
+	int			mlightmap;		// only for submodels
 
 	int			numsubmodels;
 	mmodel_t	*submodels;
@@ -190,12 +187,6 @@ typedef struct model_s
 
 	int			numleafs;		// number of visible leafs, not counting 0
 	mleaf_t		*leafs;
-
-	int			numvertexes;
-	mvertex_t	*vertexes;
-
-	int			numedges;
-	medge_t		*edges;
 
 	int			numnodes;
 	int			firstnode;
@@ -207,14 +198,10 @@ typedef struct model_s
 	int			numsurfaces;
 	msurface_t	*surfaces;
 
-	int			numsurfedges;
-	int			*surfedges;
-
 	int			nummarksurfaces;
 	msurface_t	**marksurfaces;
 
 	dvis_t		*vis;
-
 	byte		*lightdata;
 
 	// buffer set used for BSPs and MDLs (sprites are pushed through the quad batcher)
@@ -224,30 +211,13 @@ typedef struct model_s
 	image_t		*skins[MAX_MD2SKINS];
 
 	int			extradatasize;
-	void *extradata;
+	void		*extradata;
 } model_t;
-
-
-typedef struct mstvert_s {
-	short	s;
-	short	t;
-} mstvert_t;
-
-typedef struct mtriangle_s {
-	short	index_xyz[3];
-	short	index_st[3];
-} mtriangle_t;
-
-typedef struct mtrivertx_s {
-	byte	v[3];			// scaled byte to fit in frame mins/maxs
-	byte	lightnormalindex;
-} mtrivertx_t;
 
 
 typedef struct maliasframe_s {
 	float		scale[3];	// multiply byte verts by this
 	float		translate[3];	// then add this
-	mtrivertx_t	*triverts;
 } maliasframe_t;
 
 
@@ -263,8 +233,6 @@ typedef struct mmdl_s {
 
 	char			*skinnames[MAX_MD2SKINS];
 	maliasframe_t	*frames;
-	mtriangle_t		*triangles;
-	mstvert_t		*stverts;
 } mmdl_t;
 
 

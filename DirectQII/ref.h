@@ -18,7 +18,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#ifdef RENDERER
+#include "q_shared.h"
+#include "qfiles.h"
+
+// make qsort prettier
+typedef int (*sortfunc_t) (const void *, const void *);
+#else
 #include "qcommon.h"
+#endif
 
 typedef struct viddef_s
 {

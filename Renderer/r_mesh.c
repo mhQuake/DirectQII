@@ -49,12 +49,6 @@ typedef struct meshconstants_s {
 	float junk[2];			// cbuffer padding
 } meshconstants_t;
 
-typedef struct aliaspolyvert_s {
-	// xyz is position
-	// w is lightnormalindex
-	byte position[4];
-} aliaspolyvert_t;
-
 
 static aliasbuffers_t d3d_AliasBuffers[MAX_MOD_KNOWN];
 
@@ -129,13 +123,13 @@ void R_FreeUnusedAliasBuffers (void)
 }
 
 
-void D_CreateAliasPolyVerts (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedupe)
+void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
-	aliaspolyvert_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (aliaspolyvert_t));
-	int f, i;
+	dtrivertx_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (dtrivertx_t));
+	int framenum, i;
 
 	D3D11_BUFFER_DESC vbDesc = {
-		hdr->num_verts * hdr->num_frames * sizeof (aliaspolyvert_t),
+		hdr->num_verts * hdr->num_frames * sizeof (dtrivertx_t),
 		D3D11_USAGE_DEFAULT,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
@@ -146,18 +140,18 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedu
 	// alloc a buffer to write the verts to and create the VB from
 	D3D11_SUBRESOURCE_DATA srd = {polyverts, 0, 0};
 
-	for (f = 0; f < hdr->num_frames; f++)
+	for (framenum = 0; framenum < hdr->num_frames; framenum++)
 	{
-		maliasframe_t *frame = &hdr->frames[f];
+		daliasframe_t *inframe = (daliasframe_t *) ((byte *) src + src->ofs_frames + framenum * src->framesize);
 
 		for (i = 0; i < hdr->num_verts; i++, polyverts++)
 		{
-			mtrivertx_t *tv = &frame->triverts[dedupe[i].index_xyz];
+			dtrivertx_t *tv = &inframe->verts[dedupe[i].index_xyz];
 
-			polyverts->position[0] = tv->v[0];
-			polyverts->position[1] = tv->v[1];
-			polyverts->position[2] = tv->v[2];
-			polyverts->position[3] = tv->lightnormalindex;
+			polyverts->v[0] = tv->v[0];
+			polyverts->v[1] = tv->v[1];
+			polyverts->v[2] = tv->v[2];
+			polyverts->lightnormalindex = tv->lightnormalindex;
 		}
 	}
 
@@ -166,7 +160,7 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedu
 }
 
 
-void D_CreateAliasTexCoords (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedupe)
+void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
 	float *texcoords = ri.Load_AllocMemory (hdr->num_verts * sizeof (float) * 2);
 	int i;
@@ -183,12 +177,15 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, aliasbuffers_t *set, aliasmesh_t *dedu
 	// alloc a buffer to write the verts to and create the VB from
 	D3D11_SUBRESOURCE_DATA srd = {texcoords, 0, 0};
 
+	// access source stverts
+	dstvert_t *stverts = (dstvert_t *) ((byte *) src + src->ofs_st);
+
 	for (i = 0; i < hdr->num_verts; i++, texcoords += 2)
 	{
-		mstvert_t *st = &hdr->stverts[dedupe[i].index_st];
+		dstvert_t *stvert = &stverts[dedupe[i].index_st];
 
-		texcoords[0] = ((float) st->s + 0.5f) / hdr->skinwidth;
-		texcoords[1] = ((float) st->t + 0.5f) / hdr->skinheight;
+		texcoords[0] = ((float) stvert->s + 0.5f) / hdr->skinwidth;
+		texcoords[1] = ((float) stvert->t + 0.5f) / hdr->skinheight;
 	}
 
 	// create the new vertex buffer
@@ -215,7 +212,7 @@ void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *ind
 }
 
 
-void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr)
+void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 {
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
 
@@ -227,6 +224,9 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr)
 	int num_verts = 0;
 	int num_indexes = 0;
 
+	// set up source data
+	dtriangle_t *triangles = (dtriangle_t *) ((byte *) src + src->ofs_tris);
+
 	for (i = 0; i < hdr->num_tris; i++)
 	{
 		for (j = 0; j < 3; j++)
@@ -235,8 +235,8 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr)
 
 			for (v = 0; v < num_verts; v++)
 			{
-				if (hdr->triangles[i].index_xyz[j] != dedupe[v].index_xyz) continue;
-				if (hdr->triangles[i].index_st[j] != dedupe[v].index_st) continue;
+				if (triangles[i].index_xyz[j] != dedupe[v].index_xyz) continue;
+				if (triangles[i].index_st[j] != dedupe[v].index_st) continue;
 
 				// exists; emit an index for it
 				indexes[num_indexes] = v;
@@ -251,8 +251,8 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr)
 				indexes[num_indexes] = num_verts;
 
 				// ...and a new vert
-				dedupe[num_verts].index_xyz = hdr->triangles[i].index_xyz[j];
-				dedupe[num_verts].index_st = hdr->triangles[i].index_st[j];
+				dedupe[num_verts].index_xyz = triangles[i].index_xyz[j];
+				dedupe[num_verts].index_st = triangles[i].index_st[j];
 
 				// go to the next vert
 				num_verts++;
@@ -270,8 +270,8 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr)
 	hdr->num_indexes = num_indexes; // this is expected to be unchanged (it's an error if it is
 
 	// and build them all
-	D_CreateAliasPolyVerts (hdr, set, dedupe);
-	D_CreateAliasTexCoords (hdr, set, dedupe);
+	D_CreateAliasPolyVerts (hdr, src, set, dedupe);
+	D_CreateAliasTexCoords (hdr, src, set, dedupe);
 	D_CreateAliasIndexes (hdr, set, indexes);
 
 	// release memory used for loading and building
@@ -305,7 +305,15 @@ int D_FindAliasBuffers (model_t *mod)
 }
 
 
-void D_MakeAliasBuffers (model_t *mod)
+void D_RegisterAliasBuffers (model_t *mod)
+{
+	// see do we already have it
+	if ((mod->bufferset = D_FindAliasBuffers (mod)) != -1) return;
+	ri.Sys_Error (ERR_DROP, "D_RegisterAliasBuffers : buffer set for %s was not created", mod->name);
+}
+
+
+void D_MakeAliasBuffers (model_t *mod, dmdl_t *src)
 {
 	int i;
 
@@ -330,7 +338,7 @@ void D_MakeAliasBuffers (model_t *mod)
 		set->registration_sequence = r_registration_sequence;
 
 		// now build everything from the model data
-		D_CreateAliasBufferSet (mod, (mmdl_t *) mod->extradata);
+		D_CreateAliasBufferSet (mod, (mmdl_t *) mod->extradata, src);
 
 		// and done
 		return;
@@ -392,8 +400,8 @@ void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 		D_BindShaderBundle (d3d_MeshFullbrightShader);
 	else D_BindShaderBundle (d3d_MeshLightmapShader);
 
-	D_BindVertexBuffer (0, set->PolyVerts, sizeof (aliaspolyvert_t), e->prevframe * sizeof (aliaspolyvert_t) * hdr->num_verts);
-	D_BindVertexBuffer (1, set->PolyVerts, sizeof (aliaspolyvert_t), e->currframe * sizeof (aliaspolyvert_t) * hdr->num_verts);
+	D_BindVertexBuffer (0, set->PolyVerts, sizeof (dtrivertx_t), e->prevframe * sizeof (dtrivertx_t) * hdr->num_verts);
+	D_BindVertexBuffer (1, set->PolyVerts, sizeof (dtrivertx_t), e->currframe * sizeof (dtrivertx_t) * hdr->num_verts);
 	D_BindVertexBuffer (2, set->TexCoords, sizeof (float) * 2, 0);
 
 	D_BindIndexBuffer (set->Indexes, DXGI_FORMAT_R16_UINT);

@@ -232,8 +232,9 @@ model_t *Mod_ForName (char *name, qboolean crash)
 	// call the apropriate loader
 	switch (LittleLong (*(unsigned *) buf))
 	{
+		// note - we could store a HANDLE i nthe model, HeapCreate and HeapAlloc the memory for it, then HeapDestroy when done.
 	case IDALIASHEADER:
-		loadmodel->extradata = ri.Hunk_Begin (0x200000);
+		loadmodel->extradata = ri.Hunk_Begin (0x10000); // using a smaller hunk size because the MDL now stores nothing in memory
 		Mod_LoadAliasModel (mod, buf);
 		break;
 
@@ -355,8 +356,8 @@ struct model_s *R_RegisterModel (char *name)
 
 			mod->numframes = pheader->num_frames;
 
-			// create vertex and index buffers
-			D_MakeAliasBuffers (mod);
+			// register vertex and index buffers
+			D_RegisterAliasBuffers (mod);
 		}
 		else if (mod->type == mod_brush)
 		{

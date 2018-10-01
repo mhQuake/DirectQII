@@ -46,7 +46,7 @@ byte	*mod_base;
 Mod_LoadLighting
 =================
 */
-void Mod_LoadLighting (lump_t *l)
+void Mod_LoadLighting (lump_t *l, dbsp_t *bsp)
 {
 	if (!l->filelen)
 	{
@@ -64,7 +64,7 @@ void Mod_LoadLighting (lump_t *l)
 Mod_LoadVisibility
 =================
 */
-void Mod_LoadVisibility (lump_t *l)
+void Mod_LoadVisibility (lump_t *l, dbsp_t *bsp)
 {
 	int		i;
 
@@ -92,28 +92,22 @@ void Mod_LoadVisibility (lump_t *l)
 Mod_LoadVertexes
 =================
 */
-void Mod_LoadVertexes (lump_t *l)
+void Mod_LoadVertexes (lump_t *l, dbsp_t *bsp)
 {
-	dvertex_t	*in;
-	mvertex_t	*out;
+	dvertex_t	*in = (dvertex_t *) (mod_base + l->fileofs);
 	int			i, count;
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (dvertex_t))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadVertexes: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
+	count = l->filelen / sizeof (dvertex_t);
+	bsp->vertexes = in;
 
-	count = l->filelen / sizeof (*in);
-	out = ri.Hunk_Alloc (count * sizeof (*out));
-
-	loadmodel->vertexes = out;
-	loadmodel->numvertexes = count;
-
-	for (i = 0; i < count; i++, in++, out++)
+	for (i = 0; i < count; i++, in++)
 	{
-		out->position[0] = LittleFloat (in->point[0]);
-		out->position[1] = LittleFloat (in->point[1]);
-		out->position[2] = LittleFloat (in->point[2]);
+		in->point[0] = LittleFloat (in->point[0]);
+		in->point[1] = LittleFloat (in->point[1]);
+		in->point[2] = LittleFloat (in->point[2]);
 	}
 }
 
@@ -123,19 +117,17 @@ void Mod_LoadVertexes (lump_t *l)
 Mod_LoadSubmodels
 =================
 */
-void Mod_LoadSubmodels (lump_t *l)
+void Mod_LoadSubmodels (lump_t *l, dbsp_t *bsp)
 {
-	dmodel_t	*in;
+	dmodel_t	*in = (dmodel_t *) (mod_base + l->fileofs);
 	mmodel_t	*out;
 	int			i, j, count;
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (dmodel_t))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadSubmodels: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-
-	count = l->filelen / sizeof (*in);
-	out = ri.Hunk_Alloc (count * sizeof (*out));
+	count = l->filelen / sizeof (dmodel_t);
+	out = ri.Hunk_Alloc (count * sizeof (mmodel_t));
 
 	loadmodel->submodels = out;
 	loadmodel->numsubmodels = count;
@@ -162,27 +154,21 @@ void Mod_LoadSubmodels (lump_t *l)
 Mod_LoadEdges
 =================
 */
-void Mod_LoadEdges (lump_t *l)
+void Mod_LoadEdges (lump_t *l, dbsp_t *bsp)
 {
-	dedge_t *in;
-	medge_t *out;
+	dedge_t *in = (dedge_t *) (mod_base + l->fileofs);
 	int 	i, count;
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (dedge_t))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadEdges: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
+	count = l->filelen / sizeof (dedge_t);
+	bsp->edges = in;
 
-	count = l->filelen / sizeof (*in);
-	out = ri.Hunk_Alloc ((count + 1) * sizeof (*out));
-
-	loadmodel->edges = out;
-	loadmodel->numedges = count;
-
-	for (i = 0; i < count; i++, in++, out++)
+	for (i = 0; i < count; i++, in++)
 	{
-		out->v[0] = (unsigned short) LittleShort (in->v[0]);
-		out->v[1] = (unsigned short) LittleShort (in->v[1]);
+		in->v[0] = (unsigned short) LittleShort (in->v[0]);
+		in->v[1] = (unsigned short) LittleShort (in->v[1]);
 	}
 }
 
@@ -191,21 +177,19 @@ void Mod_LoadEdges (lump_t *l)
 Mod_LoadTexinfo
 =================
 */
-void Mod_LoadTexinfo (lump_t *l)
+void Mod_LoadTexinfo (lump_t *l, dbsp_t *bsp)
 {
-	texinfo_t *in;
+	texinfo_t *in= (texinfo_t *) (mod_base + l->fileofs);
 	mtexinfo_t *out, *step;
 	int 	i, j, count;
 	char	name[MAX_QPATH];
 	int		next;
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (texinfo_t))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadTexinfo: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-
-	count = l->filelen / sizeof (*in);
-	out = ri.Hunk_Alloc (count * sizeof (*out));
+	count = l->filelen / sizeof (texinfo_t);
+	out = ri.Hunk_Alloc (count * sizeof (mtexinfo_t));
 
 	loadmodel->texinfo = out;
 	loadmodel->numtexinfo = count;
@@ -242,6 +226,7 @@ void Mod_LoadTexinfo (lump_t *l)
 	}
 }
 
+
 /*
 ================
 Mod_CalcSurfaceExtents
@@ -249,7 +234,7 @@ Mod_CalcSurfaceExtents
 Fills in s->texturemins[] and s->extents[]
 ================
 */
-void Mod_CalcSurfaceExtents (msurface_t *s)
+void Mod_CalcSurfaceExtents (msurface_t *s, dbsp_t *bsp)
 {
 	int		i;
 	float	mins[2] = {999999, 999999};
@@ -261,22 +246,22 @@ void Mod_CalcSurfaceExtents (msurface_t *s)
 
 	for (i = 0; i < s->numedges; i++)
 	{
-		int j, e = loadmodel->surfedges[s->firstedge + i];
-		mvertex_t *v;
+		int j, e = bsp->surfedges[s->firstedge + i];
+		dvertex_t *v;
 
 		if (e >= 0)
-			v = &loadmodel->vertexes[loadmodel->edges[e].v[0]];
-		else v = &loadmodel->vertexes[loadmodel->edges[-e].v[1]];
+			v = &bsp->vertexes[bsp->edges[e].v[0]];
+		else v = &bsp->vertexes[bsp->edges[-e].v[1]];
 
 		for (j = 0; j < 3; j++)
 		{
-			if (v->position[j] < s->mins[j]) s->mins[j] = v->position[j];
-			if (v->position[j] > s->maxs[j]) s->maxs[j] = v->position[j];
+			if (v->point[j] < s->mins[j]) s->mins[j] = v->point[j];
+			if (v->point[j] > s->maxs[j]) s->maxs[j] = v->point[j];
 		}
 
 		for (j = 0; j < 2; j++)
 		{
-			float val = Vector3Dot (v->position, tex->vecs[j]) + tex->vecs[j][3];
+			float val = Vector3Dot (v->point, tex->vecs[j]) + tex->vecs[j][3];
 
 			if (val < mins[j]) mins[j] = val;
 			if (val > maxs[j]) maxs[j] = val;
@@ -300,28 +285,27 @@ void GL_EndBuildingLightmaps (void);
 
 void GL_BeginBuildingSurfaces (model_t *mod);
 void R_RegisterSurface (msurface_t *surf);
-void GL_EndBuildingSurfaces (model_t *mod);
+void GL_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp);
+
 
 /*
 =================
 Mod_LoadFaces
 =================
 */
-void Mod_LoadFaces (lump_t *l)
+void Mod_LoadFaces (lump_t *l, dbsp_t *bsp)
 {
-	dface_t		*in;
+	dface_t		*in = (dface_t *) (mod_base + l->fileofs);
 	msurface_t 	*out;
 	int			i, count, surfnum;
 	int			planenum, side;
 	int			ti;
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (dface_t))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadFaces: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-
-	count = l->filelen / sizeof (*in);
-	out = ri.Hunk_Alloc (count * sizeof (*out));
+	count = l->filelen / sizeof (dface_t);
+	out = ri.Hunk_Alloc (count * sizeof (msurface_t));
 
 	loadmodel->surfaces = out;
 	loadmodel->numsurfaces = count;
@@ -349,7 +333,7 @@ void Mod_LoadFaces (lump_t *l)
 
 		out->texinfo = loadmodel->texinfo + ti;
 
-		Mod_CalcSurfaceExtents (out);
+		Mod_CalcSurfaceExtents (out, bsp);
 
 		// lighting info
 		for (i = 0; i < MAXLIGHTMAPS; i++)
@@ -377,7 +361,7 @@ void Mod_LoadFaces (lump_t *l)
 	}
 
 	GL_EndBuildingLightmaps ();
-	GL_EndBuildingSurfaces (loadmodel);
+	GL_EndBuildingSurfaces (loadmodel, bsp);
 }
 
 
@@ -402,19 +386,17 @@ void Mod_SetParent (mnode_t *node, mnode_t *parent)
 Mod_LoadNodes
 =================
 */
-void Mod_LoadNodes (lump_t *l)
+void Mod_LoadNodes (lump_t *l, dbsp_t *bsp)
 {
 	int			i, j, count, p;
-	dnode_t		*in;
+	dnode_t		*in = (dnode_t *) (mod_base + l->fileofs);
 	mnode_t 	*out;
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (dnode_t))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadNodes: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-
-	count = l->filelen / sizeof (*in);
-	out = ri.Hunk_Alloc (count * sizeof (*out));
+	count = l->filelen / sizeof (dnode_t);
+	out = ri.Hunk_Alloc (count * sizeof (mnode_t));
 
 	loadmodel->nodes = out;
 	loadmodel->numnodes = count;
@@ -452,20 +434,17 @@ void Mod_LoadNodes (lump_t *l)
 Mod_LoadLeafs
 =================
 */
-void Mod_LoadLeafs (lump_t *l)
+void Mod_LoadLeafs (lump_t *l, dbsp_t *bsp)
 {
-	dleaf_t 	*in;
+	dleaf_t 	*in = (dleaf_t *) (mod_base + l->fileofs);
 	mleaf_t 	*out;
 	int			i, j, count, p;
-	//	glpoly_t	*poly;
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (dleaf_t))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadLeafs: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-
-	count = l->filelen / sizeof (*in);
-	out = ri.Hunk_Alloc (count * sizeof (*out));
+	count = l->filelen / sizeof (dleaf_t);
+	out = ri.Hunk_Alloc (count * sizeof (mleaf_t));
 
 	loadmodel->leafs = out;
 	loadmodel->numleafs = count;
@@ -495,19 +474,17 @@ void Mod_LoadLeafs (lump_t *l)
 Mod_LoadMarksurfaces
 =================
 */
-void Mod_LoadMarksurfaces (lump_t *l)
+void Mod_LoadMarksurfaces (lump_t *l, dbsp_t *bsp)
 {
 	int		i, j, count;
-	short		*in;
+	short		*in = (short *) (mod_base + l->fileofs);
 	msurface_t **out;
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (short))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadMarksurfaces: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-
-	count = l->filelen / sizeof (*in);
-	out = ri.Hunk_Alloc (count * sizeof (*out));
+	count = l->filelen / sizeof (short);
+	out = ri.Hunk_Alloc (count * sizeof (msurface_t *));
 
 	loadmodel->marksurfaces = out;
 	loadmodel->nummarksurfaces = count;
@@ -528,28 +505,20 @@ void Mod_LoadMarksurfaces (lump_t *l)
 Mod_LoadSurfedges
 =================
 */
-void Mod_LoadSurfedges (lump_t *l)
+void Mod_LoadSurfedges (lump_t *l, dbsp_t *bsp)
 {
 	int		i, count;
-	int		*in, *out;
+	int		*in = (int *) (mod_base + l->fileofs);
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (int))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadSurfedges: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-
-	count = l->filelen / sizeof (*in);
-
-	if (count < 1 || count >= MAX_MAP_SURFEDGES)
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: bad surfedges count in %s: %i", loadmodel->name, count);
-
-	out = ri.Hunk_Alloc (count * sizeof (*out));
-
-	loadmodel->surfedges = out;
-	loadmodel->numsurfedges = count;
+	count = l->filelen / sizeof (int);
 
 	for (i = 0; i < count; i++)
-		out[i] = LittleLong (in[i]);
+		in[i] = LittleLong (in[i]);
+
+	bsp->surfedges = in;
 }
 
 
@@ -558,22 +527,20 @@ void Mod_LoadSurfedges (lump_t *l)
 Mod_LoadPlanes
 =================
 */
-void Mod_LoadPlanes (lump_t *l)
+void Mod_LoadPlanes (lump_t *l, dbsp_t *bsp)
 {
 	int			i, j;
 	cplane_t	*out;
-	dplane_t 	*in;
+	dplane_t 	*in = (dplane_t *) (mod_base + l->fileofs);
 	int			count;
 
-	in = (void *) (mod_base + l->fileofs);
+	if (l->filelen % sizeof (dplane_t))
+		ri.Sys_Error (ERR_DROP, "Mod_LoadPlanes: funny lump size in %s", loadmodel->name);
 
-	if (l->filelen % sizeof (*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-
-	count = l->filelen / sizeof (*in);
+	count = l->filelen / sizeof (dplane_t);
 
 	// this had an extra "* 2" - which was also in GLQuake and may be a legacy from when an earlier varaint didn't have SURF_PLANEBACK
-	out = ri.Hunk_Alloc (count * sizeof (*out));
+	out = ri.Hunk_Alloc (count * sizeof (cplane_t));
 
 	loadmodel->planes = out;
 	loadmodel->numplanes = count;
@@ -599,6 +566,7 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 	int			i;
 	dheader_t	*header;
 	mmodel_t 	*bm;
+	dbsp_t		bsp;
 
 	loadmodel->type = mod_brush;
 
@@ -618,18 +586,18 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 		((int *) header)[i] = LittleLong (((int *) header)[i]);
 
 	// load into heap
-	Mod_LoadVertexes (&header->lumps[LUMP_VERTEXES]);
-	Mod_LoadEdges (&header->lumps[LUMP_EDGES]);
-	Mod_LoadSurfedges (&header->lumps[LUMP_SURFEDGES]);
-	Mod_LoadLighting (&header->lumps[LUMP_LIGHTING]);
-	Mod_LoadPlanes (&header->lumps[LUMP_PLANES]);
-	Mod_LoadTexinfo (&header->lumps[LUMP_TEXINFO]);
-	Mod_LoadFaces (&header->lumps[LUMP_FACES]);
-	Mod_LoadMarksurfaces (&header->lumps[LUMP_LEAFFACES]);
-	Mod_LoadVisibility (&header->lumps[LUMP_VISIBILITY]);
-	Mod_LoadLeafs (&header->lumps[LUMP_LEAFS]);
-	Mod_LoadNodes (&header->lumps[LUMP_NODES]);
-	Mod_LoadSubmodels (&header->lumps[LUMP_MODELS]);
+	Mod_LoadVertexes (&header->lumps[LUMP_VERTEXES], &bsp);
+	Mod_LoadEdges (&header->lumps[LUMP_EDGES], &bsp);
+	Mod_LoadSurfedges (&header->lumps[LUMP_SURFEDGES], &bsp);
+	Mod_LoadLighting (&header->lumps[LUMP_LIGHTING], &bsp);
+	Mod_LoadPlanes (&header->lumps[LUMP_PLANES], &bsp);
+	Mod_LoadTexinfo (&header->lumps[LUMP_TEXINFO], &bsp);
+	Mod_LoadFaces (&header->lumps[LUMP_FACES], &bsp);
+	Mod_LoadMarksurfaces (&header->lumps[LUMP_LEAFFACES], &bsp);
+	Mod_LoadVisibility (&header->lumps[LUMP_VISIBILITY], &bsp);
+	Mod_LoadLeafs (&header->lumps[LUMP_LEAFS], &bsp);
+	Mod_LoadNodes (&header->lumps[LUMP_NODES], &bsp);
+	Mod_LoadSubmodels (&header->lumps[LUMP_MODELS], &bsp);
 	mod->numframes = 2;		// regular and alternate animation
 
 	// set up the submodels

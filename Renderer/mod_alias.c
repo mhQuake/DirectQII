@@ -33,55 +33,50 @@ ALIAS MODELS
 ==============================================================================
 */
 
-void Mod_LoadAliasSTVerts (dmdl_t *pinmodel, mmdl_t *pheader)
+void Mod_LoadAliasSTVerts (dmdl_t *pinmodel)
 {
 	int i;
 
-	// load base s and t vertices (not used in gl version)
-	dstvert_t *pinst = (dstvert_t *) ((byte *) pinmodel + pinmodel->ofs_st);
-	mstvert_t *poutst = (mstvert_t *) ri.Hunk_Alloc (pinmodel->num_st * sizeof (mstvert_t));
+	// load base s and t vertices
+	// these are discarded after buffers are built so they just need to byte-swap in-place
+	dstvert_t *stverts = (dstvert_t *) ((byte *) pinmodel + pinmodel->ofs_st);
 
 	for (i = 0; i < pinmodel->num_st; i++)
 	{
-		poutst[i].s = LittleShort (pinst[i].s);
-		poutst[i].t = LittleShort (pinst[i].t);
+		stverts[i].s = LittleShort (stverts[i].s);
+		stverts[i].t = LittleShort (stverts[i].t);
 	}
-
-	pheader->stverts = poutst;
 }
 
 
-void Mod_LoadAliasTriangles (dmdl_t *pinmodel, mmdl_t *pheader)
+void Mod_LoadAliasTriangles (dmdl_t *pinmodel)
 {
 	int i, j;
 
 	// load triangle lists
-	dtriangle_t *pintri = (dtriangle_t *) ((byte *) pinmodel + pinmodel->ofs_tris);
-	mtriangle_t *pouttri = (mtriangle_t *) ri.Hunk_Alloc (pinmodel->num_tris * sizeof (mtriangle_t));
+	// these are discarded after buffers are built so they just need to byte-swap in-place
+	dtriangle_t *triangles = (dtriangle_t *) ((byte *) pinmodel + pinmodel->ofs_tris);
 
 	for (i = 0; i < pinmodel->num_tris; i++)
 	{
 		for (j = 0; j < 3; j++)
 		{
-			pouttri[i].index_xyz[j] = LittleShort (pintri[i].index_xyz[j]);
-			pouttri[i].index_st[j] = LittleShort (pintri[i].index_st[j]);
+			triangles[i].index_xyz[j] = LittleShort (triangles[i].index_xyz[j]);
+			triangles[i].index_st[j] = LittleShort (triangles[i].index_st[j]);
 		}
 	}
-
-	pheader->triangles = pouttri;
 }
 
 
 void Mod_LoadAliasFrames (dmdl_t *pinmodel, mmdl_t *pheader)
 {
 	int i, j;
-	mtrivertx_t *triverts = (mtrivertx_t *) ri.Hunk_Alloc (pinmodel->num_frames * pinmodel->num_xyz * sizeof (mtrivertx_t));
 
 	// alloc the frames
 	pheader->frames = (maliasframe_t *) ri.Hunk_Alloc (pheader->num_frames * sizeof (maliasframe_t));
 
 	// load the frames
-	for (i = 0; i < pheader->num_frames; i++, triverts += pinmodel->num_xyz)
+	for (i = 0; i < pheader->num_frames; i++)
 	{
 		daliasframe_t *pinframe = (daliasframe_t *) ((byte *) pinmodel + pinmodel->ofs_frames + i * pinmodel->framesize);
 		maliasframe_t *poutframe = &pheader->frames[i];
@@ -92,17 +87,7 @@ void Mod_LoadAliasFrames (dmdl_t *pinmodel, mmdl_t *pheader)
 			poutframe->translate[j] = LittleFloat (pinframe->translate[j]);
 		}
 
-		// verts are all 8 bit, so no swapping needed
-		for (j = 0; j < pinmodel->num_xyz; j++)
-		{
-			triverts[j].v[0] = pinframe->verts[j].v[0];
-			triverts[j].v[1] = pinframe->verts[j].v[1];
-			triverts[j].v[2] = pinframe->verts[j].v[2];
-			triverts[j].lightnormalindex = pinframe->verts[j].lightnormalindex;
-		}
-
-		// set the triverts pointer
-		poutframe->triverts = triverts;
+		// verts are all 8 bit, so no swapping needed; they are discarded after building so we don't need to save them off
 	}
 }
 
@@ -166,8 +151,8 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 	Mod_LoadAliasHeader (pinmodel, pheader, mod);
 
 	// load all the data (major fixme - this doesn't need to be kept around after the MDL is converted to vertex buffers)
-	Mod_LoadAliasSTVerts (pinmodel, pheader);
-	Mod_LoadAliasTriangles (pinmodel, pheader);
+	Mod_LoadAliasSTVerts (pinmodel);
+	Mod_LoadAliasTriangles (pinmodel);
 	Mod_LoadAliasFrames (pinmodel, pheader);
 	Mod_LoadAliasSkins (pinmodel, pheader, mod);
 
@@ -176,6 +161,9 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 	// these will be replaced by the correct per-frame bboxes at runtime
 	Vector3Set (mod->mins, -32, -32, -32);
 	Vector3Set (mod->maxs, 32, 32, 32);
+
+	// create vertex and index buffers
+	D_MakeAliasBuffers (mod, pinmodel);
 }
 
 

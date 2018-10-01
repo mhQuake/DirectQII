@@ -18,5 +18,4 @@ CVAR_VIDEO should not write to console if in the menus
 
 Music sometimes stops when it shouldn't...
 
-qfiles.h should only be in the model-loading functions with m* variants of the structs in use elsewhere
 

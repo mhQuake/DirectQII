@@ -20,21 +20,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // qcommon.h -- definitions common between client and server, but not game.dll
 
+// stuff that needs to be included in the renderer - begin
 #include "q_shared.h"
-
-#ifdef INCLUDE_QFILES
 #include "qfiles.h"
-#endif
 
 // make qsort prettier
 typedef int (*sortfunc_t) (const void *, const void *);
+// stuff that needs to be included in the renderer - end
+// everything after here doesn't need to be included in the renderer
 
-// stuff in the renderer should not access these functions
-#ifndef RENDERER_LIBRARY
+#define VERSION  3.19
 
-#define	VERSION		3.19
-
-#define	BASEDIRNAME	"baseq2"
+#define BASEDIRNAME "baseq2"
 
 #ifdef WIN32
 
@@ -45,9 +42,9 @@ typedef int (*sortfunc_t) (const void *, const void *);
 #endif
 
 #ifdef _M_IX86
-#define	CPUSTRING	"x86"
+#define CPUSTRING "x86"
 #elif defined _M_ALPHA
-#define	CPUSTRING	"AXP"
+#define CPUSTRING "AXP"
 #endif
 
 #elif defined __linux__
@@ -72,10 +69,10 @@ typedef int (*sortfunc_t) (const void *, const void *);
 #define CPUSTRING "sparc"
 #endif
 
-#else	// !WIN32
+#else // !WIN32
 
 #define BUILDSTRING "NON-WIN32"
-#define	CPUSTRING	"NON-WIN32"
+#define CPUSTRING "NON-WIN32"
 
 #endif
 
@@ -83,19 +80,19 @@ typedef int (*sortfunc_t) (const void *, const void *);
 
 typedef struct sizebuf_s
 {
-	qboolean	allowoverflow;	// if false, do a Com_Error
-	qboolean	overflowed;		// set to true if the buffer size failed
-	byte	*data;
-	int		maxsize;
-	int		cursize;
-	int		readcount;
+	qboolean allowoverflow;		// if false, do a Com_Error
+	qboolean overflowed;		// set to true if the buffer size failed
+	byte *data;
+	int maxsize;
+	int cursize;
+	int readcount;
 } sizebuf_t;
 
 void SZ_Init (sizebuf_t *buf, byte *data, int length);
 void SZ_Clear (sizebuf_t *buf);
 void *SZ_GetSpace (sizebuf_t *buf, int length);
 void SZ_Write (sizebuf_t *buf, void *data, int length);
-void SZ_Print (sizebuf_t *buf, char *data);	// strcats onto the sizebuf
+void SZ_Print (sizebuf_t *buf, char *data); // strcats onto the sizebuf
 
 //============================================================================
 
@@ -119,18 +116,18 @@ void MSG_WriteDir (sizebuf_t *sb, vec3_t vector);
 
 void MSG_BeginReading (sizebuf_t *sb);
 
-int		MSG_ReadChar (sizebuf_t *sb);
-int		MSG_ReadByte (sizebuf_t *sb);
-int		MSG_ReadShort (sizebuf_t *sb);
-int		MSG_ReadLong (sizebuf_t *sb);
-float	MSG_ReadFloat (sizebuf_t *sb);
-char	*MSG_ReadString (sizebuf_t *sb);
-char	*MSG_ReadStringLine (sizebuf_t *sb);
+int MSG_ReadChar (sizebuf_t *sb);
+int MSG_ReadByte (sizebuf_t *sb);
+int MSG_ReadShort (sizebuf_t *sb);
+int MSG_ReadLong (sizebuf_t *sb);
+float MSG_ReadFloat (sizebuf_t *sb);
+char *MSG_ReadString (sizebuf_t *sb);
+char *MSG_ReadStringLine (sizebuf_t *sb);
 
-float	MSG_ReadCoord (sizebuf_t *sb);
+float MSG_ReadCoord (sizebuf_t *sb);
 void MSG_ReadPos (sizebuf_t *sb, vec3_t pos);
-float	MSG_ReadAngle (sizebuf_t *sb);
-float	MSG_ReadAngle16 (sizebuf_t *sb);
+float MSG_ReadAngle (sizebuf_t *sb);
+float MSG_ReadAngle16 (sizebuf_t *sb);
 void MSG_ReadDeltaUsercmd (sizebuf_t *sb, struct usercmd_s *from, struct usercmd_s *cmd);
 
 void MSG_ReadDir (sizebuf_t *sb, vec3_t vector);
@@ -139,20 +136,20 @@ void MSG_ReadData (sizebuf_t *sb, void *buffer, int size);
 
 //============================================================================
 
-extern	qboolean		bigendien;
+extern qboolean  bigendien;
 
-extern	short	BigShort (short l);
-extern	short	LittleShort (short l);
-extern	int		BigLong (int l);
-extern	int		LittleLong (int l);
-extern	float	BigFloat (float l);
-extern	float	LittleFloat (float l);
+extern short BigShort (short l);
+extern short LittleShort (short l);
+extern int BigLong (int l);
+extern int LittleLong (int l);
+extern float BigFloat (float l);
+extern float LittleFloat (float l);
 
 //============================================================================
 
 
-int	COM_Argc (void);
-char *COM_Argv (int arg);	// range and null checked
+int COM_Argc (void);
+char *COM_Argv (int arg); // range and null checked
 void COM_ClearArgv (int arg);
 int COM_CheckParm (char *parm);
 void COM_AddParm (char *parm);
@@ -186,19 +183,19 @@ PROTOCOL
 
 // protocol.h -- communications protocols
 
-#define	PROTOCOL_VERSION	34
+#define PROTOCOL_VERSION 34
 
 //=========================================
 
-#define	PORT_MASTER	27900
-#define	PORT_CLIENT	27901
-#define	PORT_SERVER	27910
+#define PORT_MASTER 27900
+#define PORT_CLIENT 27901
+#define PORT_SERVER 27910
 
 //=========================================
 
-#define	UPDATE_BACKUP	16	// copies of entity_state_t to keep buffered
+#define UPDATE_BACKUP 16 // copies of entity_state_t to keep buffered
 // must be power of two
-#define	UPDATE_MASK		(UPDATE_BACKUP-1)
+#define UPDATE_MASK  (UPDATE_BACKUP-1)
 
 
 
@@ -423,13 +420,13 @@ void Cmd_RemoveCommand (char *cmd_name);
 qboolean Cmd_Exists (char *cmd_name);
 // used by the cvar code to check for cvar / command name overlap
 
-char 	*Cmd_CompleteCommand (char *partial);
+char *Cmd_CompleteCommand (char *partial);
 // attempts to match a partial command for automatic command line completion
 // returns NULL if nothing fits
 
-int		Cmd_Argc (void);
-char	*Cmd_Argv (int arg);
-char	*Cmd_Args (void);
+int Cmd_Argc (void);
+char *Cmd_Argv (int arg);
+char *Cmd_Args (void);
 // The functions that execute commands get their parameters with these
 // functions. Cmd_Argv () will return an empty string, not a NULL
 // if arg > argc, so string operations are always safe.
@@ -476,24 +473,24 @@ cvar_t *Cvar_Get (char *var_name, char *value, int flags);
 // if it exists, the value will not be changed, but flags will be ORed in
 // that allows variables to be unarchived without needing bitflags
 
-cvar_t 	*Cvar_Set (char *var_name, char *value);
+cvar_t *Cvar_Set (char *var_name, char *value);
 // will create the variable if it doesn't exist
 
 cvar_t *Cvar_ForceSet (char *var_name, char *value);
 // will set the variable even if NOSET or LATCH
 
-cvar_t 	*Cvar_FullSet (char *var_name, char *value, int flags);
+cvar_t *Cvar_FullSet (char *var_name, char *value, int flags);
 
 void Cvar_SetValue (char *var_name, float value);
 // expands value to a string and calls Cvar_Set
 
-float	Cvar_VariableValue (char *var_name);
+float Cvar_VariableValue (char *var_name);
 // returns 0 if not defined or non numeric
 
-char	*Cvar_VariableString (char *var_name);
+char *Cvar_VariableString (char *var_name);
 // returns an empty string if not defined
 
-char 	*Cvar_CompleteVariable (char *partial);
+char *Cvar_CompleteVariable (char *partial);
 // attempts to match a partial variable name for command line completion
 // returns NULL if nothing fits
 
@@ -505,19 +502,19 @@ qboolean Cvar_Command (void);
 // command.  Returns true if the command was a variable reference that
 // was handled. (print or change)
 
-void 	Cvar_WriteVariables (char *path);
+void Cvar_WriteVariables (char *path);
 // appends lines containing "set variable value" for all variables
 // with the archive flag set to true.
 
 void Cvar_Init (void);
 
-char	*Cvar_Userinfo (void);
+char *Cvar_Userinfo (void);
 // returns an info string containing all the CVAR_USERINFO cvars
 
-char	*Cvar_Serverinfo (void);
+char *Cvar_Serverinfo (void);
 // returns an info string containing all the CVAR_SERVERINFO cvars
 
-extern	qboolean	userinfo_modified;
+extern qboolean userinfo_modified;
 // this is set each time a CVAR_USERINFO variable is changed
 // so that the client knows to send it to the server
 
@@ -531,7 +528,7 @@ NET
 
 // net.h -- quake's interface to the networking layer
 
-#define	PORT_ANY	-1
+#define PORT_ANY	-1
 
 #define	MAX_MSGLEN		1400		// max length of a message
 #define	PACKET_HEADER	10			// two ints and a short
@@ -555,14 +552,14 @@ void NET_Shutdown (void);
 
 void NET_Config (qboolean multiplayer);
 
-qboolean	NET_GetPacket (netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message);
+qboolean NET_GetPacket (netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message);
 void NET_SendPacket (netsrc_t sock, int length, void *data, netadr_t to);
 
-qboolean	NET_CompareAdr (netadr_t a, netadr_t b);
-qboolean	NET_CompareBaseAdr (netadr_t a, netadr_t b);
-qboolean	NET_IsLocalAddress (netadr_t adr);
-char		*NET_AdrToString (netadr_t a);
-qboolean	NET_StringToAdr (char *s, netadr_t *a);
+qboolean NET_CompareAdr (netadr_t a, netadr_t b);
+qboolean NET_CompareBaseAdr (netadr_t a, netadr_t b);
+qboolean NET_IsLocalAddress (netadr_t adr);
+char *NET_AdrToString (netadr_t a);
+qboolean NET_StringToAdr (char *s, netadr_t *a);
 void NET_Sleep (int msec);
 
 //============================================================================
@@ -577,31 +574,31 @@ typedef struct netchan_s
 
 	netsrc_t	sock;
 
-	int			dropped;			// between last packet and previous
+	int 	dropped;			// between last packet and previous
 
-	int			last_received;		// for timeouts
-	int			last_sent;			// for retransmits
+	int 	last_received;		// for timeouts
+	int 	last_sent;			// for retransmits
 
 	netadr_t	remote_address;
-	int			qport;				// qport value to write when transmitting
+	int 	qport;				// qport value to write when transmitting
 
 	// sequencing variables
-	int			incoming_sequence;
-	int			incoming_acknowledged;
-	int			incoming_reliable_acknowledged;	// single bit
+	int 	incoming_sequence;
+	int 	incoming_acknowledged;
+	int 	incoming_reliable_acknowledged;	// single bit
 
-	int			incoming_reliable_sequence;		// single bit, maintained local
+	int 	incoming_reliable_sequence;		// single bit, maintained local
 
-	int			outgoing_sequence;
-	int			reliable_sequence;			// single bit
-	int			last_reliable_sequence;		// sequence number of last send
+	int 	outgoing_sequence;
+	int 	reliable_sequence;			// single bit
+	int 	last_reliable_sequence;		// sequence number of last send
 
 	// reliable staging and holding areas
 	sizebuf_t	message;		// writing buffer to send to server
 	byte		message_buf[MAX_MSGLEN - 16];		// leave space for header
 
 	// message is copied to this buffer when it is first transfered
-	int			reliable_length;
+	int 	reliable_length;
 	byte		reliable_buf[MAX_MSGLEN - 16];	// unacked reliable message
 } netchan_t;
 
@@ -738,19 +735,19 @@ MISC
 
 void Com_BeginRedirect (int target, char *buffer, int buffersize, void (*flush));
 void Com_EndRedirect (void);
-void 		Com_Printf (char *fmt, ...);
-void 		Com_DPrintf (char *fmt, ...);
-void 		Com_Error (int code, char *fmt, ...);
-void 		Com_Quit (void);
+void Com_Printf (char *fmt, ...);
+void Com_DPrintf (char *fmt, ...);
+void Com_Error (int code, char *fmt, ...);
+void Com_Quit (void);
 
-int			Com_ServerState (void);		// this should have just been a cvar...
+int Com_ServerState (void);		// this should have just been a cvar...
 void Com_SetServerState (int state);
 
-unsigned	Com_BlockChecksum (void *buffer, int length);
-byte		COM_BlockSequenceCRCByte (byte *base, int length, int sequence);
+unsigned Com_BlockChecksum (void *buffer, int length);
+byte COM_BlockSequenceCRCByte (byte *base, int length, int sequence);
 
-float	frand (void);	// 0 ti 1
-float	crand (void);	// -1 to 1
+float frand (void); // 0 ti 1
+float crand (void);	// -1 to 1
 
 extern	cvar_t	*developer;
 extern	cvar_t	*dedicated;
@@ -789,12 +786,12 @@ void Sys_UnloadGame (void);
 void *Sys_GetGameAPI (void *parms);
 // loads the game dll and calls the api init function
 
-char	*Sys_ConsoleInput (void);
+char *Sys_ConsoleInput (void);
 void Sys_ConsoleOutput (char *string);
 void Sys_SendKeyEvents (void);
 void Sys_Error (char *error, ...);
 void Sys_Quit (void);
-char	*Sys_GetClipboardData (void);
+char *Sys_GetClipboardData (void);
 
 /*
 ==============================================================
@@ -815,5 +812,4 @@ void SV_Init (void);
 void SV_Shutdown (char *finalmsg, qboolean reconnect);
 void SV_Frame (int msec);
 
-#endif
 

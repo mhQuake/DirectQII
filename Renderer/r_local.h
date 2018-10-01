@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <d3d11.h>
 
+#define RENDERER
 #include "../DirectQII/ref.h"
 
 // we load shaders from embedded resources in the executable, but we can't embed resources in a static lib so we must embed them in the engine project instead
@@ -483,7 +484,8 @@ void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV);
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // mesh
 void R_FreeUnusedAliasBuffers (void);
-void D_MakeAliasBuffers (model_t *mod);
+void D_MakeAliasBuffers (model_t *mod, dmdl_t *src);
+void D_RegisterAliasBuffers (model_t *mod);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------

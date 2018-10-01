@@ -671,7 +671,7 @@ void R_MarkLeaves (void)
 GL_BuildPolygonFromSurface
 ================
 */
-void GL_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t *verts)
+void GL_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t *verts, dbsp_t *bsp)
 {
 	int	i, maps;
 	byte styles[4] = {0, 0, 0, 0};
@@ -683,17 +683,17 @@ void GL_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t
 	// reconstruct the polygon
 	for (i = 0; i < surf->numedges; i++, verts++)
 	{
-		int lindex = mod->surfedges[surf->firstedge + i];
+		int lindex = bsp->surfedges[surf->firstedge + i];
 
 		if (lindex > 0)
 		{
-			medge_t *r_pedge = &mod->edges[lindex];
-			Vector3Copy (verts->xyz, mod->vertexes[r_pedge->v[0]].position);
+			dedge_t *r_pedge = &bsp->edges[lindex];
+			Vector3Copy (verts->xyz, bsp->vertexes[r_pedge->v[0]].point);
 		}
 		else
 		{
-			medge_t *r_pedge = &mod->edges[-lindex];
-			Vector3Copy (verts->xyz, mod->vertexes[r_pedge->v[1]].position);
+			dedge_t *r_pedge = &bsp->edges[-lindex];
+			Vector3Copy (verts->xyz, bsp->vertexes[r_pedge->v[1]].point);
 		}
 
 		if (surf->texinfo->flags & SURF_WARP)
@@ -743,7 +743,7 @@ void R_RegisterSurface (msurface_t *surf)
 }
 
 
-void GL_EndBuildingSurfaces (model_t *mod)
+void GL_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 {
 	int i;
 
@@ -765,7 +765,7 @@ void GL_EndBuildingSurfaces (model_t *mod)
 	for (i = 0; i < mod->numsurfaces; i++)
 	{
 		msurface_t *surf = &mod->surfaces[i];
-		GL_BuildPolygonFromSurface (surf, mod, &verts[surf->firstvertex]);
+		GL_BuildPolygonFromSurface (surf, mod, &verts[surf->firstvertex], bsp);
 	}
 
 	// create the new vertex buffer
