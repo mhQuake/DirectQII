@@ -191,7 +191,9 @@ void R_EndSurfaceBatch (void)
 
 image_t *R_SelectSurfaceTexture (mtexinfo_t *ti, int frame)
 {
-	if (r_lightmap->value)
+	if (r_testnotexture->value)
+		return r_notexture;
+	else if (r_lightmap->value)
 	{
 		if (ti->flags & SURF_WARP)
 			return r_whitetexture;

@@ -164,7 +164,9 @@ float4 SpritePS (PS_SPRITE ps_in) : SV_TARGET0
 float4 ParticleCirclePS (PS_PARTICLE ps_in) : SV_TARGET0
 {
 	// procedurally generate the particle dot for good speed and per-pixel accuracy at any scale
-	return GetGamma (float4 (ps_in.Color.rgb, saturate (ps_in.Color.a * (1.0f - dot (ps_in.Offsets, ps_in.Offsets)))));
+	float pAlpha = ps_in.Color.a * (1.0f - dot (ps_in.Offsets, ps_in.Offsets));
+	clip (pAlpha); // reject any particles contributing less than zero
+	return GetGamma (float4 (ps_in.Color.rgb * pAlpha, pAlpha));
 }
 
 float4 ParticleSquarePS (PS_PARTICLE ps_in) : SV_TARGET0

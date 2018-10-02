@@ -197,6 +197,7 @@ extern	int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
 extern	cvar_t	*r_testnullmodels;
 extern	cvar_t	*r_lightmap;
+extern	cvar_t	*r_testnotexture;
 extern	cvar_t	*r_lightmodel;
 extern	cvar_t	*r_fullbright;
 extern	cvar_t	*r_beamdetail;

@@ -27,6 +27,7 @@ void R_Register (void)
 {
 	r_testnullmodels = ri.Cvar_Get ("r_testnullmodels", "0", CVAR_CHEAT);
 	r_lightmap = ri.Cvar_Get ("r_lightmap", "0", CVAR_CHEAT);
+	r_testnotexture = ri.Cvar_Get ("r_testnotexture", "0", CVAR_CHEAT);
 	r_lightmodel = ri.Cvar_Get ("r_lightmodel", "1", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_CHEAT);
 	r_beamdetail = ri.Cvar_Get ("r_beamdetail", "24", CVAR_ARCHIVE);

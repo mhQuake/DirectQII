@@ -354,10 +354,12 @@ image_t *R_GetAliasSkin (entity_t *e, model_t *mod)
 	image_t	*skin = NULL;
 
 	// select skin
+	if (r_testnotexture->value)
+		return r_notexture;
 	if (r_lightmap->value)
-		skin = r_greytexture;
+		return r_greytexture;
 	else if (e->skin)
-		skin = e->skin;	// custom player skin
+		skin = e->skin;	// custom player skin (this may be NULL so we can't just return it)
 	else
 	{
 		if (e->skinnum >= MAX_MD2SKINS)
