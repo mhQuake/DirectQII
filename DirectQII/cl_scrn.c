@@ -1092,8 +1092,7 @@ void CL_DrawFPS (void);
 
 void SCR_UpdateScreen (void)
 {
-	// if the screen is disabled (loading plaque is up, or vid mode changing)
-	// do nothing at all
+	// if the screen is disabled (loading plaque is up, or vid mode changing) do nothing at all
 	if (cls.disable_screen)
 	{
 		if (Sys_Milliseconds () - cls.disable_screen > 120000)

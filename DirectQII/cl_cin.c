@@ -27,7 +27,6 @@ typedef struct cblock_s
 
 typedef struct cinematics_s
 {
-	qboolean	restart_sound;
 	int		s_rate;
 	int		s_width;
 	int		s_channels;
@@ -141,40 +140,38 @@ SCR_StopCinematic
 void SCR_StopCinematic (void)
 {
 	cl.cinematictime = 0;	// done
+
 	if (cin.pic)
 	{
 		Z_Free (cin.pic);
 		cin.pic = NULL;
 	}
+
 	if (cin.pic_pending)
 	{
 		Z_Free (cin.pic_pending);
 		cin.pic_pending = NULL;
 	}
+
 	if (cl.cinematicpalette_active)
 	{
 		re.CinematicSetPalette (NULL);
 		cl.cinematicpalette_active = false;
 	}
+
 	if (cl.cinematic_file)
 	{
 		fclose (cl.cinematic_file);
 		cl.cinematic_file = NULL;
 	}
+
 	if (cin.hnodes1)
 	{
 		Z_Free (cin.hnodes1);
 		cin.hnodes1 = NULL;
 	}
-
-	// switch back down to 11 khz sound if necessary
-	if (cin.restart_sound)
-	{
-		cin.restart_sound = false;
-		CL_Snd_Restart_f ();
-	}
-
 }
+
 
 /*
 ====================
@@ -570,7 +567,6 @@ void SCR_PlayCinematic (char *arg)
 	int		width, height;
 	byte	*palette;
 	char	name[MAX_OSPATH], *dot;
-	int		old_khz;
 
 	// make sure CD isn't playing music
 	CDAudio_Stop ();
@@ -626,17 +622,6 @@ void SCR_PlayCinematic (char *arg)
 	cin.s_channels = LittleLong (cin.s_channels);
 
 	Huff1TableInit ();
-
-	// switch up to 22 khz sound if necessary
-	old_khz = Cvar_VariableValue ("s_khz");
-
-	if (old_khz != cin.s_rate / 1000)
-	{
-		cin.restart_sound = true;
-		Cvar_SetValue ("s_khz", cin.s_rate / 1000);
-		CL_Snd_Restart_f ();
-		Cvar_SetValue ("s_khz", old_khz);
-	}
 
 	cl.cinematicframe = 0;
 	cin.pic = SCR_ReadNextFrame ();

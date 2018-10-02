@@ -1551,7 +1551,7 @@ void CL_InitLocal (void)
 ===============
 CL_WriteConfiguration
 
-Writes key bindings and archived cvars to config.cfg
+Writes key bindings and archived cvars to directq.cfg
 ===============
 */
 void CL_WriteConfiguration (void)
@@ -1562,11 +1562,11 @@ void CL_WriteConfiguration (void)
 	if (cls.state == ca_uninitialized)
 		return;
 
-	Com_sprintf (path, sizeof (path), "%s/config.cfg", FS_Gamedir ());
+	Com_sprintf (path, sizeof (path), "%s/directq.cfg", FS_Gamedir ());
 	f = fopen (path, "w");
 	if (!f)
 	{
-		Com_Printf ("Couldn't write config.cfg.\n");
+		Com_Printf ("Couldn't write directq.cfg.\n");
 		return;
 	}
 
@@ -1748,10 +1748,8 @@ void CL_Init (void)
 	CL_InitLocal ();
 	IN_Init ();
 
-	//	Cbuf_AddText ("exec autoexec.cfg\n");
 	FS_ExecAutoexec ();
 	Cbuf_Execute ();
-
 }
 
 

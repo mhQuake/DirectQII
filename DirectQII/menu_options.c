@@ -43,7 +43,6 @@ static menulist_s		s_options_lookstrafe_box;
 static menulist_s		s_options_crosshair_box;
 static menuslider_s		s_options_sfxvolume_slider;
 static menuslider_s		s_options_cdvolume_slider;
-static menulist_s		s_options_quality_list;
 static menulist_s		s_options_console_action;
 
 static void CrosshairFunc (void *unused)
@@ -75,7 +74,6 @@ static void ControlsSetMenuItemValues (void)
 {
 	s_options_sfxvolume_slider.curvalue = Cvar_VariableValue ("s_volume") * 10;
 	s_options_cdvolume_slider.curvalue = Cvar_VariableValue ("bgmvolume") * 10;
-	s_options_quality_list.curvalue = Cvar_VariableValue ("s_khz") < 22;
 	s_options_sensitivity_slider.curvalue = (sensitivity->value) * 2;
 
 	Cvar_SetValue ("cl_run", M_ClampCvar (0, 1, cl_run->value));
@@ -143,22 +141,6 @@ static void ConsoleFunc (void *unused)
 	cls.key_dest = key_console;
 }
 
-static void UpdateSoundQualityFunc (void *unused)
-{
-	if (s_options_quality_list.curvalue)
-		Cvar_SetValue ("s_khz", 22);
-	else Cvar_SetValue ("s_khz", 11);
-
-	M_DrawTextBox (8, 120 - 48, 36, 3);
-	M_Print (16 + 16, 120 - 48 + 8,  "Restarting the sound system. This");
-	M_Print (16 + 16, 120 - 48 + 16, "could take up to a minute, so");
-	M_Print (16 + 16, 120 - 48 + 24, "please be patient.");
-
-	// the text box won't show up unless we do a buffer swap
-	re.EndFrame (true);
-
-	CL_Snd_Restart_f ();
-}
 
 void Options_MenuInit (void)
 {
@@ -213,17 +195,9 @@ void Options_MenuInit (void)
 	s_options_cdvolume_slider.maxvalue = 10;
 	s_options_cdvolume_slider.curvalue = Cvar_VariableValue ("bgmvolume") * 10;
 
-	s_options_quality_list.generic.type = MTYPE_SPINCONTROL;
-	s_options_quality_list.generic.x = 0;
-	s_options_quality_list.generic.y = 20;
-	s_options_quality_list.generic.name = "sound quality";
-	s_options_quality_list.generic.callback = UpdateSoundQualityFunc;
-	s_options_quality_list.itemnames = quality_items;
-	s_options_quality_list.curvalue = Cvar_VariableValue ("s_khz") < 22;
-
 	s_options_sensitivity_slider.generic.type = MTYPE_SLIDER;
 	s_options_sensitivity_slider.generic.x = 0;
-	s_options_sensitivity_slider.generic.y = 40;
+	s_options_sensitivity_slider.generic.y = 30;
 	s_options_sensitivity_slider.generic.name = "mouse speed";
 	s_options_sensitivity_slider.generic.callback = MouseSpeedFunc;
 	s_options_sensitivity_slider.minvalue = 2;
@@ -231,47 +205,47 @@ void Options_MenuInit (void)
 
 	s_options_alwaysrun_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_alwaysrun_box.generic.x = 0;
-	s_options_alwaysrun_box.generic.y = 50;
+	s_options_alwaysrun_box.generic.y = 40;
 	s_options_alwaysrun_box.generic.name = "always run";
 	s_options_alwaysrun_box.generic.callback = AlwaysRunFunc;
 	s_options_alwaysrun_box.itemnames = yesno_names;
 
 	s_options_invertmouse_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_invertmouse_box.generic.x = 0;
-	s_options_invertmouse_box.generic.y = 60;
+	s_options_invertmouse_box.generic.y = 50;
 	s_options_invertmouse_box.generic.name = "invert mouse";
 	s_options_invertmouse_box.generic.callback = InvertMouseFunc;
 	s_options_invertmouse_box.itemnames = yesno_names;
 
 	s_options_freelook_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_freelook_box.generic.x = 0;
-	s_options_freelook_box.generic.y = 70;
+	s_options_freelook_box.generic.y = 60;
 	s_options_freelook_box.generic.name = "free look";
 	s_options_freelook_box.generic.callback = FreeLookFunc;
 	s_options_freelook_box.itemnames = yesno_names;
 
 	s_options_crosshair_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_crosshair_box.generic.x = 0;
-	s_options_crosshair_box.generic.y = 90;
+	s_options_crosshair_box.generic.y = 80;
 	s_options_crosshair_box.generic.name = "crosshair";
 	s_options_crosshair_box.generic.callback = CrosshairFunc;
 	s_options_crosshair_box.itemnames = crosshair_names;
 
 	s_options_customize_options_action.generic.type = MTYPE_ACTION;
 	s_options_customize_options_action.generic.x = 0;
-	s_options_customize_options_action.generic.y = 110;
+	s_options_customize_options_action.generic.y = 100;
 	s_options_customize_options_action.generic.name = "customize controls";
 	s_options_customize_options_action.generic.callback = CustomizeControlsFunc;
 
 	s_options_writeconfig_action.generic.type = MTYPE_ACTION;
 	s_options_writeconfig_action.generic.x = 0;
-	s_options_writeconfig_action.generic.y = 120;
+	s_options_writeconfig_action.generic.y = 110;
 	s_options_writeconfig_action.generic.name = "save configuration";
 	s_options_writeconfig_action.generic.callback = WriteConfigurationFunc;
 
 	s_options_defaults_action.generic.type = MTYPE_ACTION;
 	s_options_defaults_action.generic.x = 0;
-	s_options_defaults_action.generic.y = 130;
+	s_options_defaults_action.generic.y = 120;
 	s_options_defaults_action.generic.name = "reset defaults";
 	s_options_defaults_action.generic.callback = ControlsResetDefaultsFunc;
 
@@ -285,7 +259,6 @@ void Options_MenuInit (void)
 
 	Menu_AddItem (&s_options_menu, (void *) &s_options_sfxvolume_slider);
 	Menu_AddItem (&s_options_menu, (void *) &s_options_cdvolume_slider);
-	Menu_AddItem (&s_options_menu, (void *) &s_options_quality_list);
 
 	Menu_AddItem (&s_options_menu, (void *) &s_options_sensitivity_slider);
 	Menu_AddItem (&s_options_menu, (void *) &s_options_alwaysrun_box);

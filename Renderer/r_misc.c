@@ -153,6 +153,8 @@ void GL_ScreenShot_f (void)
 // beams
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 typedef struct beampolyvert_s {
+	// this exists so that i don't get confused over what the actual count of verts is
+	// because "* 3" for number of floats in a vert vs "* 3" for number of verts in a triangle caused me to come a cropper with this code before
 	float position[3];
 } beampolyvert_t;
 
@@ -202,18 +204,6 @@ void R_CreateBeamIndexBuffer (void)
 		ndx[2] = (i & 1) ? (i - 1) : i;
 	}
 
-	if (0)
-	{
-		FILE *f = fopen (va ("beamindexes%i.txt", r_numbeamverts), "w");
-
-		for (i = 0; i < numindexes; i++)
-		{
-			fprintf (f, "%i, ", indexes[i]);
-		}
-
-		fclose (f);
-	}
-
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_BeamIndexes);
 }
 
@@ -242,19 +232,6 @@ void R_CreateBeamVertexes (int slices)
 
 		Vector3Set (verts[0].position, sin (angle) * 0.5f, cos (angle) * 0.5f, 1);
 		Vector3Set (verts[1].position, sin (angle) * 0.5f, cos (angle) * 0.5f, 0);
-	}
-
-	if (0)
-	{
-		FILE *f = fopen (va ("beamverts%i.txt", r_numbeamverts), "w");
-		verts = (beampolyvert_t *) srd.pSysMem;
-
-		for (i = 0; i < r_numbeamverts; i++)
-		{
-			fprintf (f, "{%f, %f, %f},\n", verts[i].position[0], verts[i].position[1], verts[i].position[2]);
-		}
-
-		fclose (f);
 	}
 
 	// create the buffers from the generated data

@@ -568,6 +568,7 @@ void Sys_SetWorkingDirectory (void)
 		"pak0.pak",
 		"gamex86.dll",
 		"config.cfg",
+		"directq.cfg",
 		NULL
 	};
 

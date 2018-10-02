@@ -25,3 +25,6 @@ beam transform is messy - this should be quuuick and easy to calculate...
 reduce number of cbuffers
 
 shaders as embedded resources: 1: get them into the renderer lib, and 2: get a recompile of resources if they change.
+
+screenshots without gamma or brightness
+
