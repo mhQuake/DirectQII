@@ -1,21 +1,16 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
-
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; either version 2
 of the License, or (at your option) any later version.
-
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 See the GNU General Public License for more details.
-
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
 */
 
 #include "r_local.h"
@@ -39,8 +34,7 @@ typedef struct shaderbundle_s {
 static shaderbundle_t d3d_Shaders[MAX_SHADERS];
 static int d3d_NumShaders = 0;
 
-// using D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT for compat with feature levels
-ID3D11Buffer *d3d_ConstantBuffers[D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+ID3D11Buffer *d3d_ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
 
 
 void R_ShutdownShaders (void)
@@ -59,7 +53,7 @@ void R_ShutdownShaders (void)
 	memset (d3d_Shaders, 0, sizeof (d3d_Shaders));
 
 	// release cBuffers
-	for (i = 0; i < D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
+	for (i = 0; i < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
 		SAFE_RELEASE (d3d_ConstantBuffers[i]);
 
 	// these should no longer be used
@@ -291,25 +285,22 @@ void D_BindShaderBundle (int sb)
 
 /*
 ============================================================================================================
-
 CBUFFER MANAGEMENT
-
 ============================================================================================================
 */
 
 void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot)
 {
-	if (slot >= 0 && slot < D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+	if (slot >= 0 && slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
 		d3d_ConstantBuffers[slot] = cBuffer;
+	else ri.Sys_Error (ERR_FATAL, "D_RegisterConstantBuffer : slot out of range");
 }
 
 
 void D_BindConstantBuffers (void)
 {
-	// using D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT for compat with feature levels
-	d3d_Context->lpVtbl->VSSetConstantBuffers (d3d_Context, 0, D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, d3d_ConstantBuffers);
-	d3d_Context->lpVtbl->GSSetConstantBuffers (d3d_Context, 0, D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, d3d_ConstantBuffers);
-	d3d_Context->lpVtbl->PSSetConstantBuffers (d3d_Context, 0, D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, d3d_ConstantBuffers);
+	d3d_Context->lpVtbl->VSSetConstantBuffers (d3d_Context, 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, d3d_ConstantBuffers);
+	d3d_Context->lpVtbl->GSSetConstantBuffers (d3d_Context, 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, d3d_ConstantBuffers);
+	d3d_Context->lpVtbl->PSSetConstantBuffers (d3d_Context, 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, d3d_ConstantBuffers);
 }
-
 

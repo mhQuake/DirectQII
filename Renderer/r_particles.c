@@ -67,43 +67,43 @@ R_DrawParticles
 */
 void R_DrawParticles (void)
 {
-	if (r_newrefdef.num_particles)
+	D3D11_MAP mode = D3D11_MAP_WRITE_NO_OVERWRITE;
+	D3D11_MAPPED_SUBRESOURCE msr;
+
+	if (!r_newrefdef.num_particles)
+		return;
+
+	// square particles can potentially expose a faster path by not using alpha blending
+	// but we might wish to add particle fade at some time so we can't do it (note: all particles in Q2 have fade)
+	D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSFullCull);
+	D_BindShaderBundle (d3d_ParticleShader);
+	D_BindVertexBuffer (0, d3d_ParticleVertexes, sizeof (particle_t), 0);
+
+	if (r_FirstParticle + r_newrefdef.num_particles >= MAX_GPU_PARTICLES)
 	{
-		D3D11_MAP mode = D3D11_MAP_WRITE_NO_OVERWRITE;
-		D3D11_MAPPED_SUBRESOURCE msr;
-
-		// square particles can potentially expose a faster path by not using alpha blending
-		// but we might wish to add particle fade at some time so we can't do it (note: all particles in Q2 have fade)
-		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSFullCull);
-		D_BindShaderBundle (d3d_ParticleShader);
-		D_BindVertexBuffer (0, d3d_ParticleVertexes, sizeof (particle_t), 0);
-
-		if (r_FirstParticle + r_newrefdef.num_particles >= MAX_GPU_PARTICLES)
-		{
-			r_FirstParticle = 0;
-			mode = D3D11_MAP_WRITE_DISCARD;
-		}
-
-		if (SUCCEEDED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_ParticleVertexes, 0, mode, 0, &msr)))
-		{
-			// copy over the particles and unmap the buffer
-			memcpy ((particle_t *) msr.pData + r_FirstParticle, r_newrefdef.particles, r_newrefdef.num_particles * sizeof (particle_t));
-			d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_ParticleVertexes, 0);
-
-			// go to points for the geometry shader
-			d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D10_PRIMITIVE_TOPOLOGY_POINTLIST);
-
-			// and draw it
-			d3d_Context->lpVtbl->Draw (d3d_Context, r_newrefdef.num_particles, r_FirstParticle);
-
-			// back to triangles
-			d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-			// and go to the next particle batch
-			r_FirstParticle += r_newrefdef.num_particles;
-		}
-
-		r_newrefdef.num_particles = 0;
+		r_FirstParticle = 0;
+		mode = D3D11_MAP_WRITE_DISCARD;
 	}
+
+	if (SUCCEEDED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_ParticleVertexes, 0, mode, 0, &msr)))
+	{
+		// copy over the particles and unmap the buffer
+		memcpy ((particle_t *) msr.pData + r_FirstParticle, r_newrefdef.particles, r_newrefdef.num_particles * sizeof (particle_t));
+		d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_ParticleVertexes, 0);
+
+		// go to points for the geometry shader
+		d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+		// and draw it
+		d3d_Context->lpVtbl->Draw (d3d_Context, r_newrefdef.num_particles, r_FirstParticle);
+
+		// back to triangles
+		d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		// and go to the next particle batch
+		r_FirstParticle += r_newrefdef.num_particles;
+	}
+
+	r_newrefdef.num_particles = 0;
 }
 

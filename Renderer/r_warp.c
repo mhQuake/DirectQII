@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-
 char	skyname[MAX_QPATH];
 float	skyrotate;
 vec3_t	skyaxis;
@@ -38,7 +37,7 @@ void D_CreateNoiseTexture (void)
 {
 #define NOISESIZE	16
 	int x, y;
-	unsigned data[NOISESIZE * NOISESIZE * 4];
+	unsigned *data = ri.Load_AllocMemory (NOISESIZE * NOISESIZE * 4);
 	unsigned *dst = data; // preserve the original pointer so that we can use it for an SRD
 	D3D11_SUBRESOURCE_DATA srd;
 
@@ -61,7 +60,8 @@ void D_CreateNoiseTexture (void)
 	srd.SysMemSlicePitch = 0;
 
 	// and create it
-	R_CreateTexture (&r_WarpNoise, &srd, NOISESIZE, NOISESIZE, 1, TEX_NOISE);
+	R_CreateTexture (&r_WarpNoise, &srd, NOISESIZE, NOISESIZE, 1, TEX_R16G16);
+	ri.Load_FreeMemory ();
 }
 
 

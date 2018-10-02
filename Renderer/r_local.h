@@ -399,7 +399,7 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 #define TEX_CUBEMAP			(1 << 7) // creates a cubemap (not used by this Hexen 2 engine)
 #define TEX_STAGING			(1 << 8) // creates the texture in the staging pool
 #define TEX_R32F			(1 << 9) // single-channel 32-bit floating-point texture
-#define TEX_NOISE			(1 << 10) // 2-channel 16-bit per channel signed-normalized format for use with noise
+#define TEX_R16G16			(1 << 10) // 2-channel 16-bit per channel signed-normalized format for use with noise
 #define TEX_PLAYERTEXTURE	(1 << 11) // used for player colour translations
 #define TEX_UPSCALE			(1 << 12) // texture was upscaled
 #define TEX_CHARSET			(1 << 13) // charset uses a 16x16 texture array

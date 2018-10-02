@@ -36,7 +36,7 @@ void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int a
 	// select the appropriate format
 	if (flags & TEX_R32F)
 		Desc->Format = DXGI_FORMAT_R32_FLOAT;
-	else if (flags & TEX_NOISE)
+	else if (flags & TEX_R16G16)
 		Desc->Format = DXGI_FORMAT_R16G16_SNORM;
 	else Desc->Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 

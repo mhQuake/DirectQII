@@ -22,3 +22,6 @@ we have the palette on the VS as a texture so read it as a colour for beams (how
 
 beam transform is messy - this should be quuuick and easy to calculate...
 
+reduce number of cbuffers
+
+shaders as embedded resources: 1: get them into the renderer lib, and 2: get a recompile of resources if they change.

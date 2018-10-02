@@ -556,6 +556,38 @@ void Mod_LoadPlanes (lump_t *l, dbsp_t *bsp)
 	}
 }
 
+
+void Mod_SetupSubmodels (model_t *mod)
+{
+	int i;
+
+	// set up the submodels
+	for (i = 0; i < mod->numsubmodels; i++)
+	{
+		model_t	*starmod = &mod_inline[i];
+		mmodel_t *bm = &mod->submodels[i];
+
+		*starmod = *loadmodel;
+
+		starmod->firstmodelsurface = bm->firstface;
+		starmod->nummodelsurfaces = bm->numfaces;
+		starmod->firstnode = bm->headnode;
+
+		if (starmod->firstnode >= loadmodel->numnodes)
+			ri.Sys_Error (ERR_DROP, "Inline model %i has bad firstnode", i);
+
+		Vector3Copy (starmod->maxs, bm->maxs);
+		Vector3Copy (starmod->mins, bm->mins);
+		starmod->radius = bm->radius;
+
+		if (i == 0)
+			*loadmodel = *starmod;
+
+		starmod->numleafs = bm->visleafs;
+	}
+}
+
+
 /*
 =================
 Mod_LoadBrushModel
@@ -565,7 +597,7 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 {
 	int			i;
 	dheader_t	*header;
-	mmodel_t 	*bm;
+	//mmodel_t 	*bm;
 	dbsp_t		bsp;
 
 	loadmodel->type = mod_brush;
@@ -589,7 +621,7 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 	Mod_LoadVertexes (&header->lumps[LUMP_VERTEXES], &bsp);
 	Mod_LoadEdges (&header->lumps[LUMP_EDGES], &bsp);
 	Mod_LoadSurfedges (&header->lumps[LUMP_SURFEDGES], &bsp);
-	Mod_LoadLighting (&header->lumps[LUMP_LIGHTING], &bsp);
+	Mod_LoadLighting (&header->lumps[LUMP_LIGHTING], &bsp); // if it wasn't for r_lightlevel we could get rid of this too...
 	Mod_LoadPlanes (&header->lumps[LUMP_PLANES], &bsp);
 	Mod_LoadTexinfo (&header->lumps[LUMP_TEXINFO], &bsp);
 	Mod_LoadFaces (&header->lumps[LUMP_FACES], &bsp);
@@ -598,33 +630,10 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 	Mod_LoadLeafs (&header->lumps[LUMP_LEAFS], &bsp);
 	Mod_LoadNodes (&header->lumps[LUMP_NODES], &bsp);
 	Mod_LoadSubmodels (&header->lumps[LUMP_MODELS], &bsp);
-	mod->numframes = 2;		// regular and alternate animation
 
-	// set up the submodels
-	for (i = 0; i < mod->numsubmodels; i++)
-	{
-		model_t	*starmod;
+	// regular and alternate animation
+	mod->numframes = 2;
 
-		bm = &mod->submodels[i];
-		starmod = &mod_inline[i];
-
-		*starmod = *loadmodel;
-
-		starmod->firstmodelsurface = bm->firstface;
-		starmod->nummodelsurfaces = bm->numfaces;
-		starmod->firstnode = bm->headnode;
-
-		if (starmod->firstnode >= loadmodel->numnodes)
-			ri.Sys_Error (ERR_DROP, "Inline model %i has bad firstnode", i);
-
-		Vector3Copy (starmod->maxs, bm->maxs);
-		Vector3Copy (starmod->mins, bm->mins);
-		starmod->radius = bm->radius;
-
-		if (i == 0)
-			*loadmodel = *starmod;
-
-		starmod->numleafs = bm->visleafs;
-	}
+	Mod_SetupSubmodels (mod);
 }
 
