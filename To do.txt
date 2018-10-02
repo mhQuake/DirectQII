@@ -26,3 +26,4 @@ Push SearchLocalGames textbox alert through a SCR_DrawModal type message
 
 Add apply changes status bar to video options that need them, vsync shouldn't need it
 
+Compare rt code with ortho view, any quality difference??? 
