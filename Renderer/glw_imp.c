@@ -423,31 +423,6 @@ static qboolean VerifyDriver (void)
 	return true;
 }
 
-void VID_ScaleVidDef (viddef_t *vd, int w, int h)
-{
-	vd->width = w;
-	vd->height = h;
-
-#if 1
-	vd->conwidth = w;
-	vd->conheight = h;
-#else
-#define VIRTUAL_HEIGHT 600
-	if (h > VIRTUAL_HEIGHT)
-	{
-		vd->conwidth = (VIRTUAL_HEIGHT * w) / h;
-		vd->conheight = VIRTUAL_HEIGHT;
-	}
-	else
-	{
-		vd->conwidth = w;
-		vd->conheight = h;
-	}
-#endif
-
-	ri.Vid_NewWindow (vd);
-}
-
 
 /*
 ** VID_CreateWindow
@@ -542,7 +517,7 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 	SetFocus (glw_state.hWnd);
 
 	// let the sound and input subsystems know about the new window
-	VID_ScaleVidDef (&vid, width, height);
+	ri.Vid_NewWindow ();
 
 	return true;
 }
@@ -823,13 +798,61 @@ qboolean GLimp_InitGL (int modenum)
 	return true;
 }
 
+static void GLimp_GetGUIScale (void)
+{
+	if (vid.width > 640 && vid.height > 480)
+	{
+		if (vid.width > vid.height)
+		{
+			int virtual_height = (((vid.height - 480) * (int) scr_viewsize->value) / 100) + 480;
+
+			if (vid.height > virtual_height)
+			{
+				vid.conwidth = (virtual_height * vid.width) / vid.height;
+				vid.conheight = virtual_height;
+				return;
+			}
+		}
+		else
+		{
+			int virtual_width = (((vid.width - 640) * (int) scr_viewsize->value) / 100) + 640;
+
+			if (vid.width > virtual_width)
+			{
+				vid.conwidth = virtual_width;
+				vid.conheight = (virtual_width * vid.height) / vid.width;
+				return;
+			}
+		}
+	}
+
+	// default scale
+	vid.conwidth = vid.width;
+	vid.conheight = vid.height;
+}
+
+
 /*
 ** GLimp_BeginFrame
 */
-void GLimp_BeginFrame (void)
+void GLimp_BeginFrame (viddef_t *vd)
 {
-	// go into 2D mode (this just sets a viewport)
-	R_Set2DMode ();
+	// get client dimensions
+	RECT cr;
+	GetClientRect (glw_state.hWnd, &cr);
+
+	// setup dimensions for the refresh
+	vid.width = cr.right - cr.left;
+	vid.height = cr.bottom - cr.top;
+
+	// apply scaling
+	GLimp_GetGUIScale ();
+
+	// copy them over to the main engine
+	vd->width = vid.width;
+	vd->height = vid.height;
+	vd->conwidth = vid.conwidth;
+	vd->conheight = vid.conheight;
 
 	// set up the 2D ortho view, brightness and contrast
 	Draw_UpdateConstants ();

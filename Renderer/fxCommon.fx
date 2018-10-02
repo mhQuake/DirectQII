@@ -7,6 +7,7 @@ cbuffer cbDrawPerFrame : register(b0) {
 	matrix orthoMatrix : packoffset(c0);
 	float v_gamma : packoffset(c4.x);
 	float v_contrast : packoffset(c4.y);
+	float2 DrawAspect : packoffset(c4.z);
 };
 
 cbuffer cbMainPerFrame : register(b1) {

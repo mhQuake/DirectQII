@@ -277,14 +277,8 @@ void VID_UpdateWindowPosAndSize (int x, int y)
 VID_NewWindow
 ==============
 */
-void VID_NewWindow (viddef_t *vd)
+void VID_NewWindow (void)
 {
-	viddef.width = vd->width;
-	viddef.height = vd->height;
-
-	viddef.conwidth = vd->conwidth;
-	viddef.conheight = vd->conheight;
-
 	cl.force_refdef = true;		// can't use a paused refdef
 }
 

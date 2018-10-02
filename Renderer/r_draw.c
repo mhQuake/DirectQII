@@ -57,6 +57,7 @@ static image_t	*draw_chars;
 static image_t	*sb_nums[2];
 
 static int d3d_DrawTexturedShader;
+static int d3d_DrawFinalizeShader;
 static int d3d_DrawCinematicShader;
 static int d3d_DrawColouredShader;
 static int d3d_DrawTexArrayShader;
@@ -66,12 +67,14 @@ static int d3d_DrawFadescreenShader;
 static ID3D11Buffer *d3d_DrawConstants = NULL;
 static ID3D11Buffer *d3d_CineConstants = NULL;
 
+rendertarget_t r_DrawRT;
 
 typedef struct drawconstants_s {
 	QMATRIX OrthoMatrix;
 	float gamma;
 	float contrast;
-	float junk[2];
+	float aspectW;
+	float aspectH;
 } drawconstants_t;
 
 
@@ -167,8 +170,14 @@ void Draw_InitLocal (void)
 	d3d_DrawTexturedShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
 	d3d_DrawColouredShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
 	d3d_DrawTexArrayShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
+
+	// shaders for use without buffers
+	d3d_DrawFinalizeShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawFinalizeVS", NULL, "DrawFinalizePS", NULL, 0);
 	d3d_DrawCinematicShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", NULL, 0);
 	d3d_DrawFadescreenShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawFadescreenVS", NULL, "DrawFadescreenPS", NULL, 0);
+
+	// render target
+	R_CreateRenderTarget (&r_DrawRT);
 
 	// vertex and index buffers
 	Draw_CreateBuffers ();
@@ -189,6 +198,9 @@ void Draw_UpdateConstants (void)
 
 	consts.gamma = vid_gamma->value;
 	consts.contrast = vid_brightness->value;
+
+	consts.aspectW = (float) vid.conwidth / (float) vid.width;
+	consts.aspectH = (float) vid.conheight / (float) vid.height;
 
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DrawConstants, 0, NULL, &consts, 0, 0);
 }
@@ -473,7 +485,7 @@ Draw_FadeScreen
 */
 void Draw_FadeScreen (void)
 {
-	D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSNoCull);
+	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSDepthNoWrite, d3d_RSNoCull);
 	D_BindShaderBundle (d3d_DrawFadescreenShader);
 
 	// full-screen triangle
@@ -525,10 +537,6 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 	QMATRIX cineMatrix;
 	float strans, ttrans;
 
-	// ensure the correct viewport is set
-	D3D11_VIEWPORT vp = {0, 0, vid.width, vid.height, 0, 0};
-	d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
-
 	// if the dimensions change the texture needs to be recreated
 	if (r_CinematicPic.Desc.Width != cols || r_CinematicPic.Desc.Height != rows)
 		Draw_ShutdownRawImage ();
@@ -556,15 +564,15 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 	ri.Load_FreeMemory ();
 
 	// derive the texture matrix for the cinematic pic
-	if (vid.width > vid.height)
+	if (vid.conwidth > vid.conheight)
 	{
-		strans = 0.5f * ((float) rows / (float) cols) * ((float) vid.width / (float) vid.height);
+		strans = 0.5f * ((float) rows / (float) cols) * ((float) vid.conwidth / (float) vid.conheight);
 		ttrans = -0.5f;
 	}
 	else
 	{
 		strans = 0.5f;
-		ttrans = -0.5f * ((float) cols / (float) rows) * ((float) vid.height / (float) vid.width);
+		ttrans = -0.5f * ((float) cols / (float) rows) * ((float) vid.conheight / (float) vid.conwidth);
 	}
 
 	// load it on
@@ -580,4 +588,50 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 
 	d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
 }
+
+
+void R_Set2D (void)
+{
+	// switch to our 2d viewport
+	D3D11_VIEWPORT vp = {0, 0, vid.conwidth, vid.conheight, 0, 0};
+	d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
+
+	// if the scales are the same we can just draw to our main framebuffer
+	if (vid.conwidth == vid.width && vid.conheight == vid.height)
+		return;
+	else
+	{
+		float clear[4] = {0, 0, 0, 0};
+
+		// all drawing will be done to this new RT
+		d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &r_DrawRT.RTV, NULL);
+		d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, r_DrawRT.RTV, clear);
+	}
+}
+
+
+void R_End2D (void)
+{
+	// if the scales are the same we can just draw to our main framebuffer
+	if (vid.conwidth == vid.width && vid.conheight == vid.height)
+		return;
+	else
+	{
+		// switch back to full view
+		D3D11_VIEWPORT vp = {0, 0, vid.width, vid.height, 0, 0};
+		d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
+
+		// revert the original RTs
+		d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, NULL);
+
+		// draw the 2D rendertarget over the view
+		R_BindTexture (r_DrawRT.SRV);
+
+		D_BindShaderBundle (d3d_DrawFinalizeShader);
+		D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
+
+		d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
+	}
+}
+
 

@@ -204,8 +204,10 @@ typedef struct refexport_s
 
 	// video mode and refresh state management entry points
 	void (*CinematicSetPalette) (const unsigned char *palette);	// NULL = game palette
-	void (*BeginFrame) (void);
+	void (*BeginFrame) (viddef_t *vd);
 	void (*EndFrame) (qboolean allowvsync);
+	void (*Set2D) (void);
+	void (*End2D) (void);
 
 	void (*AppActivate) (qboolean activate);
 	void (*EnumerateVideoModes) (void);
@@ -248,7 +250,7 @@ typedef struct refimport_s
 
 	void (*Vid_MenuInit) (void);
 	void (*Vid_PrepVideoMenu) (vidmenu_t *md);
-	void (*Vid_NewWindow) (viddef_t *vd);
+	void (*Vid_NewWindow) (void);
 } refimport_t;
 
 

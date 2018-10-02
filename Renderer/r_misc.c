@@ -705,14 +705,18 @@ qboolean D_BeginWaterWarp (void)
 
 	if (r_newrefdef.rdflags & RDF_UNDERWATER)
 	{
+		// underwater warped
 		d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &r_WaterWarpRT.RTV, d3d_DepthBuffer);
 		R_Clear (r_WaterWarpRT.RTV, d3d_DepthBuffer);
 		return true;
 	}
-
-	// normal, unwarped scene
-	R_Clear (d3d_RenderTarget, d3d_DepthBuffer);
-	return false;
+	else
+	{
+		// normal, unwarped scene
+		d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
+		R_Clear (d3d_RenderTarget, d3d_DepthBuffer);
+		return false;
+	}
 }
 
 

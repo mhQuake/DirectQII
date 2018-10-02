@@ -97,6 +97,7 @@ void SearchLocalGames (void)
 	int		i;
 
 	m_num_servers = 0;
+
 	for (i = 0; i < MAX_LOCAL_SERVERS; i++)
 		strcpy (local_server_names[i], NO_SERVER_STRING);
 

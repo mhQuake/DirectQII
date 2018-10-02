@@ -1,30 +1,28 @@
 Timer catch up from debug break
 
 dropped frames in cinematics (it's 2018, this shouldn't happen)
-implement ri.Set2D/ri.End2D and bring on framework for vid.conwidth/vid.conheight
-
-upscale pics/charset/numbers (but NOT conback) so that they'll look good at zoomed ortho views
-alternatively push them to a different RT and blend-over when done
 
 GLimp_AppActivate - does DXGI not do this for us????
 
 Test video mode stuff with a clean config.
 
-Menu background should be solid black if console is full-screen.
-
-s_khz is wrong in the menu.
-
 CVAR_VIDEO should not write to console if in the menus
+
+CVAR_CHEAT should just add it's name to the list of cheat cvars
 
 Music sometimes stops when it shouldn't...
 
 we have the palette on the VS as a texture so read it as a colour for beams (how???)
 
-beam transform is messy - this should be quuuick and easy to calculate...
+beam transform is messy - this should be quick and easy to calculate...
 
 reduce number of cbuffers
 
 shaders as embedded resources: 1: get them into the renderer lib, and 2: get a recompile of resources if they change.
 
 screenshots without gamma or brightness
+
+Push SearchLocalGames textbox alert through a SCR_DrawModal type message
+
+Add apply changes status bar to video options that need them, vsync shouldn't need it
 

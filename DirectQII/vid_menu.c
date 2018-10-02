@@ -31,6 +31,7 @@ static cvar_t *vid_vsync;
 
 void M_ForceMenuOff (void);
 void VID_ResetMode (void);
+void M_PopMenu (void);
 
 /*
 ====================================================================
@@ -79,6 +80,10 @@ static void ScreenSizeCallback (void *s)
 {
 	menuslider_s *slider = (menuslider_s *) s;
 	Cvar_SetValue ("viewsize", slider->curvalue * 10);
+
+	// get the new values updated and re-init the menu for to lay it out properly
+	re.BeginFrame (&viddef);
+	VID_MenuInit ();
 }
 
 
@@ -108,8 +113,8 @@ static void ApplyChanges (void *unused)
 	Cvar_SetValue ("vid_width", modedata->widths[s_width_list.curvalue]);
 	Cvar_SetValue ("vid_height", modedata->heights[s_height_list.curvalue]);
 
-	// remove the menus
-	//M_ForceMenuOff ();
+	// get out of the vid menu because it's layout needs to be refreshed
+	M_PopMenu ();
 
 	// reset the mode
 	VID_ResetMode ();
@@ -118,8 +123,6 @@ static void ApplyChanges (void *unused)
 
 static void CancelChanges (void *unused)
 {
-	extern void M_PopMenu (void);
-
 	VID_MenuInit ();
 	M_PopMenu ();
 }
@@ -216,8 +219,8 @@ void VID_MenuInit (void)
 	s_screensize_slider.generic.x = 0;
 	s_screensize_slider.generic.y = 50;
 	s_screensize_slider.generic.name = "screen size";
-	s_screensize_slider.minvalue = 3;
-	s_screensize_slider.maxvalue = 12;
+	s_screensize_slider.minvalue = 0;
+	s_screensize_slider.maxvalue = 10;
 	s_screensize_slider.generic.callback = ScreenSizeCallback;
 
 	s_brightness_slider.generic.type = MTYPE_SLIDER;

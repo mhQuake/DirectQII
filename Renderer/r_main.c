@@ -141,6 +141,7 @@ refdef_t	r_newrefdef;
 
 int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
+cvar_t	*scr_viewsize;
 cvar_t	*r_testnullmodels;
 cvar_t	*r_lightmap;
 cvar_t	*r_testnotexture;
@@ -476,6 +477,9 @@ float R_GetFarClip (void)
 	int i;
 	float farclip = 0;
 
+	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+		return 4096;
+
 	// this provides the maximum far clip per view position and worldmodel bounds
 	for (i = 0; i < 8; i++)
 	{
@@ -684,14 +688,6 @@ void R_RenderScene (void)
 }
 
 
-void R_Set2DMode (void)
-{
-	// this just changes the viewport nowadays
-	D3D11_VIEWPORT vp = {0, 0, vid.width, vid.height, 0, 0};
-	d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
-}
-
-
 /*
 ====================
 R_RenderFrame
@@ -732,9 +728,6 @@ void R_RenderFrame (refdef_t *fd)
 	}
 
 	R_SetLightLevel ();
-
-	// go back to 2d mode
-	R_Set2DMode ();
 }
 
 

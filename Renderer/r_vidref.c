@@ -20,11 +20,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-void VID_ScaleVidDef (viddef_t *vd, int w, int h);
+
 extern vidmenu_t vid_modedata;
 
 void R_Register (void)
 {
+	scr_viewsize = ri.Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
 	r_testnullmodels = ri.Cvar_Get ("r_testnullmodels", "0", CVAR_CHEAT);
 	r_lightmap = ri.Cvar_Get ("r_lightmap", "0", CVAR_CHEAT);
 	r_testnotexture = ri.Cvar_Get ("r_testnotexture", "0", CVAR_CHEAT);
@@ -109,7 +110,7 @@ qboolean R_SetMode (void)
 
 done:;
 	// let the sound and input subsystems know about the new window
-	VID_ScaleVidDef (&vid, vid.width, vid.height);
+	ri.Vid_NewWindow ();
 
 	return true;
 }
@@ -241,6 +242,9 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.CinematicSetPalette = R_SetCinematicPalette;
 	re.BeginFrame = GLimp_BeginFrame;
 	re.EndFrame = GLimp_EndFrame;
+
+	re.Set2D = R_Set2D;
+	re.End2D = R_End2D;
 
 	re.AppActivate = GLimp_AppActivate;
 	re.EnumerateVideoModes = D_EnumerateVideoModes;

@@ -49,7 +49,8 @@ void D_CacheObject (ID3D11DeviceChild *Object, const char *name);
 void R_SyncPipeline (void);
 
 // different viewport
-void R_Set2DMode (void);
+void R_Set2D (void);
+void R_End2D (void);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -195,6 +196,7 @@ extern	vec3_t	vright;
 extern	refdef_t	r_newrefdef;
 extern	int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
+extern	cvar_t	*scr_viewsize;
 extern	cvar_t	*r_testnullmodels;
 extern	cvar_t	*r_lightmap;
 extern	cvar_t	*r_testnotexture;
@@ -332,7 +334,7 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
-void GLimp_BeginFrame (void);
+void GLimp_BeginFrame (viddef_t *vd);
 void GLimp_EndFrame (qboolean allowvsync);
 int GLimp_Init (void *hinstance, void *wndproc);
 void GLimp_Shutdown (void);

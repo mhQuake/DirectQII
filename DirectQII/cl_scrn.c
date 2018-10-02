@@ -498,7 +498,9 @@ void SCR_DrawConsole (void)
 	if (cls.state == ca_disconnected || cls.state == ca_connecting)
 	{
 		// forced full screen console
-		Con_DrawConsole (1.0f, 255);
+		if (cls.key_dest == key_menu)
+			re.DrawFill (0, 0, viddef.conwidth, viddef.conheight, 0);
+		else Con_DrawConsole (1.0f, 255);
 		return;
 	}
 
@@ -512,7 +514,10 @@ void SCR_DrawConsole (void)
 
 	if (scr_con_current)
 	{
-		Con_DrawConsole (scr_con_current, (int) (scr_con_current * 320.0f));
+		if (cls.key_dest == key_menu && scr_con_current > 0.999f)
+			re.DrawFill (0, 0, viddef.conwidth, viddef.conheight, 0);
+		else if (cls.key_dest != key_menu)
+			Con_DrawConsole (scr_con_current, (int) (scr_con_current * 320.0f));
 	}
 	else
 	{
@@ -609,7 +614,7 @@ void SCR_TimeRefresh_f (void)
 	{
 		cl.refdef.viewangles[1] = startangle + (float) (Sys_Milliseconds () - start) * (360.0f / timeRefreshTime);
 
-		re.BeginFrame ();
+		re.BeginFrame (&viddef);
 		re.RenderFrame (&cl.refdef);
 		re.EndFrame (false);
 
@@ -1106,7 +1111,7 @@ void SCR_UpdateScreen (void)
 	if (!scr_initialized || !con.initialized)
 		return;				// not initialized yet
 
-	re.BeginFrame ();
+	re.BeginFrame (&viddef);
 
 	if (scr_draw_loading == 2)
 	{
@@ -1115,13 +1120,19 @@ void SCR_UpdateScreen (void)
 
 		re.CinematicSetPalette (NULL);
 		scr_draw_loading = false;
+
+		re.Set2D ();
+		re.DrawFill (0, 0, viddef.conwidth, viddef.conheight, 0); // this was never done
 		re.DrawGetPicSize (&w, &h, "loading");
 		re.DrawPic ((viddef.conwidth - w) / 2, (viddef.conheight - h) / 2, "loading");
+		re.End2D ();
 	}
-	// if a cinematic is supposed to be running, handle menus
-	// and console specially
 	else if (cl.cinematictime > 0)
 	{
+		re.Set2D ();
+
+		// if a cinematic is supposed to be running, handle menus
+		// and console specially
 		if (cls.key_dest == key_menu)
 		{
 			if (cl.cinematicpalette_active)
@@ -1129,6 +1140,7 @@ void SCR_UpdateScreen (void)
 				re.CinematicSetPalette (NULL);
 				cl.cinematicpalette_active = false;
 			}
+
 			M_Draw ();
 		}
 		else if (cls.key_dest == key_console)
@@ -1145,6 +1157,8 @@ void SCR_UpdateScreen (void)
 		{
 			SCR_DrawCinematic ();
 		}
+
+		re.End2D ();
 	}
 	else
 	{
@@ -1157,6 +1171,8 @@ void SCR_UpdateScreen (void)
 
 		// do 3D refresh drawing, and then update the screen
 		V_RenderView ();
+
+		re.Set2D ();
 
 		CL_DrawFPS ();
 
@@ -1181,6 +1197,8 @@ void SCR_UpdateScreen (void)
 		M_Draw ();
 
 		SCR_DrawLoading ();
+
+		re.End2D ();
 	}
 
 	// never vsync if we're in a timedemo
