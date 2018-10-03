@@ -23,3 +23,18 @@ Add apply changes status bar to video options that need them, vsync shouldn't ne
 Make a Com_ValidatePath for all the little cases of paths with "..", ".\", "./", etc.
 
 Save/Load menu with mapshots/etc
+
+Immutable resources - can textures be immutable?
+
+Discard-free buffers: https://www.gamedevs.org/uploads/efficient-buffer-management.pdf
+
+cBuffer updates via Map/Discard.
+Don't update if nothing has changed (this may be more expensive to check than just updating...)
+
+Best way to group dlights cbuffer.
+
+LightVector is VS->PS varying?
+Upload NormalMatrix per-entity.
+Or do inverse-transform of LightPos in VS???
+
+Batch updates to dynamic buffers (the code for this could get nasty...)
