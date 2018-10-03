@@ -130,7 +130,7 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 
 	D3D11_BUFFER_DESC vbDesc = {
 		hdr->num_verts * hdr->num_frames * sizeof (dtrivertx_t),
-		D3D11_USAGE_DEFAULT,
+		D3D11_USAGE_IMMUTABLE,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
 		0,
@@ -167,7 +167,7 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 
 	D3D11_BUFFER_DESC vbDesc = {
 		hdr->num_verts * sizeof (float) * 2,
-		D3D11_USAGE_DEFAULT,
+		D3D11_USAGE_IMMUTABLE,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
 		0,
@@ -197,7 +197,7 @@ void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *ind
 {
 	D3D11_BUFFER_DESC ibDesc = {
 		hdr->num_indexes * sizeof (unsigned short),
-		D3D11_USAGE_DEFAULT,
+		D3D11_USAGE_IMMUTABLE,
 		D3D11_BIND_INDEX_BUFFER,
 		0,
 		0,

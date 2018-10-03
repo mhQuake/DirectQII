@@ -90,7 +90,7 @@ void Draw_CreateBuffers (void)
 
 	D3D11_BUFFER_DESC ibDesc = {
 		sizeof (unsigned short) * MAX_DRAW_INDEXES,
-		D3D11_USAGE_DEFAULT,
+		D3D11_USAGE_IMMUTABLE,
 		D3D11_BIND_INDEX_BUFFER,
 		0,
 		0,

@@ -747,7 +747,7 @@ void GL_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 
 	D3D11_BUFFER_DESC vbDesc = {
 		sizeof (brushpolyvert_t) * r_numsurfaceverts,
-		D3D11_USAGE_DEFAULT,
+		D3D11_USAGE_IMMUTABLE,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
 		0,

@@ -119,7 +119,7 @@ void R_CreateBeamVertexBuffer (D3D11_SUBRESOURCE_DATA *vbSrd)
 {
 	D3D11_BUFFER_DESC vbDesc = {
 		r_numbeamverts * sizeof (beampolyvert_t),
-		D3D11_USAGE_DEFAULT,
+		D3D11_USAGE_IMMUTABLE,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
 		0,
@@ -134,7 +134,7 @@ void R_CreateBeamIndexBuffer (void)
 {
 	D3D11_BUFFER_DESC ibDesc = {
 		r_numbeamindexes * sizeof (unsigned short),
-		D3D11_USAGE_DEFAULT,
+		D3D11_USAGE_IMMUTABLE,
 		D3D11_BIND_INDEX_BUFFER,
 		0,
 		0,
