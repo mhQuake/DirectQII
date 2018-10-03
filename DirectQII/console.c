@@ -693,3 +693,12 @@ void Con_DrawConsole (float frac, int alpha)
 }
 
 
+void Con_CvarVideoAlert (char *txt)
+{
+	// this is a hack because cvar.c doesn't know what cls.key_dest is
+	if (cls.key_dest != key_menu)
+	{
+		Com_Printf (txt);
+	}
+}
+

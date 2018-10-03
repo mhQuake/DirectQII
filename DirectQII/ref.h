@@ -209,10 +209,9 @@ typedef struct refexport_s
 	void (*DrawField) (int x, int y, int color, int width, int value);
 
 	// Draw images for cinematic rendering (which can have a different palette). Note that calls
-	void (*DrawStretchRaw) (int cols, int rows, byte *data, int frame);
+	void (*DrawStretchRaw) (int cols, int rows, byte *data, int frame, const unsigned char *palette);
 
 	// video mode and refresh state management entry points
-	void (*CinematicSetPalette) (const unsigned char *palette);	// NULL = game palette
 	void (*BeginFrame) (viddef_t *vd, int scrflags);
 	void (*Set2D) (void);
 	void (*EndFrame) (int scrflags);

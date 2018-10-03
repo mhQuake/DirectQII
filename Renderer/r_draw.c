@@ -511,24 +511,10 @@ void Draw_ShutdownRawImage (void)
 }
 
 
-unsigned r_rawpalette[256];
-
-unsigned *GL_Image8To32 (byte *data, int width, int height, unsigned *palette);
 void R_TexSubImage32 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h, unsigned *data);
 void R_TexSubImage8 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h, byte *data, unsigned *palette);
 
-void R_SetCinematicPalette (const unsigned char *palette)
-{
-	if (palette)
-		Image_QuakePalFromPCXPal (r_rawpalette, palette);
-	else memcpy (r_rawpalette, d_8to24table, sizeof (d_8to24table));
-
-	// refresh the texture if the palette changes
-	Draw_ShutdownRawImage ();
-}
-
-
-void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
+void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned char *palette)
 {
 	// we only need to refresh the texture if the frame changes
 	static int r_rawframe = -1;
@@ -554,10 +540,18 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame)
 		r_rawframe = -1;
 	}
 
+	// only reload the texture if the frame changes
+	// in *theory* the original code allowed the palette to be changed independently of the texture, in practice the .cin format doesn't support this
 	if (r_rawframe != frame)
 	{
-		// reload data if required
-		R_TexSubImage8 (r_CinematicPic.Texture, 0, 0, 0, cols, rows, data, r_rawpalette);
+		if (palette)
+		{
+			unsigned r_rawpalette[256];
+			Image_QuakePalFromPCXPal (r_rawpalette, palette);
+			R_TexSubImage8 (r_CinematicPic.Texture, 0, 0, 0, cols, rows, data, r_rawpalette);
+		}
+		else R_TexSubImage8 (r_CinematicPic.Texture, 0, 0, 0, cols, rows, data, d_8to24table);
+
 		r_rawframe = frame;
 	}
 

@@ -701,18 +701,9 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 			return;
 	}
 
-	if (e->flags & RF_TRANSLUCENT)
-	{
-		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, R_GetRasterizerState (e->flags));
-		R_UpdateAlpha (e->alpha);
-	}
-	else
-	{
-		D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, R_GetRasterizerState (e->flags));
-		R_UpdateAlpha (1);
-	}
-
+	// cbuffers/states
 	R_UpdateEntityConstants (localmatrix, NULL, e->flags);
+	R_UpdateEntityAlphaState (e->flags, e->alpha);
 
 	// set up our mesh constants
 	R_LightAliasModel (e, &consts, localmatrix);

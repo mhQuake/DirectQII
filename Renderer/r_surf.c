@@ -215,14 +215,10 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 
 	// and now set it up
 	R_UpdateEntityConstants (localmatrix, NULL, 0);
-	R_UpdateAlpha (alphaval);
+	R_UpdateEntityAlphaState (e->flags, alphaval);
 
 	D_BindVertexBuffer (0, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
 	D_BindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
-
-	if (e->flags & RF_TRANSLUCENT)
-		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSNoCull);
-	else D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, d3d_RSFullCull);
 
 	for (i = 0; i < mod->numtexinfo; i++)
 	{
@@ -335,7 +331,7 @@ void R_DrawAlphaSurfaces (void)
 		if (thisalpha != lastalpha)
 		{
 			R_EndSurfaceBatch ();
-			R_UpdateAlpha (thisalpha);
+			R_UpdateEntityAlphaState (RF_TRANSLUCENT, thisalpha);
 			lastalpha = thisalpha;
 		}
 

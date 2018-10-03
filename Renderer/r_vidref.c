@@ -236,7 +236,6 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.Init = R_Init;
 	re.Shutdown = R_Shutdown;
 
-	re.CinematicSetPalette = R_SetCinematicPalette;
 	re.BeginFrame = GLimp_BeginFrame;
 	re.Set2D = R_Set2D;
 	re.EndFrame = GLimp_EndFrame;

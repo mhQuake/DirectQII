@@ -269,14 +269,11 @@ void Draw_Pic (int x, int y, char *name);
 void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha);
 void Draw_Fill (int x, int y, int w, int h, int c);
 void Draw_FadeScreen (void);
-void Draw_StretchRaw (int cols, int rows, byte *data, int frame);
+void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned char *palette);
 void Draw_ShutdownRawImage (void);
 
 void Draw_Char (int x, int y, int num);
 void Draw_Field (int x, int y, int color, int width, int value);
-
-void R_BeginFrame (void);
-void R_SetCinematicPalette (const unsigned char *palette);
 
 int Draw_GetPalette (void);
 
@@ -359,7 +356,8 @@ void D_BindShaderBundle (int sb);
 void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot);
 void D_BindConstantBuffers (void);
 void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, int rflags);
-void R_UpdateAlpha (float alphaval);
+void R_UpdateEntityAlphaState (int rflags, float alphaval);
+
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // states

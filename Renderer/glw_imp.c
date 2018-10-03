@@ -531,7 +531,7 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	int width, height;
 	const char *win_fs[] = {"W", "FS"};
 
-	ri.Con_Printf (PRINT_ALL, "Initializing OpenGL display\n");
+	ri.Con_Printf (PRINT_ALL, "Initializing display\n");
 	ri.Con_Printf (PRINT_ALL, "...setting mode %d:", mode);
 
 	D_GetModeInfo (&width, &height, mode);
@@ -565,6 +565,7 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 		*pheight = height;
 		glw_state.fullscreen = false;
 
+		// if we fail to create a windowed mode it's an error
 		if (!VID_CreateWindow (width, height, false))
 			return rserr_invalid_mode;
 	}

@@ -111,10 +111,16 @@ char *Cvar_CompleteVariable (char *partial)
 }
 
 
+// this is a hack because cvar.c doesn't know what cls.key_dest is
+void Con_CvarVideoAlert (char *txt);
+
 void Cvar_ModifyVariable (cvar_t *var)
 {
 	if (var->flags & CVAR_VIDEO)
-		Com_Printf ("you must run a \"vid_restart\" after changing the value of \"%s\"\n", var->name);
+	{
+		// this is a hack because cvar.c doesn't know what cls.key_dest is
+		Con_CvarVideoAlert (va ("you must run a \"vid_restart\" after changing the value of \"%s\"\n", var->name));
+	}
 
 	var->modified = true;
 }

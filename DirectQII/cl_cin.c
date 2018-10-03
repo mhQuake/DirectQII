@@ -459,9 +459,7 @@ qboolean SCR_DrawCinematic (void)
 	if (cl.cinematictime <= 0) return false;
 	if (!cin.pic) return true;
 
-	re.CinematicSetPalette (cl.cinematicpalette);
-	re.DrawStretchRaw (cin.width, cin.height, cin.pic, cl.cinematicframe);
-
+	re.DrawStretchRaw (cin.width, cin.height, cin.pic, cl.cinematicframe, cl.cinematicpalette);
 	return true;
 }
 

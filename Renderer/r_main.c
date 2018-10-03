@@ -224,6 +224,21 @@ void R_UpdateAlpha (float alphaval)
 }
 
 
+void R_UpdateEntityAlphaState (int rflags, float alphaval)
+{
+	if (rflags & RF_TRANSLUCENT)
+	{
+		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, R_GetRasterizerState (rflags));
+		R_UpdateAlpha (alphaval);
+	}
+	else
+	{
+		D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, R_GetRasterizerState (rflags));
+		R_UpdateAlpha (1);
+	}
+}
+
+
 /*
 =================
 R_CullBox
