@@ -128,6 +128,8 @@ If the variable already exists, the value will not be set
 The flags will be or'ed in if the variable exists.
 ============
 */
+void Cvar_RegisterCheatVar (char *var_name, char *var_value);
+
 cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 {
 	cvar_t	*var;
@@ -145,6 +147,10 @@ cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 
 	if (var)
 	{
+		// register a cheating cvar (case where CVAR_CHEAT is being added to an existing var)
+		if ((flags & CVAR_CHEAT) && !(var->flags & CVAR_CHEAT))
+			Cvar_RegisterCheatVar (var_name, var_value);
+
 		var->flags |= flags;
 		return var;
 	}
@@ -160,6 +166,10 @@ cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 			return NULL;
 		}
 	}
+
+	// register a cheating cvar
+	if (flags & CVAR_CHEAT)
+		Cvar_RegisterCheatVar (var_name, var_value);
 
 	var = Z_Alloc (sizeof (*var));
 	var->name = CopyString (var_name);

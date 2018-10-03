@@ -41,10 +41,8 @@ void R_CreateSpecialTextures (void)
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // screenshots
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-void D_CaptureScreenshot (char *checkname, float gammaval)
+void D_CaptureScreenshot (char *checkname)
 {
-	int i;
-	byte inversegamma[256];
 	ID3D11Texture2D *pBackBuffer = NULL;
 	ID3D11Texture2D *pScreenShot = NULL;
 	D3D11_TEXTURE2D_DESC descRT;
@@ -82,24 +80,9 @@ void D_CaptureScreenshot (char *checkname, float gammaval)
 		goto failed;
 	}
 
-	// build an inverse gamma table
-	for (i = 0; i < 256; i++)
-	{
-		if (gammaval > 0)
-		{
-			if (gammaval < 1 || gammaval > 1)
-				inversegamma[i] = Image_GammaVal8to8 (i, 1.0f / gammaval);
-			else inversegamma[i] = i;
-		}
-		else inversegamma[i] = 255 - i;
-	}
-
 	// now convert it down
 	Image_CollapseRowPitch ((unsigned *) msr.pData, descRT.Width, descRT.Height, msr.RowPitch >> 2);
 	Image_Compress32To24RGBtoBGR ((byte *) msr.pData, descRT.Width, descRT.Height);
-
-	// apply inverse gamma
-	Image_ApplyTranslationRGB ((byte *) msr.pData, descRT.Width * descRT.Height, inversegamma);
 
 	// and write it out
 	Image_WriteDataToTGA (checkname, msr.pData, descRT.Width, descRT.Height, 24);
@@ -114,38 +97,6 @@ failed:;
 	// clean up
 	SAFE_RELEASE (pScreenShot);
 	SAFE_RELEASE (pBackBuffer);
-}
-
-
-void GL_ScreenShot_f (void)
-{
-	char		checkname[MAX_OSPATH];
-	int			i;
-	FILE		*f;
-
-	// create the scrnshots directory if it doesn't exist
-	Com_sprintf (checkname, sizeof (checkname), "%s/scrnshot", ri.FS_Gamedir ());
-	ri.Mkdir (checkname);
-
-	// find a file name to save it to
-	for (i = 0; i <= 99; i++)
-	{
-		Com_sprintf (checkname, sizeof (checkname), "%s/scrnshot/quake%02i.tga", ri.FS_Gamedir (), i);
-		f = fopen (checkname, "rb");
-
-		if (!f)
-			break;	// file doesn't exist
-
-		fclose (f);
-	}
-
-	if (i == 100)
-	{
-		ri.Con_Printf (PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n");
-		return;
-	}
-
-	D_CaptureScreenshot (checkname, vid_gamma->value);
 }
 
 
@@ -713,7 +664,6 @@ qboolean D_BeginWaterWarp (void)
 	else
 	{
 		// normal, unwarped scene
-		d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
 		R_Clear (d3d_RenderTarget, d3d_DepthBuffer);
 		return false;
 	}

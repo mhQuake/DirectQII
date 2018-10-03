@@ -8,8 +8,6 @@ Test video mode stuff with a clean config.
 
 CVAR_VIDEO should not write to console if in the menus
 
-CVAR_CHEAT should just add it's name to the list of cheat cvars
-
 Music sometimes stops when it shouldn't...
 
 we have the palette on the VS as a texture so read it as a colour for beams (how???)
@@ -20,10 +18,8 @@ reduce number of cbuffers
 
 shaders as embedded resources: 1: get them into the renderer lib, and 2: get a recompile of resources if they change.
 
-screenshots without gamma or brightness
-
-Push SearchLocalGames textbox alert through a SCR_DrawModal type message
-
 Add apply changes status bar to video options that need them, vsync shouldn't need it
 
-Compare rt code with ortho view, any quality difference??? 
+Make a Com_ValidatePath for all the little cases of paths with "..", ".\", "./", etc.
+
+Save/Load menu with mapshots/etc

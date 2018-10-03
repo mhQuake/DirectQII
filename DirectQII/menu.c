@@ -133,6 +133,7 @@ const char *Default_MenuKey (menuframework_s *m, int key)
 	case K_ESCAPE:
 		M_PopMenu ();
 		return menu_out_sound;
+
 	case K_KP_UPARROW:
 	case K_UPARROW:
 		if (m)
@@ -142,6 +143,7 @@ const char *Default_MenuKey (menuframework_s *m, int key)
 			sound = menu_move_sound;
 		}
 		break;
+
 	case K_TAB:
 		if (m)
 		{
@@ -150,6 +152,7 @@ const char *Default_MenuKey (menuframework_s *m, int key)
 			sound = menu_move_sound;
 		}
 		break;
+
 	case K_KP_DOWNARROW:
 	case K_DOWNARROW:
 		if (m)
@@ -159,6 +162,7 @@ const char *Default_MenuKey (menuframework_s *m, int key)
 			sound = menu_move_sound;
 		}
 		break;
+
 	case K_KP_LEFTARROW:
 	case K_LEFTARROW:
 		if (m)
@@ -167,6 +171,7 @@ const char *Default_MenuKey (menuframework_s *m, int key)
 			sound = menu_move_sound;
 		}
 		break;
+
 	case K_KP_RIGHTARROW:
 	case K_RIGHTARROW:
 		if (m)
@@ -242,23 +247,12 @@ void M_DrawCharacter (int cx, int cy, int num)
 	re.DrawChar (cx + ((viddef.conwidth - 320) >> 1), cy + ((viddef.conheight - 240) >> 1), num);
 }
 
+
 void M_Print (int cx, int cy, char *str)
 {
 	while (*str)
 	{
-		M_DrawCharacter (cx, cy, (*str)  ^ 0x80);
-		str++;
-		cx += 8;
-	}
-
-	re.DrawString ();
-}
-
-void M_PrintWhite (int cx, int cy, char *str)
-{
-	while (*str)
-	{
-		M_DrawCharacter (cx, cy, *str);
+		M_DrawCharacter (cx, cy, (*str) | 0x80);
 		str++;
 		cx += 8;
 	}
@@ -281,48 +275,50 @@ Draws an animating cursor with the point at x, y.  The pic will extend to the le
 */
 void M_DrawCursor (int x, int y, int f)
 {
-	static qboolean cached;
+	static qboolean cached[NUM_CURSOR_FRAMES];
+	char *picname = va ("m_cursor%d", f);
 
-	if (!cached)
+	if (!cached[f])
 	{
-		int i;
-
-		for (i = 0; i < NUM_CURSOR_FRAMES; i++)
-			re.RegisterPic (va ("m_cursor%d", i));
-
-		cached = true;
+		re.RegisterPic (picname);
+		cached[f] = true;
 	}
 
-	re.DrawPic (x, y, va ("m_cursor%d", f));
+	re.DrawPic (x, y, picname);
 }
 
 void M_DrawTextBox (int x, int y, int width, int lines)
 {
-	int		cx, cy;
-	int		n;
+	int	n;
+
+	int cx = x;
+	int cy = y;
 
 	// draw left side
-	cx = x;
-	cy = y;
 	M_DrawCharacter (cx, cy, 1);
+
 	for (n = 0; n < lines; n++)
 	{
 		cy += 8;
 		M_DrawCharacter (cx, cy, 4);
 	}
+
 	M_DrawCharacter (cx, cy + 8, 7);
 
 	// draw middle
 	cx += 8;
+
 	while (width > 0)
 	{
 		cy = y;
 		M_DrawCharacter (cx, cy, 2);
+
 		for (n = 0; n < lines; n++)
 		{
 			cy += 8;
 			M_DrawCharacter (cx, cy, 5);
 		}
+
 		M_DrawCharacter (cx, cy + 8, 8);
 		width -= 1;
 		cx += 8;
@@ -331,11 +327,13 @@ void M_DrawTextBox (int x, int y, int width, int lines)
 	// draw right side
 	cy = y;
 	M_DrawCharacter (cx, cy, 3);
+
 	for (n = 0; n < lines; n++)
 	{
 		cy += 8;
 		M_DrawCharacter (cx, cy, 6);
 	}
+
 	M_DrawCharacter (cx, cy + 8, 9);
 
 	re.DrawString ();

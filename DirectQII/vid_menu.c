@@ -82,7 +82,7 @@ static void ScreenSizeCallback (void *s)
 	Cvar_SetValue ("viewsize", slider->curvalue * 10);
 
 	// get the new values updated and re-init the menu for to lay it out properly
-	re.BeginFrame (&viddef);
+	re.BeginFrame (&viddef, SCR_DEFAULT);
 	VID_MenuInit ();
 }
 

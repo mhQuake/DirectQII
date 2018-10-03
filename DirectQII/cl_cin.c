@@ -153,12 +153,6 @@ void SCR_StopCinematic (void)
 		cin.pic_pending = NULL;
 	}
 
-	if (cl.cinematicpalette_active)
-	{
-		re.CinematicSetPalette (NULL);
-		cl.cinematicpalette_active = false;
-	}
-
 	if (cl.cinematic_file)
 	{
 		fclose (cl.cinematic_file);
@@ -196,17 +190,19 @@ SmallestNode1
 */
 int	SmallestNode1 (int numhnodes)
 {
-	int		i;
-	int		best, bestnode;
+	int	i;
 
-	best = 99999999;
-	bestnode = -1;
+	int best = 99999999;
+	int bestnode = -1;
+
 	for (i = 0; i < numhnodes; i++)
 	{
 		if (cin.h_used[i])
 			continue;
+
 		if (!cin.h_count[i])
 			continue;
+
 		if (cin.h_count[i] < best)
 		{
 			best = cin.h_count[i];
@@ -247,6 +243,7 @@ void Huff1TableInit (void)
 
 		// read a row of counts
 		FS_Read (counts, sizeof (counts), cl.cinematic_file);
+
 		for (j = 0; j < 256; j++)
 			cin.h_count[j] = counts[j];
 
@@ -260,10 +257,12 @@ void Huff1TableInit (void)
 
 			// pick two lowest counts
 			node[0] = SmallestNode1 (numhnodes);
+
 			if (node[0] == -1)
 				break;	// no more
 
 			node[1] = SmallestNode1 (numhnodes);
+
 			if (node[1] == -1)
 				break;
 
@@ -275,6 +274,7 @@ void Huff1TableInit (void)
 	}
 }
 
+
 /*
 ==================
 Huff1Decompress
@@ -282,127 +282,50 @@ Huff1Decompress
 */
 cblock_t Huff1Decompress (cblock_t in)
 {
-	byte		*input;
-	byte		*out_p;
-	int			nodenum;
-	int			count;
 	cblock_t	out;
-	int			inbyte;
-	int			*hnodes, *hnodesbase;
-	//int		i;
+	int			i;
 
 	// get decompressed count
-	count = in.data[0] + (in.data[1] << 8) + (in.data[2] << 16) + (in.data[3] << 24);
-	input = in.data + 4;
-	out_p = out.data = Z_Alloc (count);
+	int count = in.data[0] + (in.data[1] << 8) + (in.data[2] << 16) + (in.data[3] << 24);
+	byte *input = in.data + 4;
+	byte *out_p = out.data = Z_Alloc (count);
 
 	// read bits
+	int *hnodesbase = cin.hnodes1 - 256 * 2;	// nodes 0-255 aren't stored
 
-	hnodesbase = cin.hnodes1 - 256 * 2;	// nodes 0-255 aren't stored
+	int *hnodes = hnodesbase;
+	int nodenum = cin.numhnodes1[0];
 
-	hnodes = hnodesbase;
-	nodenum = cin.numhnodes1[0];
 	while (count)
 	{
-		inbyte = *input++;
-		//-----------
-		if (nodenum < 256)
+		int inbyte = *input++;
+
+		for (i = 0; i < 8; i++)
 		{
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-			if (!--count)
-				break;
-			nodenum = cin.numhnodes1[nodenum];
+			if (nodenum < 256)
+			{
+				hnodes = hnodesbase + (nodenum << 9);
+				*out_p++ = nodenum;
+
+				if (!--count)
+					break;
+
+				nodenum = cin.numhnodes1[nodenum];
+			}
+
+			nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
+			inbyte >>= 1;
 		}
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-		//-----------
-		if (nodenum < 256)
-		{
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-			if (!--count)
-				break;
-			nodenum = cin.numhnodes1[nodenum];
-		}
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-		//-----------
-		if (nodenum < 256)
-		{
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-			if (!--count)
-				break;
-			nodenum = cin.numhnodes1[nodenum];
-		}
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-		//-----------
-		if (nodenum < 256)
-		{
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-			if (!--count)
-				break;
-			nodenum = cin.numhnodes1[nodenum];
-		}
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-		//-----------
-		if (nodenum < 256)
-		{
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-			if (!--count)
-				break;
-			nodenum = cin.numhnodes1[nodenum];
-		}
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-		//-----------
-		if (nodenum < 256)
-		{
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-			if (!--count)
-				break;
-			nodenum = cin.numhnodes1[nodenum];
-		}
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-		//-----------
-		if (nodenum < 256)
-		{
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-			if (!--count)
-				break;
-			nodenum = cin.numhnodes1[nodenum];
-		}
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-		//-----------
-		if (nodenum < 256)
-		{
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-			if (!--count)
-				break;
-			nodenum = cin.numhnodes1[nodenum];
-		}
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
 	}
 
 	if (input - in.data != in.count && input - in.data != in.count + 1)
-	{
-		Com_Printf ("Decompression overread by %i", (input - in.data) - in.count);
-	}
+		Com_DPrintf ("Decompression overread by %i", (input - in.data) - in.count);
+
 	out.count = out_p - out.data;
 
 	return out;
 }
+
 
 /*
 ==================
@@ -421,21 +344,19 @@ byte *SCR_ReadNextFrame (void)
 	int		start, end, count;
 
 	// read the next frame
-	r = fread (&command, 4, 1, cl.cinematic_file);
-	if (r == 0)		// we'll give it one more chance
+	if ((r = fread (&command, 4, 1, cl.cinematic_file)) == 0)		// we'll give it one more chance
 		r = fread (&command, 4, 1, cl.cinematic_file);
 
 	if (r != 1)
 		return NULL;
-	command = LittleLong (command);
-	if (command == 2)
+
+	if ((command = LittleLong (command)) == 2)
 		return NULL;	// last frame marker
 
 	if (command == 1)
 	{
 		// read palette
 		FS_Read (cl.cinematicpalette, sizeof (cl.cinematicpalette), cl.cinematic_file);
-		cl.cinematicpalette_active = 0;	// dubious....  exposes an edge case
 	}
 
 	// decompress the next frame
@@ -496,18 +417,24 @@ void SCR_RunCinematic (void)
 	}
 
 	frame = (cls.realtime - cl.cinematictime) * 14.0 / 1000;
+
 	if (frame <= cl.cinematicframe)
 		return;
+
 	if (frame > cl.cinematicframe + 1)
 	{
-		Com_Printf ("Dropped frame: %i > %i\n", frame, cl.cinematicframe + 1);
+		// no need for this to be a user message!!!
+		Com_DPrintf ("Dropped frame: %i > %i\n", frame, cl.cinematicframe + 1);
 		cl.cinematictime = cls.realtime - cl.cinematicframe * 1000 / 14;
 	}
+
 	if (cin.pic)
 		Z_Free (cin.pic);
+
 	cin.pic = cin.pic_pending;
 	cin.pic_pending = NULL;
 	cin.pic_pending = SCR_ReadNextFrame ();
+
 	if (!cin.pic_pending)
 	{
 		SCR_StopCinematic ();
@@ -529,28 +456,10 @@ should be skipped
 */
 qboolean SCR_DrawCinematic (void)
 {
-	if (cl.cinematictime <= 0)
-	{
-		return false;
-	}
+	if (cl.cinematictime <= 0) return false;
+	if (!cin.pic) return true;
 
-	if (cls.key_dest == key_menu)
-	{
-		// blank screen and pause if menu is up
-		re.CinematicSetPalette (NULL);
-		cl.cinematicpalette_active = false;
-		return true;
-	}
-
-	if (!cl.cinematicpalette_active)
-	{
-		re.CinematicSetPalette (cl.cinematicpalette);
-		cl.cinematicpalette_active = true;
-	}
-
-	if (!cin.pic)
-		return true;
-
+	re.CinematicSetPalette (cl.cinematicpalette);
 	re.DrawStretchRaw (cin.width, cin.height, cin.pic, cl.cinematicframe);
 
 	return true;
@@ -573,6 +482,7 @@ void SCR_PlayCinematic (char *arg)
 
 	cl.cinematicframe = 0;
 	dot = strstr (arg, ".");
+
 	if (dot && !strcmp (dot, ".pcx"))
 	{
 		// static pcx image
@@ -582,6 +492,7 @@ void SCR_PlayCinematic (char *arg)
 		cl.cinematictime = 1;
 		SCR_EndLoadingPlaque ();
 		cls.state = ca_active;
+
 		if (!cin.pic)
 		{
 			Com_Printf ("%s not found.\n", name);
@@ -592,11 +503,13 @@ void SCR_PlayCinematic (char *arg)
 			memcpy (cl.cinematicpalette, palette, sizeof (cl.cinematicpalette));
 			Z_Free (palette);
 		}
+
 		return;
 	}
 
 	Com_sprintf (name, sizeof (name), "video/%s", arg);
 	FS_FOpenFile (name, &cl.cinematic_file);
+
 	if (!cl.cinematic_file)
 	{
 		//		Com_Error (ERR_DROP, "Cinematic %s not found.\n", name);
@@ -627,3 +540,5 @@ void SCR_PlayCinematic (char *arg)
 	cin.pic = SCR_ReadNextFrame ();
 	cl.cinematictime = Sys_Milliseconds ();
 }
+
+

@@ -48,7 +48,7 @@ void DrawAltString (int x, int y, char *s)
 {
 	while (*s)
 	{
-		re.DrawChar (x, y, *s ^ 0x80);
+		re.DrawChar (x, y, *s | 0x80);
 		x += 8;
 		s++;
 	}
@@ -473,7 +473,7 @@ void Con_DrawInput (void)
 	text = key_lines[edit_line];
 
 	// add the cursor frame
-	text[key_linepos] = 10 + ((cls.realtime >> 8) & 1);
+	text[key_linepos] = 10 + Com_CursorTime ();
 
 	// fill out remainder with spaces
 	for (i = key_linepos + 1; i < con.linewidth; i++)
@@ -547,15 +547,18 @@ void Con_DrawNotify (void)
 		}
 
 		s = chat_buffer;
+
 		if (chat_bufferlen > (viddef.conwidth >> 3) - (skip + 1))
 			s += chat_bufferlen - ((viddef.conwidth >> 3) - (skip + 1));
 		x = 0;
+
 		while (s[x])
 		{
 			re.DrawChar ((x + skip) << 3, v, s[x]);
 			x++;
 		}
-		re.DrawChar ((x + skip) << 3, v, 10 + ((cls.realtime >> 8) & 1));
+
+		re.DrawChar ((x + skip) << 3, v, 10 + Com_CursorTime ());
 		v += 8;
 	}
 

@@ -143,7 +143,6 @@ typedef struct client_state_s
 	int			cinematictime;		// cls.realtime for first cinematic frame
 	int			cinematicframe;
 	char		cinematicpalette[768];
-	qboolean	cinematicpalette_active;
 
 	// server state information
 	qboolean	attractloop;		// running the attract loop, any key will menu

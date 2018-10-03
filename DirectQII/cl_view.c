@@ -304,13 +304,13 @@ void CL_PrepRefresh (void)
 
 	// register models, pics, and skins
 	Com_Printf ("Map: %s\r", mapname);
-	SCR_UpdateScreen ();
+	SCR_UpdateScreen (SCR_NO_VSYNC);
 	re.BeginRegistration (mapname);
 	Com_Printf ("                                     \r");
 
 	// precache status bar pics
 	Com_Printf ("pics\r");
-	SCR_UpdateScreen ();
+	SCR_UpdateScreen (SCR_NO_VSYNC);
 	SCR_TouchPics ();
 	Com_Printf ("                                     \r");
 
@@ -325,8 +325,9 @@ void CL_PrepRefresh (void)
 		name[37] = 0;	// never go beyond one line
 		if (name[0] != '*')
 			Com_Printf ("%s\r", name);
-		SCR_UpdateScreen ();
+		SCR_UpdateScreen (SCR_NO_VSYNC);
 		Sys_SendKeyEvents ();	// pump message loop
+
 		if (name[0] == '#')
 		{
 			// special player weapon model
@@ -350,7 +351,7 @@ void CL_PrepRefresh (void)
 	}
 
 	Com_Printf ("images\r", i);
-	SCR_UpdateScreen ();
+	SCR_UpdateScreen (SCR_NO_VSYNC);
 	for (i = 1; i < MAX_IMAGES && cl.configstrings[CS_IMAGES + i][0]; i++)
 	{
 		cl.image_precache[i] = re.RegisterPic (cl.configstrings[CS_IMAGES + i]);
@@ -363,7 +364,7 @@ void CL_PrepRefresh (void)
 		if (!cl.configstrings[CS_PLAYERSKINS + i][0])
 			continue;
 		Com_Printf ("client %i\r", i);
-		SCR_UpdateScreen ();
+		SCR_UpdateScreen (SCR_NO_VSYNC);
 		Sys_SendKeyEvents ();	// pump message loop
 		CL_ParseClientinfo (i);
 		Com_Printf ("                                     \r");
@@ -373,7 +374,7 @@ void CL_PrepRefresh (void)
 
 	// set sky textures and speed
 	Com_Printf ("sky\r", i);
-	SCR_UpdateScreen ();
+	SCR_UpdateScreen (SCR_NO_VSYNC);
 	rotate = atof (cl.configstrings[CS_SKYROTATE]);
 	sscanf (cl.configstrings[CS_SKYAXIS], "%f %f %f",
 		&axis[0], &axis[1], &axis[2]);
@@ -385,8 +386,9 @@ void CL_PrepRefresh (void)
 
 	// clear any lines of console text
 	Con_ClearNotify ();
+	SCR_ClearCenterString ();
 
-	SCR_UpdateScreen ();
+	SCR_UpdateScreen (SCR_DEFAULT);
 	cl.refresh_prepped = true;
 	cl.force_refdef = true;	// make sure we have a valid refdef
 
@@ -473,6 +475,7 @@ void V_Gun_Model_f (void)
 		gun_model = NULL;
 		return;
 	}
+
 	Com_sprintf (name, sizeof (name), "models/%s/tris.md2", Cmd_Argv (1));
 	gun_model = re.RegisterModel (name);
 }
@@ -487,6 +490,12 @@ SCR_DrawCrosshair
 */
 void SCR_DrawCrosshair (void)
 {
+	if (cls.state != ca_active)
+		return;
+
+	if (!cl.refresh_prepped)
+		return;			// still loading
+
 	if (!crosshair->value)
 		return;
 
@@ -600,8 +609,6 @@ void V_RenderView (void)
 
 	if (cl_stats->value)
 		Com_Printf ("ent:%i  lt:%i  part:%i\n", r_numentities, r_numdlights, r_numparticles);
-
-	SCR_DrawCrosshair ();
 }
 
 
@@ -612,9 +619,7 @@ V_Viewpos_f
 */
 void V_Viewpos_f (void)
 {
-	Com_Printf ("(%i %i %i) : %i\n", (int) cl.refdef.vieworg[0],
-		(int) cl.refdef.vieworg[1], (int) cl.refdef.vieworg[2],
-		(int) cl.refdef.viewangles[1]);
+	Com_Printf ("(%i %i %i) : %i\n", (int) cl.refdef.vieworg[0], (int) cl.refdef.vieworg[1], (int) cl.refdef.vieworg[2], (int) cl.refdef.viewangles[1]);
 }
 
 /*
@@ -635,7 +640,7 @@ void V_Init (void)
 	cl_testblend = Cvar_Get ("cl_testblend", "0", 0);
 	cl_testparticles = Cvar_Get ("cl_testparticles", "0", 0);
 	cl_testentities = Cvar_Get ("cl_testentities", "0", 0);
-	cl_testlights = Cvar_Get ("cl_testlights", "0", 0);
+	cl_testlights = Cvar_Get ("cl_testlights", "0", CVAR_CHEAT);
 
 	cl_stats = Cvar_Get ("cl_stats", "0", 0);
 

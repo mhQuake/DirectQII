@@ -800,11 +800,18 @@ qboolean GLimp_InitGL (int modenum)
 
 static void GLimp_GetGUIScale (void)
 {
+	// viewsize is a percentage scaleup from 640x480 (which will be aspect-adjusted) to the full current resolution
+	// and which is applied to the ortho matrix for 2D GUI views
+	int scale = (int) scr_viewsize->value;
+
+	if (scale < 0) scale = 0;
+	if (scale > 100) scale = 100;
+
 	if (vid.width > 640 && vid.height > 480)
 	{
 		if (vid.width > vid.height)
 		{
-			int virtual_height = (((vid.height - 480) * (int) scr_viewsize->value) / 100) + 480;
+			int virtual_height = (((vid.height - 480) * scale) / 100) + 480;
 
 			if (vid.height > virtual_height)
 			{
@@ -815,7 +822,7 @@ static void GLimp_GetGUIScale (void)
 		}
 		else
 		{
-			int virtual_width = (((vid.width - 640) * (int) scr_viewsize->value) / 100) + 640;
+			int virtual_width = (((vid.width - 640) * scale) / 100) + 640;
 
 			if (vid.width > virtual_width)
 			{
@@ -835,7 +842,7 @@ static void GLimp_GetGUIScale (void)
 /*
 ** GLimp_BeginFrame
 */
-void GLimp_BeginFrame (viddef_t *vd)
+void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 {
 	// get client dimensions
 	RECT cr;
@@ -855,7 +862,7 @@ void GLimp_BeginFrame (viddef_t *vd)
 	vd->conheight = vid.conheight;
 
 	// set up the 2D ortho view, brightness and contrast
-	Draw_UpdateConstants ();
+	Draw_UpdateConstants (scrflags);
 
 	// everything in all draws is drawn as an indexed triangle list, even if it's ultimately a strip or a single tri, so this can be set-and-forget once per frame
 	d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -873,18 +880,21 @@ void GLimp_BeginFrame (viddef_t *vd)
 ** as yet to be determined.  Probably better not to make this a GLimp
 ** function and instead do a call to GLimp_SwapBuffers.
 */
-void GLimp_EndFrame (qboolean allowvsync)
+void GLimp_EndFrame (int scrflags)
 {
 	// free any loading memory that may have been used during the frame
 	ri.Load_FreeMemory ();
 
+	if (scrflags & SCR_SYNC_PIPELINE)
+		R_SyncPipeline ();
+
 	// perform the buffer swap with or without vsync as appropriate
-	if (allowvsync)
-	{
-		if (vid_vsync->value)
-			d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 1, 0);
-		else d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
-	}
+	if (scrflags & SCR_NO_PRESENT)
+		return;
+	else if (scrflags & SCR_NO_VSYNC)
+		d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
+	else if (vid_vsync->value)
+		d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 1, 0);
 	else d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
 }
 

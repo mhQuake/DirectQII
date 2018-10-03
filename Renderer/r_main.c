@@ -431,13 +431,6 @@ void R_SetupFrame (void)
 
 	c_brush_polys = 0;
 	c_alias_polys = 0;
-
-	// clear out the portion of the screen that the NOWORLDMODEL defines
-	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
-	{
-		// we can't clear subrects in D3D11 so just clear the entire thing
-		d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, d3d_DepthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
-	}
 }
 
 
@@ -569,6 +562,13 @@ void R_SetupGL (void)
 
 	// and update to the cbuffer
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MainConstants, 0, NULL, &consts, 0, 0);
+
+	// clear out the portion of the screen that the NOWORLDMODEL defines
+	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+	{
+		// we can't clear subrects in D3D11 so just clear the entire thing
+		d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, d3d_DepthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
+	}
 }
 
 

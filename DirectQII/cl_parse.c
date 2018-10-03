@@ -79,7 +79,7 @@ qboolean CL_CheckOrDownloadFile (char *filename)
 
 	if (strstr (filename, ".."))
 	{
-		Com_Printf ("Refusing to download a path with ..\n");
+		Com_Printf ("Refusing to download a path with \"..\"\n");
 		return true;
 	}
 
@@ -147,7 +147,7 @@ void CL_Download_f (void)
 	// this is the one that actually does the download, so just refuse access to the file system even if it's a file that already exists
 	if (strstr (filename, ".."))
 	{
-		Com_Printf ("Refusing to download a path with ..\n");
+		Com_Printf ("Refusing to download a path with \"..\"\n");
 		return;
 	}
 

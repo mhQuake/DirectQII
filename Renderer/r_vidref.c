@@ -27,14 +27,14 @@ void R_Register (void)
 {
 	scr_viewsize = ri.Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
 	r_testnullmodels = ri.Cvar_Get ("r_testnullmodels", "0", CVAR_CHEAT);
-	r_lightmap = ri.Cvar_Get ("r_lightmap", "0", CVAR_CHEAT);
+	r_lightmap = ri.Cvar_Get ("gl_lightmap", "0", CVAR_CHEAT);
 	r_testnotexture = ri.Cvar_Get ("r_testnotexture", "0", CVAR_CHEAT);
 	r_lightmodel = ri.Cvar_Get ("r_lightmodel", "1", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_CHEAT);
 	r_beamdetail = ri.Cvar_Get ("r_beamdetail", "24", CVAR_ARCHIVE);
 	r_lefthand = ri.Cvar_Get ("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);
-	r_drawworld = ri.Cvar_Get ("r_drawworld", "1", 0);
+	r_drawworld = ri.Cvar_Get ("r_drawworld", "1", CVAR_CHEAT);
 	r_novis = ri.Cvar_Get ("r_novis", "0", 0);
 
 	r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0);
@@ -52,8 +52,6 @@ void R_Register (void)
 	vid_width = ri.Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
 	vid_height = ri.Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
 	vid_vsync = ri.Cvar_Get ("vid_vsync", "0", CVAR_ARCHIVE);
-
-	ri.Cmd_AddCommand ("screenshot", GL_ScreenShot_f);
 }
 
 
@@ -170,8 +168,6 @@ R_Shutdown
 */
 void R_Shutdown (void)
 {
-	ri.Cmd_RemoveCommand ("screenshot");
-
 	Mod_FreeAll ();
 
 	GL_ShutdownImages ();
@@ -199,6 +195,7 @@ void Draw_Char (int x, int y, int c);
 void Draw_Fill (int x, int y, int w, int h, int c);
 void Draw_FadeScreen (void);
 void D_EnumerateVideoModes (void);
+void D_CaptureScreenshot (char *checkname);
 
 
 /*
@@ -241,13 +238,12 @@ refexport_t GetRefAPI (refimport_t rimp)
 
 	re.CinematicSetPalette = R_SetCinematicPalette;
 	re.BeginFrame = GLimp_BeginFrame;
-	re.EndFrame = GLimp_EndFrame;
-
 	re.Set2D = R_Set2D;
-	re.End2D = R_End2D;
+	re.EndFrame = GLimp_EndFrame;
 
 	re.AppActivate = GLimp_AppActivate;
 	re.EnumerateVideoModes = D_EnumerateVideoModes;
+	re.CaptureScreenshot = D_CaptureScreenshot;
 
 	Swap_Init ();
 

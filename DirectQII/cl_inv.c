@@ -146,7 +146,7 @@ void CL_DrawInventory (void)
 			// draw a blinky cursor by the selected item
 			// the original code was written for a float second timer; adjust to int ms and time it for consistency with the input cursor
 			// the upcoming Inv_DrawString will complete this
-			if ((cls.realtime >> 8) & 1)
+			if (Com_CursorTime ())
 				re.DrawChar (x - 8, y, 15);
 
 			Inv_DrawString (x, y, string);

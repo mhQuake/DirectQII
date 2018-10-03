@@ -61,7 +61,14 @@ int			crosshair_width, crosshair_height;
 
 void SCR_TimeRefresh_f (void);
 void SCR_Loading_f (void);
+void SCR_DrawCrosshair (void);
 
+
+int Com_CursorTime (void)
+{
+	// returns 0 or 1
+	return ((cls.realtime >> 8) & 1);
+}
 
 /*
 ===============================================================================
@@ -159,6 +166,7 @@ void SCR_DrawDebugGraph (void)
 	}
 }
 
+
 /*
 ===============================================================================
 
@@ -167,11 +175,10 @@ CENTER PRINTING
 ===============================================================================
 */
 
-char		scr_centerstring[1024];
-float		scr_centertime_start;	// for slow victory printing
-float		scr_centertime_off;
+char		scr_centerstring[4096];
+int			scr_centertime_off;
 int			scr_center_lines;
-int			scr_erase_center;
+
 
 /*
 ==============
@@ -184,12 +191,11 @@ for a few moments
 void SCR_CenterPrint (char *str)
 {
 	char	*s;
-	char	line[64];
+	char	line[80];
 	int		i, j, l;
 
 	strncpy (scr_centerstring, str, sizeof (scr_centerstring) - 1);
-	scr_centertime_off = scr_centertime->value;
-	scr_centertime_start = cl.time;
+	scr_centertime_off = cl.time + (int) (scr_centertime->value * 1000);
 
 	// count the number of lines for centering
 	scr_center_lines = 1;
@@ -240,18 +246,12 @@ void SCR_CenterPrint (char *str)
 
 void SCR_DrawCenterString (void)
 {
-	char	*start;
 	int		l;
 	int		j;
-	int		x, y;
-	int		remaining;
+	int		x;
 
-	// the finale prints the characters one at a time
-	remaining = 9999;
-
-	scr_erase_center = 0;
-	start = scr_centerstring;
-	y = viddef.conheight * 0.35 - (scr_center_lines * 4);
+	char *start = scr_centerstring;
+	int y = viddef.conheight * 0.35 - (scr_center_lines * 4);
 
 	do
 	{
@@ -263,17 +263,8 @@ void SCR_DrawCenterString (void)
 		x = (viddef.conwidth - l * 8) / 2;
 
 		for (j = 0; j < l; j++, x += 8)
-		{
 			re.DrawChar (x, y, start[j]);
 
-			if (!remaining--)
-			{
-				re.DrawString ();
-				return;
-			}
-		}
-
-		re.DrawString ();
 		y += 8;
 
 		while (*start && *start != '\n')
@@ -281,19 +272,46 @@ void SCR_DrawCenterString (void)
 
 		if (!*start)
 			break;
+
 		start++;		// skip the \n
 	} while (1);
+
+	re.DrawString ();
 }
+
+
+void SCR_ClearCenterString (void)
+{
+	scr_centertime_off = 0;
+	scr_center_lines = 0;
+	scr_centerstring[0] = 0;
+}
+
 
 void SCR_CheckDrawCenterString (void)
 {
-	scr_centertime_off -= cls.frametime;
-
-	if (scr_centertime_off <= 0)
+	// remove any prior centerprints
+	if (cls.state != ca_active || !cl.refresh_prepped)
+	{
+		SCR_ClearCenterString ();
 		return;
+	}
+
+	if (!scr_centerstring[0])
+	{
+		SCR_ClearCenterString ();
+		return;
+	}
+
+	if (cl.time >= scr_centertime_off)
+	{
+		SCR_ClearCenterString ();
+		return;
+	}
 
 	SCR_DrawCenterString ();
 }
+
 
 //=============================================================================
 
@@ -332,33 +350,86 @@ Set a specific sky and rotation speed
 */
 void SCR_Sky_f (void)
 {
-	float	rotate;
-	vec3_t	axis;
+	float	rotate = 0;
+	vec3_t	axis = {0, 0, 1};
 
 	if (Cmd_Argc () < 2)
 	{
 		Com_Printf ("Usage: sky <basename> <rotate> <axis x y z>\n");
 		return;
 	}
+
 	if (Cmd_Argc () > 2)
 		rotate = atof (Cmd_Argv (2));
-	else
-		rotate = 0;
+
 	if (Cmd_Argc () == 6)
 	{
 		axis[0] = atof (Cmd_Argv (3));
 		axis[1] = atof (Cmd_Argv (4));
 		axis[2] = atof (Cmd_Argv (5));
 	}
-	else
-	{
-		axis[0] = 0;
-		axis[1] = 0;
-		axis[2] = 1;
-	}
 
 	re.SetSky (Cmd_Argv (1), rotate, axis);
 }
+
+
+static void SCR_PerformScreenshot (char *shotname, int extraflags)
+{
+	if (strstr (shotname, ".."))
+	{
+		Com_Printf ("SCR_PerformScreenshot : refusing to use a path with \"..\"\n");
+		return;
+	}
+
+	// refresh the screen without any gamma or brightness applied; do not swap buffers, etc
+	SCR_UpdateScreen (SCR_NO_GAMMA | SCR_NO_BRIGHTNESS | SCR_NO_PRESENT | SCR_SYNC_PIPELINE | extraflags);
+
+	// and capture it to our screenshot
+	re.CaptureScreenshot (shotname);
+
+	// then do a normal refresh to wipe out what we just did
+	SCR_UpdateScreen (SCR_DEFAULT);
+}
+
+
+void SCR_Screenshot_f (void)
+{
+#define SHOTDIR "scrnshot"
+
+	// create the scrnshots directory if it doesn't exist
+	Sys_Mkdir (va ("%s/"SHOTDIR, FS_Gamedir ()));
+
+	if (Cmd_Argc () < 2)
+	{
+		int i;
+
+		// find a file name to save it to
+		for (i = 0; i <= 99; i++)
+		{
+			FILE *f;
+			char *checkname = va ("%s/"SHOTDIR"/quake%02i.tga", FS_Gamedir (), i);
+
+			if ((f = fopen (checkname, "rb")) == NULL)
+			{
+				// create the scheenshot
+				SCR_PerformScreenshot (checkname, SCR_DEFAULT);
+				return;
+			}
+
+			fclose (f);
+		}
+
+		// didn't do it
+		Com_Printf ("SCR_ScreenShot_f: Couldn't create a file\n");
+	}
+	else
+	{
+		// using the first param as a custom shot name
+		char *checkname = va ("%s/"SHOTDIR"/%s.tga", FS_Gamedir (), Cmd_Argv (1));
+		SCR_PerformScreenshot (checkname, SCR_NO_2D_UI);
+	}
+}
+
 
 //============================================================================
 
@@ -388,6 +459,7 @@ void SCR_Init (void)
 	Cmd_AddCommand ("sizeup", SCR_SizeUp_f);
 	Cmd_AddCommand ("sizedown", SCR_SizeDown_f);
 	Cmd_AddCommand ("sky", SCR_Sky_f);
+	Cmd_AddCommand ("screenshot", SCR_Screenshot_f);
 
 	scr_initialized = true;
 }
@@ -425,6 +497,7 @@ void SCR_DrawPause (void)
 	re.DrawGetPicSize (&w, &h, "pause");
 	re.DrawPic ((viddef.conwidth - w) / 2, viddef.conheight / 2 + 8, "pause");
 }
+
 
 /*
 ==============
@@ -538,19 +611,17 @@ void SCR_BeginLoadingPlaque (void)
 	S_StopAllSounds ();
 	cl.sound_prepped = false;		// don't play ambients
 	CDAudio_Stop ();
-	if (cls.disable_screen)
-		return;
-	if (developer->value)
-		return;
-	if (cls.state == ca_disconnected)
-		return;	// if at console, don't bring up the plaque
-	if (cls.key_dest == key_console)
-		return;
+
+	if (cls.disable_screen) return;
+	if (developer->value) return;
+	if (cls.state == ca_disconnected) return;	// if at console, don't bring up the plaque
+	if (cls.key_dest == key_console) return;
+
 	if (cl.cinematictime > 0)
-		scr_draw_loading = 2;	// clear to balack first
-	else
-		scr_draw_loading = 1;
-	SCR_UpdateScreen ();
+		scr_draw_loading = 2;	// clear to black first
+	else scr_draw_loading = 1;
+
+	SCR_UpdateScreen (SCR_NO_VSYNC);
 	cls.disable_screen = Sys_Milliseconds ();
 	cls.disable_servercount = cl.servercount;
 }
@@ -566,6 +637,7 @@ void SCR_EndLoadingPlaque (void)
 	Con_ClearNotify ();
 }
 
+
 /*
 ================
 SCR_Loading_f
@@ -576,6 +648,7 @@ void SCR_Loading_f (void)
 	SCR_BeginLoadingPlaque ();
 }
 
+
 /*
 ================
 SCR_TimeRefresh_f
@@ -583,18 +656,12 @@ SCR_TimeRefresh_f
 */
 int entitycmpfnc (const entity_t *a, const entity_t *b)
 {
-	/*
-	** all other models are sorted by model then skin
-	*/
+	// all other models are sorted by model then skin
 	if (a->model == b->model)
-	{
 		return ((int) a->skin - (int) b->skin);
-	}
-	else
-	{
-		return ((int) a->model - (int) b->model);
-	}
+	else return ((int) a->model - (int) b->model);
 }
+
 
 void SCR_TimeRefresh_f (void)
 {
@@ -614,9 +681,9 @@ void SCR_TimeRefresh_f (void)
 	{
 		cl.refdef.viewangles[1] = startangle + (float) (Sys_Milliseconds () - start) * (360.0f / timeRefreshTime);
 
-		re.BeginFrame (&viddef);
+		re.BeginFrame (&viddef, SCR_DEFAULT);
 		re.RenderFrame (&cl.refdef);
-		re.EndFrame (false);
+		re.EndFrame (SCR_NO_VSYNC);
 
 		if ((time = Sys_Milliseconds () - start) >= timeRefreshTime) break;
 	}
@@ -640,12 +707,10 @@ Allow embedded \n in the string
 */
 void SizeHUDString (char *string, int *w, int *h)
 {
-	int		lines, width, current;
+	int lines = 1;
+	int width = 0;
+	int current = 0;
 
-	lines = 1;
-	width = 0;
-
-	current = 0;
 	while (*string)
 	{
 		if (*string == '\n')
@@ -659,6 +724,7 @@ void SizeHUDString (char *string, int *w, int *h)
 			if (current > width)
 				width = current;
 		}
+
 		string++;
 	}
 
@@ -666,7 +732,8 @@ void SizeHUDString (char *string, int *w, int *h)
 	*h = lines * 8;
 }
 
-void DrawHUDString (char *string, int x, int y, int centerwidth, int xor)
+
+void DrawHUDString (char *string, int x, int y, int centerwidth, int mask)
 {
 	int		margin;
 	char	line[1024];
@@ -679,18 +746,19 @@ void DrawHUDString (char *string, int x, int y, int centerwidth, int xor)
 	{
 		// scan out one line of text from the string
 		width = 0;
+
 		while (*string && *string != '\n')
 			line[width++] = *string++;
+
 		line[width] = 0;
 
 		if (centerwidth)
 			x = margin + (centerwidth - width * 8) / 2;
-		else
-			x = margin;
+		else x = margin;
 
 		for (i = 0; i < width; i++)
 		{
-			re.DrawChar (x, y, line[i] ^ xor);
+			re.DrawChar (x, y, line[i] | mask);
 			x += 8;
 		}
 
@@ -1095,7 +1163,7 @@ text to the screen.
 */
 void CL_DrawFPS (void);
 
-void SCR_UpdateScreen (void)
+void SCR_UpdateScreen (int scrflags)
 {
 	// if the screen is disabled (loading plaque is up, or vid mode changing) do nothing at all
 	if (cls.disable_screen)
@@ -1111,21 +1179,19 @@ void SCR_UpdateScreen (void)
 	if (!scr_initialized || !con.initialized)
 		return;				// not initialized yet
 
-	re.BeginFrame (&viddef);
+	re.BeginFrame (&viddef, scrflags);
 
 	if (scr_draw_loading == 2)
 	{
 		//  loading plaque over black screen
-		int		w, h;
+		int	w, h;
 
-		re.CinematicSetPalette (NULL);
 		scr_draw_loading = false;
 
 		re.Set2D ();
 		re.DrawFill (0, 0, viddef.conwidth, viddef.conheight, 0); // this was never done
 		re.DrawGetPicSize (&w, &h, "loading");
 		re.DrawPic ((viddef.conwidth - w) / 2, (viddef.conheight - h) / 2, "loading");
-		re.End2D ();
 	}
 	else if (cl.cinematictime > 0)
 	{
@@ -1134,76 +1200,52 @@ void SCR_UpdateScreen (void)
 		// if a cinematic is supposed to be running, handle menus
 		// and console specially
 		if (cls.key_dest == key_menu)
-		{
-			if (cl.cinematicpalette_active)
-			{
-				re.CinematicSetPalette (NULL);
-				cl.cinematicpalette_active = false;
-			}
-
 			M_Draw ();
-		}
 		else if (cls.key_dest == key_console)
-		{
-			if (cl.cinematicpalette_active)
-			{
-				re.CinematicSetPalette (NULL);
-				cl.cinematicpalette_active = false;
-			}
-
 			SCR_DrawConsole ();
-		}
-		else
-		{
-			SCR_DrawCinematic ();
-		}
-
-		re.End2D ();
+		else SCR_DrawCinematic ();
 	}
 	else
 	{
-		// make sure the game palette is active
-		if (cl.cinematicpalette_active)
-		{
-			re.CinematicSetPalette (NULL);
-			cl.cinematicpalette_active = false;
-		}
-
 		// do 3D refresh drawing, and then update the screen
 		V_RenderView ();
 
-		re.Set2D ();
+		if (!(scrflags & SCR_NO_2D_UI))
+		{
+			re.Set2D ();
 
-		CL_DrawFPS ();
+			SCR_DrawCrosshair (); // moved this here from V_RenderView
 
-		SCR_DrawStats ();
+			CL_DrawFPS ();
 
-		if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1) SCR_DrawLayout ();
-		if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 2) CL_DrawInventory ();
+			SCR_DrawStats ();
 
-		SCR_DrawNet ();
-		SCR_CheckDrawCenterString ();
+			if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1) SCR_DrawLayout ();
+			if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 2) CL_DrawInventory ();
 
-		if (scr_timegraph->value)
-			SCR_DebugGraph (cls.frametime * 300, 0);
+			SCR_DrawNet ();
+			SCR_CheckDrawCenterString ();
 
-		if (scr_debuggraph->value || scr_timegraph->value || scr_netgraph->value)
-			SCR_DrawDebugGraph ();
+			if (scr_timegraph->value)
+				SCR_DebugGraph (cls.frametime * 300, 0);
 
-		SCR_DrawPause ();
+			if (scr_debuggraph->value || scr_timegraph->value || scr_netgraph->value)
+				SCR_DrawDebugGraph ();
 
-		SCR_DrawConsole ();
+			SCR_DrawPause ();
 
-		M_Draw ();
+			SCR_DrawConsole ();
 
-		SCR_DrawLoading ();
+			M_Draw ();
 
-		re.End2D ();
+			SCR_DrawLoading ();
+		}
 	}
 
 	// never vsync if we're in a timedemo
 	if (cl_timedemo->value)
-		re.EndFrame (false);
-	else re.EndFrame (true);
+		re.EndFrame (scrflags | SCR_NO_VSYNC);
+	else re.EndFrame (scrflags);
 }
+
 

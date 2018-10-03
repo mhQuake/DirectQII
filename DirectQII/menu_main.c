@@ -41,7 +41,6 @@ void M_Main_Draw (void)
 	int	xoffset;
 	int widest = -1;
 	int totalheight = 0;
-	char litname[80];
 
 	char *names[] =
 	{
@@ -67,15 +66,13 @@ void M_Main_Draw (void)
 
 	for (i = 0; names[i] != 0; i++)
 	{
-		if (i != m_main_cursor)
-			re.DrawPic (xoffset, ystart + i * 40 + 13, names[i]);
+		if (i == m_main_cursor)
+		{
+			M_DrawCursor (xoffset - 25, ystart + i * 40 + 11, (cls.realtime >> 7) % NUM_CURSOR_FRAMES);
+			re.DrawPic (xoffset, ystart + i * 40 + 13, va ("%s_sel", names[i]));
+		}
+		else re.DrawPic (xoffset, ystart + i * 40 + 13, names[i]);
 	}
-
-	strcpy (litname, names[m_main_cursor]);
-	strcat (litname, "_sel");
-	re.DrawPic (xoffset, ystart + m_main_cursor * 40 + 13, litname);
-
-	M_DrawCursor (xoffset - 25, ystart + m_main_cursor * 40 + 11, (int) (cls.realtime / 100) % NUM_CURSOR_FRAMES);
 
 	re.DrawGetPicSize (&w, &h, "m_main_plaque");
 	re.DrawPic (xoffset - 30 - w, ystart, "m_main_plaque");

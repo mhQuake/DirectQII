@@ -81,8 +81,10 @@ qboolean Field_DoEnter (menufield_s *f)
 		f->generic.callback (f);
 		return true;
 	}
+
 	return false;
 }
+
 
 void Field_Draw (menufield_s *f)
 {
@@ -119,18 +121,10 @@ void Field_Draw (menufield_s *f)
 		else
 			offset = f->cursor;
 
-		if (((int) (Sys_Milliseconds () / 250)) & 1)
-		{
-			re.DrawChar (f->generic.x + f->generic.parent->x + (offset + 2) * 8 + 8,
-				f->generic.y + f->generic.parent->y,
-				11);
-		}
+		if (Com_CursorTime ())
+			re.DrawChar (f->generic.x + f->generic.parent->x + (offset + 2) * 8 + 8, f->generic.y + f->generic.parent->y, 11);
 		else
-		{
-			re.DrawChar (f->generic.x + f->generic.parent->x + (offset + 2) * 8 + 8,
-				f->generic.y + f->generic.parent->y,
-				' ');
-		}
+			re.DrawChar (f->generic.x + f->generic.parent->x + (offset + 2) * 8 + 8, f->generic.y + f->generic.parent->y, ' ');
 
 		re.DrawString ();
 	}
@@ -196,11 +190,8 @@ qboolean Field_Key (menufield_s *f, int key)
 		}
 	}
 
-	/*
-	** support pasting from the clipboard
-	*/
-	if ((toupper (key) == 'V' && keydown[K_CTRL]) ||
-		(((key == K_INS) || (key == K_KP_INS)) && keydown[K_SHIFT]))
+	// support pasting from the clipboard
+	if ((toupper (key) == 'V' && keydown[K_CTRL]) || (((key == K_INS) || (key == K_KP_INS)) && keydown[K_SHIFT]))
 	{
 		char *cbd;
 
@@ -211,11 +202,13 @@ qboolean Field_Key (menufield_s *f, int key)
 			strncpy (f->buffer, cbd, f->length - 1);
 			f->cursor = strlen (f->buffer);
 			f->visible_offset = f->cursor - f->visible_length;
+
 			if (f->visible_offset < 0)
 				f->visible_offset = 0;
 
 			Z_Free (cbd);
 		}
+
 		return true;
 	}
 
@@ -293,9 +286,7 @@ void Menu_AdjustCursor (menuframework_s *m, int dir)
 {
 	menucommon_s *citem;
 
-	/*
-	** see if it's in a valid spot
-	*/
+	// see if it's in a valid spot
 	if (m->cursor >= 0 && m->cursor < m->nitems)
 	{
 		if ((citem = Menu_ItemAtCursor (m)) != 0)
@@ -305,10 +296,7 @@ void Menu_AdjustCursor (menuframework_s *m, int dir)
 		}
 	}
 
-	/*
-	** it's not in a valid spot, so crawl in the direction indicated until we
-	** find a valid spot
-	*/
+	// it's not in a valid spot, so crawl in the direction indicated until we find a valid spot
 	if (dir == 1)
 	{
 		while (1)
@@ -327,9 +315,11 @@ void Menu_AdjustCursor (menuframework_s *m, int dir)
 		while (1)
 		{
 			citem = Menu_ItemAtCursor (m);
+
 			if (citem)
 				if (citem->type != MTYPE_SEPARATOR)
 					break;
+
 			m->cursor += dir;
 			if (m->cursor < 0)
 				m->cursor = m->nitems - 1;
@@ -391,13 +381,9 @@ void Menu_Draw (menuframework_s *menu)
 	else if (item && item->type != MTYPE_FIELD)
 	{
 		if (item->flags & QMF_LEFT_JUSTIFY)
-		{
-			re.DrawChar (menu->x + item->x - 24 + item->cursor_offset, menu->y + item->y, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
-		}
+			re.DrawChar (menu->x + item->x - 24 + item->cursor_offset, menu->y + item->y, 12 + Com_CursorTime ());
 		else
-		{
-			re.DrawChar (menu->x + item->cursor_offset, menu->y + item->y, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
-		}
+			re.DrawChar (menu->x + item->cursor_offset, menu->y + item->y, 12 + Com_CursorTime ());
 
 		re.DrawString ();
 	}
@@ -411,11 +397,9 @@ void Menu_Draw (menuframework_s *menu)
 		else
 			Menu_DrawStatusBar (menu->statusbar);
 	}
-	else
-	{
-		Menu_DrawStatusBar (menu->statusbar);
-	}
+	else Menu_DrawStatusBar (menu->statusbar);
 }
+
 
 void Menu_DrawStatusBar (const char *string)
 {
@@ -547,10 +531,7 @@ int Menu_TallySlots (menuframework_s *menu)
 
 			total += nitems;
 		}
-		else
-		{
-			total++;
-		}
+		else total++;
 	}
 
 	return total;
@@ -584,6 +565,7 @@ void MenuList_Draw (menulist_s *l)
 	n = l->itemnames;
 
 	re.DrawFill (l->generic.x - 112 + l->generic.parent->x, l->generic.parent->y + l->generic.y + l->curvalue * 10 + 10, 128, 10, 16);
+
 	while (*n)
 	{
 		Menu_DrawStringR2LDark (l->generic.x + l->generic.parent->x + LCOLUMN_OFFSET, l->generic.y + l->generic.parent->y + y + 10, *n);
@@ -612,26 +594,25 @@ void Slider_DoSlide (menuslider_s *s, int dir)
 		s->generic.callback (s);
 }
 
+
 #define SLIDER_RANGE 10
 
 void Slider_Draw (menuslider_s *s)
 {
 	int	i;
 
-	Menu_DrawStringR2LDark (s->generic.x + s->generic.parent->x + LCOLUMN_OFFSET,
-		s->generic.y + s->generic.parent->y,
-		s->generic.name);
+	Menu_DrawStringR2LDark (s->generic.x + s->generic.parent->x + LCOLUMN_OFFSET, s->generic.y + s->generic.parent->y, s->generic.name);
 
 	s->range = (s->curvalue - s->minvalue) / (float) (s->maxvalue - s->minvalue);
 
-	if (s->range < 0)
-		s->range = 0;
-	if (s->range > 1)
-		s->range = 1;
+	if (s->range < 0) s->range = 0;
+	if (s->range > 1) s->range = 1;
 
 	re.DrawChar (s->generic.x + s->generic.parent->x + RCOLUMN_OFFSET, s->generic.y + s->generic.parent->y, 128);
+
 	for (i = 0; i < SLIDER_RANGE; i++)
 		re.DrawChar (RCOLUMN_OFFSET + s->generic.x + i * 8 + s->generic.parent->x + 8, s->generic.y + s->generic.parent->y, 129);
+
 	re.DrawChar (RCOLUMN_OFFSET + s->generic.x + i * 8 + s->generic.parent->x + 8, s->generic.y + s->generic.parent->y, 130);
 	re.DrawChar ((int) (8 + RCOLUMN_OFFSET + s->generic.parent->x + s->generic.x + (SLIDER_RANGE - 1) * 8 * s->range), s->generic.y + s->generic.parent->y, 131);
 	re.DrawString ();
@@ -640,6 +621,7 @@ void Slider_Draw (menuslider_s *s)
 void SpinControl_DoEnter (menulist_s *s)
 {
 	s->curvalue++;
+
 	if (s->itemnames[s->curvalue] == 0)
 		s->curvalue = 0;
 
@@ -677,14 +659,10 @@ void SpinControl_Draw (menulist_s *s)
 	char buffer[1024];
 
 	if (s->generic.name)
-	{
 		Menu_DrawStringR2LDark (s->generic.x + s->generic.parent->x + LCOLUMN_OFFSET, s->generic.y + s->generic.parent->y, s->generic.name);
-	}
 
 	if (!strchr (s->itemnames[s->curvalue], '\n'))
-	{
 		Menu_DrawString (RCOLUMN_OFFSET + s->generic.x + s->generic.parent->x, s->generic.y + s->generic.parent->y, s->itemnames[s->curvalue]);
-	}
 	else
 	{
 		strcpy (buffer, s->itemnames[s->curvalue]);

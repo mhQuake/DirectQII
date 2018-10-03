@@ -56,8 +56,7 @@ static char *s_pmnames[MAX_PLAYERMODELS];
 static int s_numplayermodels;
 
 static int rate_tbl[] = {2500, 3200, 5000, 10000, 25000, 0};
-static const char *rate_names[] = {"28.8 Modem", "33.6 Modem", "Single ISDN",
-"Dual ISDN/Cable", "T1/LAN", "User defined", 0};
+static const char *rate_names[] = {"28.8 Modem", "33.6 Modem", "Single ISDN", "Dual ISDN/Cable", "T1/LAN", "User defined", 0};
 
 void DownloadOptionsFunc (void *self)
 {
@@ -93,6 +92,7 @@ static void FreeFileList (char **list, int n)
 			list[i] = 0;
 		}
 	}
+
 	Z_Free (list);
 }
 
@@ -127,9 +127,7 @@ static qboolean PlayerConfig_ScanDirectories (void)
 
 	s_numplayermodels = 0;
 
-	/*
-	** get a list of directories
-	*/
+	// get a list of directories
 	do
 	{
 		path = FS_NextPath (path);
@@ -142,9 +140,7 @@ static qboolean PlayerConfig_ScanDirectories (void)
 	if (!dirnames)
 		return false;
 
-	/*
-	** go through the subdirectories
-	*/
+	// go through the subdirectories
 	npms = ndirs;
 	if (npms > MAX_PLAYERMODELS)
 		npms = MAX_PLAYERMODELS;
@@ -196,6 +192,7 @@ static qboolean PlayerConfig_ScanDirectories (void)
 				}
 			}
 		}
+
 		if (!nskins)
 			continue;
 
@@ -250,6 +247,7 @@ static qboolean PlayerConfig_ScanDirectories (void)
 
 		s_numplayermodels++;
 	}
+
 	if (dirnames)
 		FreeFileList (dirnames, ndirs);
 
@@ -261,9 +259,7 @@ static int pmicmpfnc (const void *_a, const void *_b)
 	const playermodelinfo_s *a = (const playermodelinfo_s *) _a;
 	const playermodelinfo_s *b = (const playermodelinfo_s *) _b;
 
-	/*
-	** sort by male, female, then alphabetical
-	*/
+	// sort by male, female, then alphabetical
 	if (strcmp (a->directory, "male") == 0)
 		return -1;
 	else if (strcmp (b->directory, "male") == 0)
@@ -323,9 +319,11 @@ qboolean PlayerConfig_MenuInit (void)
 	qsort (s_pmi, s_numplayermodels, sizeof (s_pmi[0]), pmicmpfnc);
 
 	memset (s_pmnames, 0, sizeof (s_pmnames));
+
 	for (i = 0; i < s_numplayermodels; i++)
 	{
 		s_pmnames[i] = s_pmi[i].displayname;
+
 		if (Q_stricmp (s_pmi[i].directory, currentdirectory) == 0)
 		{
 			int j;
@@ -441,6 +439,7 @@ qboolean PlayerConfig_MenuInit (void)
 	return true;
 }
 
+
 void PlayerConfig_MenuDraw (void)
 {
 	void SCR_SetFOV (fov_t *fov, float fovvar, int width, int height);
@@ -507,6 +506,9 @@ void PlayerConfig_MenuDraw (void)
 		refdef.height += 4;
 
 		re.RenderFrame (&refdef);
+
+		// go back to 2D mode after doing this
+		re.Set2D ();
 	}
 }
 

@@ -25,20 +25,27 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 /*
 =============================================================================
 
-LOADGAME MENU
+COMMON STUFF
 
 =============================================================================
 */
 
 #define	MAX_SAVEGAMES	15
 
-static menuframework_s	s_savegame_menu;
-
-static menuframework_s	s_loadgame_menu;
-static menuaction_s		s_loadgame_actions[MAX_SAVEGAMES];
-
 char		m_savestrings[MAX_SAVEGAMES][32];
 qboolean	m_savevalid[MAX_SAVEGAMES];
+
+void MakeGreen (char *str)
+{
+	int i;
+
+	for (i = 0; ; i++)
+	{
+		if (!str[i]) break;
+		str[i] |= 0x80;
+	}
+}
+
 
 void Create_Savestrings (void)
 {
@@ -50,19 +57,71 @@ void Create_Savestrings (void)
 	{
 		Com_sprintf (name, sizeof (name), "%s/save/save%i/server.ssv", FS_Gamedir (), i);
 		f = fopen (name, "rb");
+
 		if (!f)
 		{
 			strcpy (m_savestrings[i], "<EMPTY>");
+			MakeGreen (m_savestrings[i]);
 			m_savevalid[i] = false;
 		}
 		else
 		{
 			FS_Read (m_savestrings[i], sizeof (m_savestrings[i]), f);
+
+			if (i == 0)
+				MakeGreen (&m_savestrings[i][9]);
+			else MakeGreen (&m_savestrings[i][13]);
+
 			fclose (f);
 			m_savevalid[i] = true;
 		}
 	}
 }
+
+
+void M_DisplaySave (char *savename)
+{
+	int i;
+	char date[10];
+	char time[10];
+	char *map = &savename[13];
+
+	// copy off the date
+	strncpy (date, &savename[6], 7);
+	date[5] = 0;
+
+	// copy off the time
+	strncpy (time, savename, 7);
+	time[5] = 0;
+
+	// pretty up for display
+	for (i = 0; ; i++)
+	{
+		if (!date[i]) break;
+		if (date[i] == ' ') date[i] = '0';
+	}
+
+	// pretty up for display
+	for (i = 0; ; i++)
+	{
+		if (!time[i]) break;
+		if (time[i] == ' ') time[i] = '0';
+	}
+}
+
+
+/*
+=============================================================================
+
+LOADGAME MENU
+
+=============================================================================
+*/
+
+static menuframework_s	s_savegame_menu;
+static menuframework_s	s_loadgame_menu;
+
+static menuaction_s		s_loadgame_actions[MAX_SAVEGAMES];
 
 void LoadGameCallback (void *self)
 {
@@ -92,6 +151,7 @@ void LoadGame_MenuInit (void)
 
 		s_loadgame_actions[i].generic.x = 0;
 		s_loadgame_actions[i].generic.y = (i) * 10;
+
 		if (i > 0)	// separate from autosave
 			s_loadgame_actions[i].generic.y += 10;
 
@@ -101,11 +161,13 @@ void LoadGame_MenuInit (void)
 	}
 }
 
+
 void LoadGame_MenuDraw (void)
 {
 	M_Banner ("m_banner_load_game");
 	//	Menu_AdjustCursor( &s_loadgame_menu, 1 );
 	Menu_Draw (&s_loadgame_menu);
+	M_DisplaySave (m_savestrings[1]);
 }
 
 const char *LoadGame_MenuKey (int key)
@@ -116,6 +178,7 @@ const char *LoadGame_MenuKey (int key)
 		if (s_savegame_menu.cursor < 0)
 			s_savegame_menu.cursor = 0;
 	}
+
 	return Default_MenuKey (&s_loadgame_menu, key);
 }
 
@@ -133,6 +196,7 @@ SAVEGAME MENU
 
 =============================================================================
 */
+
 static menuframework_s	s_savegame_menu;
 static menuaction_s		s_savegame_actions[MAX_SAVEGAMES];
 
@@ -143,6 +207,7 @@ void SaveGameCallback (void *self)
 	Cbuf_AddText (va ("save save%i\n", a->generic.localdata[0]));
 	M_ForceMenuOff ();
 }
+
 
 void SaveGame_MenuDraw (void)
 {
@@ -178,14 +243,17 @@ void SaveGame_MenuInit (void)
 	}
 }
 
+
 const char *SaveGame_MenuKey (int key)
 {
 	if (key == K_ENTER || key == K_ESCAPE)
 	{
 		s_loadgame_menu.cursor = s_savegame_menu.cursor - 1;
+
 		if (s_loadgame_menu.cursor < 0)
 			s_loadgame_menu.cursor = 0;
 	}
+
 	return Default_MenuKey (&s_savegame_menu, key);
 }
 

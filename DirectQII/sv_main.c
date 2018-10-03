@@ -945,8 +945,8 @@ void SV_Init (void)
 	timeout = Cvar_Get ("timeout", "125", 0);
 	zombietime = Cvar_Get ("zombietime", "2", 0);
 	sv_showclamp = Cvar_Get ("showclamp", "0", 0);
-	sv_paused = Cvar_Get ("paused", "0", 0);
-	sv_timedemo = Cvar_Get ("timedemo", "0", 0);
+	sv_paused = Cvar_Get ("paused", "0", CVAR_CHEAT);
+	sv_timedemo = Cvar_Get ("timedemo", "0", CVAR_CHEAT);
 	sv_enforcetime = Cvar_Get ("sv_enforcetime", "0", 0);
 	allow_download = Cvar_Get ("allow_download", "0", CVAR_ARCHIVE);
 	allow_download_players = Cvar_Get ("allow_download_players", "0", CVAR_ARCHIVE);

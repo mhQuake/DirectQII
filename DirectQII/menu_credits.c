@@ -384,9 +384,7 @@ void M_Credits_MenuDraw (void)
 {
 	int i, y;
 
-	/*
-	** draw the credits
-	*/
+	// draw the credits
 	for (i = 0, y = viddef.conheight - ((cls.realtime - credits_start_time) / 40.0F); credits[i] && y < viddef.conheight; y += 10, i++)
 	{
 		int j, stringoffset = 0;
@@ -414,8 +412,7 @@ void M_Credits_MenuDraw (void)
 
 			if (bold)
 				re.DrawChar (x, y, credits[i][j + stringoffset] + 128);
-			else
-				re.DrawChar (x, y, credits[i][j + stringoffset]);
+			else re.DrawChar (x, y, credits[i][j + stringoffset]);
 		}
 	}
 
@@ -425,6 +422,7 @@ void M_Credits_MenuDraw (void)
 		credits_start_time = cls.realtime;
 }
 
+
 const char *M_Credits_Key (int key)
 {
 	switch (key)
@@ -432,12 +430,12 @@ const char *M_Credits_Key (int key)
 	case K_ESCAPE:
 		if (creditsBuffer)
 			FS_FreeFile (creditsBuffer);
+
 		M_PopMenu ();
 		break;
 	}
 
 	return menu_out_sound;
-
 }
 
 
@@ -450,28 +448,35 @@ void M_Menu_Credits_f (void)
 
 	creditsBuffer = NULL;
 	count = FS_LoadFile ("credits", &creditsBuffer);
+
 	if (count != -1)
 	{
 		p = creditsBuffer;
+
 		for (n = 0; n < 255; n++)
 		{
 			creditsIndex[n] = p;
+
 			while (*p != '\r' && *p != '\n')
 			{
 				p++;
 				if (--count == 0)
 					break;
 			}
+
 			if (*p == '\r')
 			{
 				*p++ = 0;
 				if (--count == 0)
 					break;
 			}
+
 			*p++ = 0;
+
 			if (--count == 0)
 				break;
 		}
+
 		creditsIndex[++n] = 0;
 		credits = creditsIndex;
 	}
@@ -483,14 +488,11 @@ void M_Menu_Credits_f (void)
 			credits = xatcredits;
 		else if (isdeveloper == 2)		// ROGUE
 			credits = roguecredits;
-		else
-		{
-			credits = idcredits;
-		}
-
+		else credits = idcredits;
 	}
 
 	credits_start_time = cls.realtime;
 	M_PushMenu (M_Credits_MenuDraw, M_Credits_Key);
 }
+
 

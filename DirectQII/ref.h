@@ -154,7 +154,16 @@ typedef struct refdef_s
 
 
 
-#define	API_VERSION		4
+#define	API_VERSION			4
+
+// flags which control aspects of the behaviour of the refresh
+#define SCR_DEFAULT			(0)			// default update with all cvars and options respected
+#define SCR_NO_GAMMA		(1 << 0)	// ignore the value of the vid_gamma cvar
+#define SCR_NO_BRIGHTNESS	(1 << 1)	// ignore the value of the vid_brightness cvar
+#define SCR_NO_VSYNC		(1 << 2)	// force no vsync, irrespective of the value of the vid_vsync cvar
+#define SCR_NO_PRESENT		(1 << 3)	// draw a full screen but do not swapbuffers
+#define SCR_SYNC_PIPELINE	(1 << 4)	// forces a pipeline sync
+#define SCR_NO_2D_UI		(1 << 5)	// draw 3d view only (use for mapshots, custom screenshots, etc); doesn't override cinematics or the loading screen
 
 // these are the functions exported by the refresh module
 typedef struct refexport_s
@@ -204,13 +213,13 @@ typedef struct refexport_s
 
 	// video mode and refresh state management entry points
 	void (*CinematicSetPalette) (const unsigned char *palette);	// NULL = game palette
-	void (*BeginFrame) (viddef_t *vd);
-	void (*EndFrame) (qboolean allowvsync);
+	void (*BeginFrame) (viddef_t *vd, int scrflags);
 	void (*Set2D) (void);
-	void (*End2D) (void);
+	void (*EndFrame) (int scrflags);
 
 	void (*AppActivate) (qboolean activate);
 	void (*EnumerateVideoModes) (void);
+	void (*CaptureScreenshot) (char *checkname);
 } refexport_t;
 
 // these are the functions imported by the refresh module

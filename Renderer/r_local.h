@@ -50,7 +50,6 @@ void R_SyncPipeline (void);
 
 // different viewport
 void R_Set2D (void);
-void R_End2D (void);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -247,7 +246,6 @@ void V_AddBlend (float r, float g, float b, float a, float *v_blend);
 int R_Init (void *hinstance, void *wndproc);
 void R_Shutdown (void);
 
-void GL_ScreenShot_f (void);
 void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix);
 void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix);
 void R_DrawSpriteModel (entity_t *e);
@@ -334,8 +332,8 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
-void GLimp_BeginFrame (viddef_t *vd);
-void GLimp_EndFrame (qboolean allowvsync);
+void GLimp_BeginFrame (viddef_t *vd, int scrflags);
+void GLimp_EndFrame (int scrflags);
 int GLimp_Init (void *hinstance, void *wndproc);
 void GLimp_Shutdown (void);
 int GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen);
@@ -344,7 +342,7 @@ void GLimp_AppActivate (qboolean active);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // draw
-void Draw_UpdateConstants (void);
+void Draw_UpdateConstants (int scrflags);
 void Draw_Flush (void);
 
 

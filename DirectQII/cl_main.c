@@ -599,7 +599,6 @@ void CL_Disconnect (void)
 	}
 
 	VectorClear (cl.refdef.blend);
-	re.CinematicSetPalette (NULL);
 
 	M_ForceMenuOff ();
 
@@ -837,7 +836,7 @@ void CL_Skins_f (void)
 		if (!cl.configstrings[CS_PLAYERSKINS + i][0])
 			continue;
 		Com_Printf ("client %i: %s\n", i, cl.configstrings[CS_PLAYERSKINS + i]);
-		SCR_UpdateScreen ();
+		SCR_UpdateScreen (SCR_DEFAULT);
 		Sys_SendKeyEvents ();	// pump message loop
 		CL_ParseClientinfo (i);
 	}
@@ -1464,8 +1463,8 @@ void CL_InitLocal (void)
 	cl_showmiss = Cvar_Get ("cl_showmiss", "0", 0);
 	cl_showclamp = Cvar_Get ("showclamp", "0", 0);
 	cl_timeout = Cvar_Get ("cl_timeout", "120", 0);
-	cl_paused = Cvar_Get ("paused", "0", 0);
-	cl_timedemo = Cvar_Get ("timedemo", "0", 0);
+	cl_paused = Cvar_Get ("paused", "0", CVAR_CHEAT);
+	cl_timedemo = Cvar_Get ("timedemo", "0", CVAR_CHEAT);
 
 	rcon_client_password = Cvar_Get ("rcon_password", "", 0);
 	rcon_address = Cvar_Get ("rcon_address", "", 0);
@@ -1581,6 +1580,56 @@ void CL_WriteConfiguration (void)
 // client-side cvar cheat fixes are bogus in a GPL engine
 //============================================================================
 
+typedef struct cheatvar_s
+{
+	char	*name;
+	char	*value;
+	cvar_t	*var;
+} cheatvar_t;
+
+#define MAX_CHEAT_VARS		256
+
+cheatvar_t	cl_cheatvars[MAX_CHEAT_VARS];
+int cl_numcheatvars;
+
+
+void Cvar_RegisterCheatVar (char *var_name, char *var_value)
+{
+	if (cl_numcheatvars < MAX_CHEAT_VARS)
+	{
+		cl_cheatvars[cl_numcheatvars].name = CopyString (var_name);
+		cl_cheatvars[cl_numcheatvars].value = CopyString (var_value);
+		cl_numcheatvars++;
+	}
+	else Com_Error (ERR_FATAL, "Cvar_RegisterCheatVar: MAX_CHEAT_VARS");
+}
+
+
+void CL_FixCvarCheats (void)
+{
+	int			i;
+	cheatvar_t	*cheatvar;
+
+	// single player can cheat
+	if (!cl.configstrings[CS_MAXCLIENTS][0]) return;
+	if (!strcmp (cl.configstrings[CS_MAXCLIENTS], "1")) return;
+
+	// make sure they are all set to the proper values
+	for (i = 0, cheatvar = cl_cheatvars; i < cl_numcheatvars; i++, cheatvar++)
+	{
+		// find the var if it doesn't exist yet; this is done "live" in case any new cvars are added at runtime
+		if (!cheatvar->var)
+			cheatvar->var = Cvar_Get (cheatvar->name, cheatvar->value, 0);
+
+		if (strcmp (cheatvar->var->string, cheatvar->value))
+		{
+			Com_Printf ("Resetting cheat cvar \"%s\" to default value of \"%s\"\n", cheatvar->name, cheatvar->value);
+			Cvar_Set (cheatvar->name, cheatvar->value);
+		}
+	}
+}
+
+
 /*
 ==================
 CL_SendCommand
@@ -1594,6 +1643,9 @@ void CL_SendCommand (void)
 
 	// process console commands
 	Cbuf_Execute ();
+
+	// fix any cheating cvars
+	CL_FixCvarCheats ();
 
 	// send intentions now
 	CL_SendCmd ();
@@ -1695,7 +1747,7 @@ void CL_Frame (int msec)
 		CL_PrepRefresh ();
 
 	// update the screen
-	SCR_UpdateScreen ();
+	SCR_UpdateScreen (SCR_DEFAULT);
 
 	// update audio
 	S_Update (cl.refdef.vieworg, cl.v_forward, cl.v_right, cl.v_up);

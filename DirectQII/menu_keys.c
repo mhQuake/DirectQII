@@ -133,11 +133,11 @@ static void KeyCursorDrawFunc (menuframework_s *menu)
 	menucommon_s *item = (menucommon_s *) Menu_ItemAtCursor (menu);
 
 	if (menu->cursor == 0)
-		re.DrawChar (menu->x, menu->y + item->y, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
+		re.DrawChar (menu->x, menu->y + item->y, 12 + Com_CursorTime ());
 	else if (cls.bind_grab)
 		re.DrawChar (menu->x, menu->y + item->y, '=');
 	else
-		re.DrawChar (menu->x, menu->y + item->y, 12 + ((int) (Sys_Milliseconds () / 250) & 1));
+		re.DrawChar (menu->x, menu->y + item->y, 12 + Com_CursorTime ());
 
 	re.DrawString ();
 }
