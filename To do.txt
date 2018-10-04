@@ -24,17 +24,23 @@ Make a Com_ValidatePath for all the little cases of paths with "..", ".\", "./",
 
 Save/Load menu with mapshots/etc
 
-Immutable resources - can textures be immutable?
-
 Discard-free buffers: https://www.gamedevs.org/uploads/efficient-buffer-management.pdf
 
 cBuffer updates via Map/Discard.
 Don't update if nothing has changed (this may be more expensive to check than just updating...)
 
-Best way to group dlights cbuffer.
+/**************************************/
+/* Best way to group dlights cbuffer. */
+/**************************************/
+- draw instanced, adding dlight params as per-instance attribs with start instance being the dl num and num instances being 1, passing anything the PS needs
+  along to it via the PS_DYNAMICLIGHT struct
+- make MAX_DLIGHTS cBuffers binding the appropriate one as each light passes
+- use 11.1 cbuffer ranges
+- just keep it as it, updating as required for each light (we can revert the recent change if so)
+- something else???
 
-LightVector is VS->PS varying?
-Upload NormalMatrix per-entity.
-Or do inverse-transform of LightPos in VS???
+
+
 
 Batch updates to dynamic buffers (the code for this could get nasty...)
+

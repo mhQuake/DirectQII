@@ -302,10 +302,10 @@ float *R_VectorTransform (QMATRIX *m, float *out, float *in)
 
 float *R_VectorInverseTransform (QMATRIX *m, float *out, float *in)
 {
-	// http://content.gpwiki.org/index.php/MathGem:Fast_Matrix_Inversion
-	out[0] = in[0] * m->m4x4[0][0] + in[1] * m->m4x4[0][1] + in[2] * m->m4x4[0][2] - Vector3Dot (m->m4x4[0], m->m4x4[3]);
-	out[1] = in[0] * m->m4x4[1][0] + in[1] * m->m4x4[1][1] + in[2] * m->m4x4[1][2] - Vector3Dot (m->m4x4[1], m->m4x4[3]);
-	out[2] = in[0] * m->m4x4[2][0] + in[1] * m->m4x4[2][1] + in[2] * m->m4x4[2][2] - Vector3Dot (m->m4x4[2], m->m4x4[3]);
+	// http://content.gpwiki.org/index.php/MathGem:Fast_Matrix_Inversion (note: dead link)
+	out[0] = Vector3Dot (m->m4x4[0], in) - Vector3Dot (m->m4x4[0], m->m4x4[3]);
+	out[1] = Vector3Dot (m->m4x4[1], in) - Vector3Dot (m->m4x4[1], m->m4x4[3]);
+	out[2] = Vector3Dot (m->m4x4[2], in) - Vector3Dot (m->m4x4[2], m->m4x4[3]);
 
 	return out;
 }

@@ -45,8 +45,9 @@ typedef struct mainconstants_s {
 } mainconstants_t;
 
 typedef struct entityconstants_s {
-	QMATRIX localMatrix;
-	float shadecolor[4]; // padded for cbuffer packing
+	QMATRIX localMatrix;	// local matrix after MVP multiplication
+	QMATRIX entityMatrix;	// local matrix before MVP multiplication
+	float shadecolor[4];	// padded for cbuffer packing
 } entityconstants_t;
 
 typedef struct alphaconstants_s {
@@ -195,6 +196,9 @@ void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, int rflags)
 		R_MatrixMultiply (&consts.localMatrix, localMatrix, &flipmatrix);
 	}
 	else R_MatrixMultiply (&consts.localMatrix, localMatrix, &r_mvp_matrix);
+
+	// this one stored out for lighting
+	R_MatrixLoad (&consts.entityMatrix, localMatrix);
 
 	// the color param can be NULL indicating white
 	if (color)
