@@ -279,13 +279,13 @@ void Mod_CalcSurfaceExtents (msurface_t *s, dbsp_t *bsp)
 }
 
 
-void GL_BeginBuildingLightmaps (model_t *m);
-void GL_CreateSurfaceLightmap (msurface_t *surf);
-void GL_EndBuildingLightmaps (void);
+void R_BeginBuildingLightmaps (model_t *m);
+void R_CreateSurfaceLightmap (msurface_t *surf);
+void R_EndBuildingLightmaps (void);
 
-void GL_BeginBuildingSurfaces (model_t *mod);
+void R_BeginBuildingSurfaces (model_t *mod);
 void R_RegisterSurface (msurface_t *surf);
-void GL_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp);
+void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp);
 
 
 /*
@@ -310,8 +310,8 @@ void Mod_LoadFaces (lump_t *l, dbsp_t *bsp)
 	loadmodel->surfaces = out;
 	loadmodel->numsurfaces = count;
 
-	GL_BeginBuildingSurfaces (loadmodel);
-	GL_BeginBuildingLightmaps (loadmodel);
+	R_BeginBuildingSurfaces (loadmodel);
+	R_BeginBuildingLightmaps (loadmodel);
 
 	for (surfnum = 0; surfnum < count; surfnum++, in++, out++)
 	{
@@ -355,13 +355,13 @@ void Mod_LoadFaces (lump_t *l, dbsp_t *bsp)
 
 		// create lightmaps and polygons
 		if (!(out->texinfo->flags & SURF_NOLIGHTMAP))
-			GL_CreateSurfaceLightmap (out);
+			R_CreateSurfaceLightmap (out);
 
 		R_RegisterSurface (out);
 	}
 
-	GL_EndBuildingLightmaps ();
-	GL_EndBuildingSurfaces (loadmodel, bsp);
+	R_EndBuildingLightmaps ();
+	R_EndBuildingSurfaces (loadmodel, bsp);
 }
 
 

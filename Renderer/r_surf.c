@@ -666,10 +666,10 @@ void R_MarkLeaves (void)
 
 /*
 ================
-GL_BuildPolygonFromSurface
+R_BuildPolygonFromSurface
 ================
 */
-void GL_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t *verts, dbsp_t *bsp)
+void R_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t *verts, dbsp_t *bsp)
 {
 	int	i, maps;
 	byte styles[4] = {0, 0, 0, 0};
@@ -726,7 +726,7 @@ void GL_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t
 }
 
 
-void GL_BeginBuildingSurfaces (model_t *mod)
+void R_BeginBuildingSurfaces (model_t *mod)
 {
 	SAFE_RELEASE (d3d_SurfVertexes);
 	r_numsurfaceverts = 0;
@@ -741,7 +741,7 @@ void R_RegisterSurface (msurface_t *surf)
 }
 
 
-void GL_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
+void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 {
 	int i;
 
@@ -763,7 +763,7 @@ void GL_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 	for (i = 0; i < mod->numsurfaces; i++)
 	{
 		msurface_t *surf = &mod->surfaces[i];
-		GL_BuildPolygonFromSurface (surf, mod, &verts[surf->firstvertex], bsp);
+		R_BuildPolygonFromSurface (surf, mod, &verts[surf->firstvertex], bsp);
 	}
 
 	// create the new vertex buffer

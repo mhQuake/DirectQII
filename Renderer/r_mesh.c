@@ -378,7 +378,7 @@ image_t *R_GetAliasSkin (entity_t *e, model_t *mod)
 }
 
 
-void GL_DrawAliasPolySet (model_t *mod)
+void R_DrawAliasPolySet (model_t *mod)
 {
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
 	mmdl_t *hdr = mod->md2header;
@@ -387,7 +387,7 @@ void GL_DrawAliasPolySet (model_t *mod)
 }
 
 
-void GL_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
+void R_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
 	mmdl_t *hdr = mod->md2header;
 
@@ -670,7 +670,7 @@ void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatri
 			D_BindShaderBundle (d3d_MeshDynamicShader);
 
 			// and draw it
-			GL_DrawAliasPolySet (mod);
+			R_DrawAliasPolySet (mod);
 
 			// restore the origin
 			Vector3Copy (dl->origin, origin);
@@ -713,10 +713,10 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MeshConstants, 0, NULL, &consts, 0, 0);
 
 	// set up the frame interpolation
-	GL_SetupAliasFrameLerp (e, mod, &d3d_AliasBuffers[mod->bufferset]);
+	R_SetupAliasFrameLerp (e, mod, &d3d_AliasBuffers[mod->bufferset]);
 
 	// and draw it
-	GL_DrawAliasPolySet (mod);
+	R_DrawAliasPolySet (mod);
 
 	// no dlights in the player setup screens
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL) return;

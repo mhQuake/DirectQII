@@ -380,7 +380,7 @@ void R_EndRegistration (void)
 	}
 
 	R_FreeUnusedAliasBuffers ();
-	GL_FreeUnusedImages ();
+	R_FreeUnusedImages ();
 }
 
 

@@ -180,8 +180,8 @@ void Draw_InitLocal (void)
 
 	// load console characters
 	draw_chars = GL_FindImage ("pics/conchars.pcx", it_charset);
-	sb_nums[0] = GL_LoadTexArray ("num");
-	sb_nums[1] = GL_LoadTexArray ("anum");
+	sb_nums[0] = R_LoadTexArray ("num");
+	sb_nums[1] = R_LoadTexArray ("anum");
 }
 
 
@@ -341,7 +341,7 @@ void Draw_Field (int x, int y, int color, int width, int value)
 	x += 2 + sb_nums[color]->width * (width - l);
 	ptr = num;
 
-	GL_BindTexArray (sb_nums[color]->SRV);
+	R_BindTexArray (sb_nums[color]->SRV);
 
 	D_BindShaderBundle (d3d_DrawTexArrayShader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
@@ -381,7 +381,7 @@ void Draw_Char (int x, int y, int num)
 	if ((num & 127) == 32) return;
 
 	// these are done for each char but they only trigger state changes for the first
-	GL_BindTexArray (draw_chars->SRV);
+	R_BindTexArray (draw_chars->SRV);
 
 	D_BindShaderBundle (d3d_DrawTexArrayShader);
 	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
@@ -534,7 +534,7 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 		Draw_ShutdownRawImage ();
 
 		// and create it
-		R_CreateTexture (&r_CinematicPic, NULL, cols, rows, 1, TEX_RGBA8);
+		R_CreateTexture (&r_CinematicPic, NULL, cols, rows, 1, TEX_RGBA8 | TEX_MUTABLE);
 
 		// load the image
 		r_rawframe = -1;

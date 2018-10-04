@@ -55,17 +55,10 @@ void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int a
 	else
 	{
 		// normal usage with no CPU access
-		Desc->Usage = D3D11_USAGE_DEFAULT;
+		Desc->Usage = (flags & TEX_MUTABLE) ? D3D11_USAGE_DEFAULT : D3D11_USAGE_IMMUTABLE;
 		Desc->CPUAccessFlags = 0;
-
-		// select if creating a rendertarget (staging textures are never rendertargets)
-		if (flags & TEX_RENDERTARGET)
-			Desc->BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		else Desc->BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		Desc->BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	}
-
-	// no CPU access
-    Desc->CPUAccessFlags = 0;
 
 	// select if creating a cubemap (allow creation of cubemap arrays)
 	if (flags & TEX_CUBEMAP)
@@ -191,7 +184,7 @@ void R_BindTexture (ID3D11ShaderResourceView *SRV)
 }
 
 
-void GL_BindTexArray (ID3D11ShaderResourceView *SRV)
+void R_BindTexArray (ID3D11ShaderResourceView *SRV)
 {
 	// PS slot 6 holds a texture array that's used for the charset and little sbar numbers
 	static ID3D11ShaderResourceView *OldSRV;
@@ -405,13 +398,13 @@ struct image_s *R_RegisterSkin (char *name)
 
 /*
 ================
-GL_FreeUnusedImages
+R_FreeUnusedImages
 
 Any image that was not touched on this registration sequence
 will be freed.
 ================
 */
-void GL_FreeUnusedImages (void)
+void R_FreeUnusedImages (void)
 {
 	int		i;
 	image_t	*image;
@@ -445,10 +438,10 @@ void GL_FreeUnusedImages (void)
 
 /*
 ===============
-GL_InitImages
+R_InitImages
 ===============
 */
-void GL_InitImages (void)
+void R_InitImages (void)
 {
 	r_registration_sequence = 1;
 	Draw_GetPalette ();
@@ -457,10 +450,10 @@ void GL_InitImages (void)
 
 /*
 ===============
-GL_ShutdownImages
+R_ShutdownImages
 ===============
 */
-void GL_ShutdownImages (void)
+void R_ShutdownImages (void)
 {
 	int		i;
 	image_t	*image;
@@ -477,7 +470,7 @@ void GL_ShutdownImages (void)
 }
 
 
-image_t *GL_LoadTexArray (char *base)
+image_t *R_LoadTexArray (char *base)
 {
 	int i;
 	image_t *image = NULL;
@@ -557,6 +550,10 @@ void R_ReleaseRenderTarget (rendertarget_t *rt)
 
 void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags)
 {
+	// if an srd is *not* specified we must make the texture mutable because we must be able to update it later
+	// if an srd *is* specified we cannot make the texture immutable because we may also need to update it later
+	if (!srd) flags |= TEX_MUTABLE;
+
 	// describe the texture
 	R_DescribeTexture (&t->Desc, width, height, arraysize, flags);
 
@@ -574,11 +571,11 @@ void R_ReleaseTexture (texture_t *t)
 }
 
 
-void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format)
+void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format, D3D11_USAGE Usage)
 {
 	D3D11_BUFFER_DESC tbDesc = {
 		ElementSize * NumElements,
-		D3D11_USAGE_DEFAULT,
+		Usage,
 		D3D11_BIND_SHADER_RESOURCE,
 		0,
 		0,
@@ -597,7 +594,12 @@ void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSiz
 		D3D11_SUBRESOURCE_DATA srd = {data, 0, 0};
 		d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &tbDesc, &srd, &tb->Buffer);
 	}
-	else d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &tbDesc, NULL, &tb->Buffer);
+	else
+	{
+		// if no data is specified at creation time we must switch to default usage so that it can be specified later
+		tbDesc.Usage = D3D11_USAGE_DEFAULT;
+		d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &tbDesc, NULL, &tb->Buffer);
+	}
 
 	d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) tb->Buffer, &srvDesc, &tb->SRV);
 }

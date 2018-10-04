@@ -157,7 +157,7 @@ typedef enum _rserr_t
 
 #include "r_model.h"
 
-void GL_SetDefaultState (void);
+void R_SetDefaultState (void);
 
 #define	MAX_LBM_HEIGHT		480
 
@@ -179,8 +179,6 @@ extern	int			r_framecount;
 extern	cplane_t	frustum[4];
 extern	int			c_brush_polys, c_alias_polys;
 
-
-extern	int			gl_filter_min, gl_filter_max;
 
 //
 // view origin
@@ -282,10 +280,10 @@ struct image_s *R_RegisterSkin (char *name);
 image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, unsigned *palette);
 image_t	*GL_FindImage (char *name, imagetype_t type);
 
-void GL_InitImages (void);
-void GL_ShutdownImages (void);
+void R_InitImages (void);
+void R_ShutdownImages (void);
 
-void GL_FreeUnusedImages (void);
+void R_FreeUnusedImages (void);
 
 
 /*
@@ -394,7 +392,6 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 #define TEX_TRANSPARENT		(1 << 3) // special Hexen 2 transparency type
 #define TEX_HOLEY			(1 << 4) // special Hexen 2 transparency type
 #define TEX_SPECIAL_TRANS	(1 << 5) // special Hexen 2 transparency type
-#define TEX_RENDERTARGET	(1 << 6) // also create a rendertarget view of the texture
 #define TEX_CUBEMAP			(1 << 7) // creates a cubemap (not used by this Hexen 2 engine)
 #define TEX_STAGING			(1 << 8) // creates the texture in the staging pool
 #define TEX_R32F			(1 << 9) // single-channel 32-bit floating-point texture
@@ -402,6 +399,7 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 #define TEX_PLAYERTEXTURE	(1 << 11) // used for player colour translations
 #define TEX_UPSCALE			(1 << 12) // texture was upscaled
 #define TEX_CHARSET			(1 << 13) // charset uses a 16x16 texture array
+#define TEX_MUTABLE			(1 << 14) // textures are immutable unless this flag is specified
 
 // if any of these are set the texture may be processed for having an alpha channel
 #define TEX_ANYALPHA		(TEX_ALPHA | TEX_TRANSPARENT | TEX_HOLEY | TEX_SPECIAL_TRANS)
@@ -410,9 +408,8 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 #define TEX_DISPOSABLE		(1 << 30)
 
 void R_BindTexture (ID3D11ShaderResourceView *SRV);
-void GL_BindTexArray (ID3D11ShaderResourceView *SRV);
-void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int arraysize, int flags);
-image_t *GL_LoadTexArray (char *base);
+void R_BindTexArray (ID3D11ShaderResourceView *SRV);
+image_t *R_LoadTexArray (char *base);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -520,7 +517,7 @@ typedef struct tbuffer_s {
 	ID3D11ShaderResourceView *SRV;
 } tbuffer_t;
 
-void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format);
+void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format, D3D11_USAGE Usage);
 void R_ReleaseTBuffer (tbuffer_t *t);
 
 void R_CopyScreen (rendertarget_t *dst);

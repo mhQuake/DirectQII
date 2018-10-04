@@ -287,9 +287,9 @@ void R_InitLight (void)
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDLightDesc, NULL, &d3d_DLightConstants);
 	D_RegisterConstantBuffer (d3d_DLightConstants, 4);
 
-	R_CreateTBuffer (&d3d_LightStyles, NULL, MAX_LIGHTSTYLES, sizeof (float), DXGI_FORMAT_R32_FLOAT);
-	R_CreateTBuffer (&d3d_LightNormals, r_avertexnormals, NUMVERTEXNORMALS, sizeof (r_avertexnormals[0]), DXGI_FORMAT_R32G32B32A32_FLOAT);
-	R_CreateTBuffer (&d3d_QuakePalette, d_8to24table, 256, sizeof (d_8to24table[0]), DXGI_FORMAT_R8G8B8A8_UNORM); // this is a stupid place to do this
+	R_CreateTBuffer (&d3d_LightStyles, NULL, MAX_LIGHTSTYLES, sizeof (float), DXGI_FORMAT_R32_FLOAT, D3D11_USAGE_DEFAULT);
+	R_CreateTBuffer (&d3d_LightNormals, r_avertexnormals, NUMVERTEXNORMALS, sizeof (r_avertexnormals[0]), DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_USAGE_IMMUTABLE);
+	R_CreateTBuffer (&d3d_QuakePalette, d_8to24table, 256, sizeof (d_8to24table[0]), DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_USAGE_IMMUTABLE); // this is a stupid place to do this
 }
 
 
@@ -355,10 +355,10 @@ void R_BuildLightMap (msurface_t *surf, int ch, int smax, int tmax)
 
 /*
 ========================
-GL_CreateSurfaceLightmap
+R_CreateSurfaceLightmap
 ========================
 */
-void GL_CreateSurfaceLightmap (msurface_t *surf)
+void R_CreateSurfaceLightmap (msurface_t *surf)
 {
 	int i;
 	int best = LIGHTMAP_SIZE;
@@ -387,13 +387,13 @@ void GL_CreateSurfaceLightmap (msurface_t *surf)
 	{
 		// go to next lightmap
 		if (++r_currentlightmap >= MAX_LIGHTMAPS)
-			ri.Sys_Error (ERR_DROP, "GL_CreateSurfaceLightmap : MAX_LIGHTMAPS exceeded");
+			ri.Sys_Error (ERR_DROP, "R_CreateSurfaceLightmap : MAX_LIGHTMAPS exceeded");
 
 		// clear allocations
 		memset (lm_allocated, 0, sizeof (lm_allocated));
 
 		// and call recursively to fill it in
-		GL_CreateSurfaceLightmap (surf);
+		R_CreateSurfaceLightmap (surf);
 		return;
 	}
 
@@ -414,11 +414,11 @@ void GL_CreateSurfaceLightmap (msurface_t *surf)
 
 /*
 ==================
-GL_BeginBuildingLightmaps
+R_BeginBuildingLightmaps
 
 ==================
 */
-void GL_BeginBuildingLightmaps (model_t *m)
+void R_BeginBuildingLightmaps (model_t *m)
 {
 	// release prior textures
 	R_ShutdownLightmaps ();
@@ -455,10 +455,10 @@ void R_CreateLightmapTexture (int ch)
 
 /*
 =======================
-GL_EndBuildingLightmaps
+R_EndBuildingLightmaps
 =======================
 */
-void GL_EndBuildingLightmaps (void)
+void R_EndBuildingLightmaps (void)
 {
 	// complete the count of lightmaps
 	r_currentlightmap++;

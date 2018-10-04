@@ -149,10 +149,10 @@ int R_Init (void *hinstance, void *wndproc)
 	ri.Vid_MenuInit ();
 
 	// this sets up state objects and NULLs-out cached state
-	GL_SetDefaultState ();
+	R_SetDefaultState ();
 
 	// initialize all objects, textures, shaders, etc
-	GL_InitImages ();
+	R_InitImages ();
 	Mod_Init ();
 	R_CreateSpecialTextures ();
 	Draw_InitLocal ();
@@ -170,7 +170,7 @@ void R_Shutdown (void)
 {
 	Mod_FreeAll ();
 
-	GL_ShutdownImages ();
+	R_ShutdownImages ();
 
 	// shut down OS specific OpenGL stuff like contexts, etc.
 	GLimp_Shutdown ();

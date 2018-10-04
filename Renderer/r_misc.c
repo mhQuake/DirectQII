@@ -851,7 +851,7 @@ ID3D11SamplerState *d3d_DrawSampler = NULL;
 ID3D11SamplerState *d3d_CineSampler = NULL;
 
 
-void GL_SetDefaultState (void)
+void R_SetDefaultState (void)
 {
 	d3d_BSNone = D_CreateBlendState (FALSE, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_OP_ADD);
 	d3d_BSAlphaBlend = D_CreateBlendState (TRUE, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_OP_ADD);
