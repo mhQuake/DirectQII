@@ -26,6 +26,8 @@ Save/Load menu with mapshots/etc
 
 Discard-free buffers: https://www.gamedevs.org/uploads/efficient-buffer-management.pdf
 
+vertex cache optimization
+
 cBuffer updates via Map/Discard.
 Don't update if nothing has changed (this may be more expensive to check than just updating...)
 

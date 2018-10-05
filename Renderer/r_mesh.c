@@ -657,23 +657,18 @@ void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatri
 
 		if (R_AliasLightInteraction (e, mod, dl))
 		{
-			float origin[3];
-
-			// copy off the origin, then move the light into entity local space
-			Vector3Copy (origin, dl->origin);
-			R_VectorInverseTransform (localMatrix, dl->origin, origin);
+			// move the light into entity local space
+			float transformedorigin[3];
+			R_VectorInverseTransform (localMatrix, transformedorigin, dl->origin);
 
 			// set up the light
-			D_SetupDynamicLight (dl, e->flags);
+			D_SetupDynamicLight (dl, transformedorigin, e->flags);
 
 			// set up the shaders
 			D_BindShaderBundle (d3d_MeshDynamicShader);
 
 			// and draw it
 			R_DrawAliasPolySet (mod);
-
-			// restore the origin
-			Vector3Copy (dl->origin, origin);
 		}
 	}
 

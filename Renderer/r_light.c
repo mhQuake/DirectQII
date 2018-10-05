@@ -511,23 +511,40 @@ void R_BindLightmaps (void)
 }
 
 
-void D_SetupDynamicLight (dlight_t *dl, int rflags)
+void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags)
 {
+	dlight_t consts;
+
+	// transformed origin goes to the GPU so we don't need to mess with normal matrixes and other such shenanigans
+	consts.origin[0] = transformedorigin[0];
+	consts.origin[1] = transformedorigin[1];
+	consts.origin[2] = transformedorigin[2];
+
+	// radius goes up as-is
+	consts.radius = dl->radius;
+
 	// select the appropriate state
 	if (dl->color[0] < 0 || dl->color[1] < 0 || dl->color[2] < 0)
 	{
-		// anti-light - flip back to positive and set the appropriate state
-		Vector3Scalef (dl->color, dl->color, -1);
+		// anti-light - invert colour and use a reverse-subtract blend to get the correct behaviour
+		consts.color[0] = -dl->color[0];
+		consts.color[1] = -dl->color[1];
+		consts.color[2] = -dl->color[2];
+
 		D_SetRenderStates (d3d_BSSubtractive, d3d_DSEqualDepthNoWrite, R_GetRasterizerState (rflags));
-		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, dl, 0, 0);
-		Vector3Scalef (dl->color, dl->color, -1); // put it back so it will be correctly detected next time
 	}
 	else
 	{
 		// standard light can just go straight up as-is
+		consts.color[0] = dl->color[0];
+		consts.color[1] = dl->color[1];
+		consts.color[2] = dl->color[2];
+
 		D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, R_GetRasterizerState (rflags));
-		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, dl, 0, 0);
 	}
+
+	// and update it
+	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, &consts, 0, 0);
 }
 
 
@@ -544,14 +561,14 @@ DYNAMIC LIGHTS
 R_MarkLights
 =============
 */
-qboolean R_SurfaceDLImpact (msurface_t *surf, dlight_t *dl, float dist)
+qboolean R_SurfaceDLImpact (msurface_t *surf, dlight_t *dl, float *transformedorigin, float dist)
 {
 	int s, t;
 	float impact[3], l;
 
-	impact[0] = dl->origin[0] - surf->plane->normal[0] * dist;
-	impact[1] = dl->origin[1] - surf->plane->normal[1] * dist;
-	impact[2] = dl->origin[2] - surf->plane->normal[2] * dist;
+	impact[0] = transformedorigin[0] - surf->plane->normal[0] * dist;
+	impact[1] = transformedorigin[1] - surf->plane->normal[1] * dist;
+	impact[2] = transformedorigin[2] - surf->plane->normal[2] * dist;
 
 	// clamp center of light to corner and check brightness
 	l = Vector3Dot (impact, surf->texinfo->vecs[0]) + surf->texinfo->vecs[0][3] - surf->texturemins[0];
@@ -567,7 +584,7 @@ qboolean R_SurfaceDLImpact (msurface_t *surf, dlight_t *dl, float dist)
 }
 
 
-void R_MarkLights (dlight_t *dl, mnode_t *node, int visframe)
+void R_MarkLights (dlight_t *dl, float *transformedorigin, mnode_t *node, int visframe)
 {
 	cplane_t	*splitplane;
 	float		dist;
@@ -580,17 +597,17 @@ void R_MarkLights (dlight_t *dl, mnode_t *node, int visframe)
 	if (node->visframe != visframe) return;
 
 	splitplane = node->plane;
-	dist = Vector3Dot (dl->origin, splitplane->normal) - splitplane->dist;
+	dist = Vector3Dot (transformedorigin, splitplane->normal) - splitplane->dist;
 
 	if (dist > dl->radius)
 	{
-		R_MarkLights (dl, node->children[0], visframe);
+		R_MarkLights (dl, transformedorigin, node->children[0], visframe);
 		return;
 	}
 
 	if (dist < -dl->radius)
 	{
-		R_MarkLights (dl, node->children[1], visframe);
+		R_MarkLights (dl, transformedorigin, node->children[1], visframe);
 		return;
 	}
 
@@ -606,7 +623,7 @@ void R_MarkLights (dlight_t *dl, mnode_t *node, int visframe)
 		if (surf->dlightframe != r_dlightframecount) continue;
 
 		// test for impact
-		if (R_SurfaceDLImpact (surf, dl, dist))
+		if (R_SurfaceDLImpact (surf, dl, transformedorigin, dist))
 		{
 			// chain it for lighting
 			surf->texturechain = surf->texinfo->texturechain;
@@ -617,8 +634,8 @@ void R_MarkLights (dlight_t *dl, mnode_t *node, int visframe)
 		}
 	}
 
-	R_MarkLights (dl, node->children[0], visframe);
-	R_MarkLights (dl, node->children[1], visframe);
+	R_MarkLights (dl, transformedorigin, node->children[0], visframe);
+	R_MarkLights (dl, transformedorigin, node->children[1], visframe);
 }
 
 
@@ -633,32 +650,28 @@ void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *local
 
 	for (i = 0; i < r_newrefdef.num_dlights; i++)
 	{
-		float origin[3];
+		float transformedorigin[3];
 		dlight_t *dl = &r_newrefdef.dlights[i];
 
 		// a dl that's been culled will have it's intensity set to 0
 		if (!(dl->radius > 0)) continue;
 
-		// copy off the origin, then move the light into entity local space
-		Vector3Copy (origin, dl->origin);
-		R_VectorInverseTransform (localmatrix, dl->origin, origin);
+		// move the light into entity local space
+		R_VectorInverseTransform (localmatrix, transformedorigin, dl->origin);
 
 		// no surfaces yet
 		dl->numsurfaces = 0;
 
 		// and mark it
-		R_MarkLights (dl, headnode, visframe);
+		R_MarkLights (dl, transformedorigin, headnode, visframe);
 
 		// draw anything we got
 		if (dl->numsurfaces)
 		{
-			D_SetupDynamicLight (dl, e->flags);
+			D_SetupDynamicLight (dl, transformedorigin, e->flags);
 			R_DrawDlightChains (e, mod, localmatrix);
 			dl->numsurfaces = 0;
 		}
-
-		// restore the origin
-		Vector3Copy (dl->origin, origin);
 	}
 
 	// go to a new dlight frame after each push so that we don't carry over lights from the previous

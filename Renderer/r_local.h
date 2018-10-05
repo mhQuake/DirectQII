@@ -458,7 +458,7 @@ void Image_ApplyTranslationRGB (byte *rgb, int size, byte *table);
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // lights
 void R_BindLightmaps (void);
-void D_SetupDynamicLight (dlight_t *dl, int rflags);
+void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags);
 void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix);
 void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *localmatrix, int visframe);
 

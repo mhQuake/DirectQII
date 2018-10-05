@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 		MATRIX OPS
 
-	These happen in pace on the matrix and update it's current values
+	These happen in-place on the matrix and update it's current values
 
 ============================================================================================================
 */
