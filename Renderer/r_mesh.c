@@ -657,6 +657,12 @@ void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatri
 
 		if (R_AliasLightInteraction (e, mod, dl))
 		{
+			float origin[3];
+
+			// copy off the origin, then move the light into entity local space
+			Vector3Copy (origin, dl->origin);
+			R_VectorInverseTransform (localMatrix, dl->origin, origin);
+
 			// set up the light
 			D_SetupDynamicLight (dl, e->flags);
 
@@ -665,6 +671,9 @@ void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatri
 
 			// and draw it
 			R_DrawAliasPolySet (mod);
+
+			// restore the origin
+			Vector3Copy (dl->origin, origin);
 		}
 	}
 

@@ -31,12 +31,8 @@ cbuffer cbMainPerFrame : register(b1) {
 };
 
 cbuffer cbPerObject : register(b2) {
-	matrix LocalMatrix : packoffset(c0);	// local matrix after MVP multiplication
-	float4 mRow0 : packoffset(c4);			// local matrix before MVP multiplication
-	float4 mRow1 : packoffset(c5);			// local matrix before MVP multiplication
-	float4 mRow2 : packoffset(c6);			// local matrix before MVP multiplication
-	float4 mRow3 : packoffset(c7);			// local matrix before MVP multiplication
-	float3 ShadeColor : packoffset(c8.x);	// for non-mesh objects that use a colour (beams/null models/etc)
+	matrix LocalMatrix : packoffset(c0);
+	float3 ShadeColor : packoffset(c4.x); // for non-mesh objects that use a colour (beams/null models/etc)
 };
 
 cbuffer cbPerMesh : register(b3) {
@@ -95,16 +91,9 @@ PS_DYNAMICLIGHT GenericDynamicVS (float4 Position, float3 Normal, float2 TexCoor
 {
 	PS_DYNAMICLIGHT vs_out;
 
-	// move the light into entity local space; this is more ALU ops in the VS but as a tradeoff vs much less CPU work and MUCH less cBuffer updating
-	float3 TransformedLightOrigin = float3 (
-		dot (mRow0.xyz, LightOrigin) - dot (mRow0.xyz, mRow3.xyz),
-		dot (mRow1.xyz, LightOrigin) - dot (mRow1.xyz, mRow3.xyz),
-		dot (mRow2.xyz, LightOrigin) - dot (mRow2.xyz, mRow3.xyz)
-	);
-	
 	vs_out.Position = mul (LocalMatrix, Position);
 	vs_out.TexCoord = TexCoord;
-	vs_out.LightVector = TransformedLightOrigin - Position.xyz;
+	vs_out.LightVector = LightOrigin - Position.xyz;
 	vs_out.Normal = Normal;
 
 	return vs_out;
