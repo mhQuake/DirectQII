@@ -214,6 +214,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\r_vcache.c"
+				>
+			</File>
+			<File
 				RelativePath=".\r_vidref.c"
 				>
 			</File>

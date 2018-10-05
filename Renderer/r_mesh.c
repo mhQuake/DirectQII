@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
+void VCache_ReorderIndices (char *name, unsigned short *outIndices, const unsigned short *indices, int nTriangles, int nVertices);
+void VCache_Init (void);
 
 // deduplication
 typedef struct aliasmesh_s {
@@ -83,6 +85,9 @@ void R_InitMesh (void)
 
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbPerMeshDesc, NULL, &d3d_MeshConstants);
 	D_RegisterConstantBuffer (d3d_MeshConstants, 3);
+
+	// init vertex cache optimization
+	VCache_Init ();
 }
 
 
@@ -220,6 +225,7 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 
 	aliasmesh_t *dedupe = (aliasmesh_t *) ri.Load_AllocMemory (hdr->num_verts * sizeof (aliasmesh_t));
 	unsigned short *indexes = (unsigned short *) ri.Load_AllocMemory (hdr->num_indexes * sizeof (unsigned short));
+	unsigned short *optimized = (unsigned short *) ri.Load_AllocMemory (hdr->num_indexes * sizeof (unsigned short));
 
 	int num_verts = 0;
 	int num_indexes = 0;
@@ -268,6 +274,14 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 	// store off the counts
 	hdr->num_verts = num_verts;		// this is expected to be significantly lower (one-third or less)
 	hdr->num_indexes = num_indexes; // this is expected to be unchanged (it's an error if it is
+
+	if (hdr->num_tris == 220 && hdr->num_verts == 95)
+	{
+		hdr->num_verts = 95;
+	}
+
+	// optimize index order for vertex cache
+	VCache_ReorderIndices (mod->name, optimized, indexes, hdr->num_tris, hdr->num_verts);
 
 	// and build them all
 	D_CreateAliasPolyVerts (hdr, src, set, dedupe);
