@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-void VCache_ReorderIndices (char *name, unsigned short *outIndices, const unsigned short *indices, int nTriangles, int nVertices);
+qboolean VCache_ReorderIndices (char *name, unsigned short *outIndices, const unsigned short *indices, int nTriangles, int nVertices);
 void VCache_Init (void);
 
 // deduplication
@@ -275,18 +275,47 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 	hdr->num_verts = num_verts;		// this is expected to be significantly lower (one-third or less)
 	hdr->num_indexes = num_indexes; // this is expected to be unchanged (it's an error if it is
 
-	if (hdr->num_tris == 220 && hdr->num_verts == 95)
-	{
-		hdr->num_verts = 95;
-	}
-
 	// optimize index order for vertex cache
-	VCache_ReorderIndices (mod->name, optimized, indexes, hdr->num_tris, hdr->num_verts);
+	if (VCache_ReorderIndices (mod->name, optimized, indexes, hdr->num_tris, hdr->num_verts))
+	{
+		// if it optimized we must re-order and remap the indices so that the vertex buffer can be accessed linearly
+		// https://tomforsyth1000.github.io/papers/fast_vert_cache_opt.html
+		aliasmesh_t *newverts = (aliasmesh_t *) ri.Load_AllocMemory (hdr->num_verts * sizeof (aliasmesh_t));
+		int *inBuffer = (int *) ri.Load_AllocMemory (hdr->num_verts * sizeof (int)); // this can't be an unsigned short because we use -1 to indicate that it's not yet in the buffer
+		int vertnum = 0;
+
+		// because 0 is a valid index we must use -1 to indicate a vertex that's not yet in it's final, optimized, buffer position
+		for (i = 0; i < hdr->num_verts; i++)
+			inBuffer[i] = -1;
+
+		// build the remap table
+		for (i = 0; i < hdr->num_indexes; i++)
+		{
+			// is the referenced vertex in the buffer yet???
+			if (inBuffer[optimized[i]] == -1)
+			{
+				// this is now an extra buffer entry
+				newverts[vertnum].index_xyz = dedupe[optimized[i]].index_xyz;
+				newverts[vertnum].index_st = dedupe[optimized[i]].index_st;
+
+				// mark it as in the buffer and go to the next vert
+				inBuffer[optimized[i]] = vertnum;
+				vertnum++;
+			}
+
+			// add it to the indexes remap
+			indexes[i] = inBuffer[optimized[i]];
+		}
+
+		// finally swap the pointers so that the loading routines will use the remapped vertices and indices
+		dedupe = newverts;
+		optimized = indexes;
+	}
 
 	// and build them all
 	D_CreateAliasPolyVerts (hdr, src, set, dedupe);
 	D_CreateAliasTexCoords (hdr, src, set, dedupe);
-	D_CreateAliasIndexes (hdr, set, indexes);
+	D_CreateAliasIndexes (hdr, set, optimized);
 
 	// release memory used for loading and building
 	ri.Load_FreeMemory ();

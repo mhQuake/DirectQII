@@ -85,6 +85,7 @@ typedef struct msurface_s {
 	int			light_s, light_t;	// gl lightmap coordinates
 
 	struct	msurface_s	*texturechain;
+	struct	msurface_s	*reversechain;
 
 	mtexinfo_t	*texinfo;
 

@@ -32,6 +32,7 @@ MODIFICATIONS
 - some renaming
 - remove C99isms
 - added "do not optimize" case for when model fits entirely in cache
+- replaced bad cacheTag case with proper degenerate tris fix from https://github.com/vivkin/forsyth/commit/fc33e3101cf77004d75c02ed48be3fc49c3fd7f4
 =========================================
 */
 
@@ -129,7 +130,6 @@ static unsigned short FindVertexScore (int numActiveTris, int cachePosition)
 #define VS_ONETRIANGLE		1
 #define VC_SMALLMODEL		2
 #define VC_TOOCOMPLEX		3
-#define VC_BADCACHETAG		4
 
 // The main reordering function
 static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsigned short *indices, int nTriangles, int nVertices)
@@ -138,15 +138,15 @@ static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsi
 	int cache[VERTEX_CACHE_SIZE + 3];
 	byte *numActiveTris = (byte *) ri.Load_AllocMemory (sizeof (byte) * nVertices);
 
-	int *offsets;
-	unsigned short *lastScore;
-	char *cacheTag;
+	int *offsets = (int *) ri.Load_AllocMemory (sizeof (int) * nVertices);
+	unsigned short *lastScore = (unsigned short *) ri.Load_AllocMemory (sizeof (unsigned short) * nVertices);
+	char *cacheTag = (char *) ri.Load_AllocMemory (sizeof (char) * nVertices);
 
-	byte *triangleAdded;
-	unsigned short *triangleScore;
-	int *triangleIndices;
+	byte *triangleAdded = (byte *) ri.Load_AllocMemory (nTriangles);
+	unsigned short *triangleScore = (unsigned short *) ri.Load_AllocMemory (sizeof (unsigned short) * nTriangles);
+	int *triangleIndices = (int *) ri.Load_AllocMemory (sizeof (int) * 3 * nTriangles);
 
-	int *outTriangles;
+	int *outTriangles = NULL;
 
 	// mesh with a single triangle, no optimization needed
 	if (nTriangles == 1) return VS_ONETRIANGLE;
@@ -163,16 +163,6 @@ static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsi
 
 		numActiveTris[indices[i]]++;
 	}
-
-	// Allocate the rest of the arrays
-	offsets = (int *) ri.Load_AllocMemory (sizeof (int) * nVertices);
-	lastScore = (unsigned short *) ri.Load_AllocMemory (sizeof (unsigned short) * nVertices);
-	cacheTag = (char *) ri.Load_AllocMemory (sizeof (char) * nVertices);
-
-	//triangleAdded = (byte *) ri.Load_AllocMemory ((nTriangles + 7) / 8);
-	triangleAdded = (byte *) ri.Load_AllocMemory (nTriangles);
-	triangleScore = (unsigned short *) ri.Load_AllocMemory (sizeof (unsigned short) * nTriangles);
-	triangleIndices = (int *) ri.Load_AllocMemory (sizeof (int) * 3 * nTriangles);
 
 	// Count the triangle array offset for each vertex,
 	// initialize the rest of the data.
@@ -250,32 +240,26 @@ static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsi
 			if (endpos < 0)
 				endpos = VERTEX_CACHE_SIZE + i;
 
-			// this happens on some of the Q2 models and if it happens we need to bail with an unoptimized mesh
-			if (endpos >= VERTEX_CACHE_SIZE + 3)
-				return VC_BADCACHETAG;
-
-			// Move all cache entries from the previous position in the cache to the new target position (i) one step backwards
-			for (j = endpos; j > i; j--)
+			// Sep 21, 2017 -  Fix to correctly support degenerate triangles. Committed by user rmitton
+			// supersedes former "bad cacheTag" case; it's a good idea to go back and check if any external code you're using has been fixed for error cases you've encountered
+			if (endpos > i)
 			{
-				cache[j] = cache[j - 1];
-
-				// If this cache slot contains a real vertex, update its cache tag
-				if (cache[j] >= 0)
+				// Move all cache entries from the previous position in the cache to the new target position (i) one step backwards
+				for (j = endpos; j > i; j--)
 				{
-					cacheTag[cache[j]]++;
+					cache[j] = cache[j - 1];
 
-					// this happens on some of the Q2 models and if it happens we need to bail with an unoptimized mesh
-					if (cacheTag[cache[j]] >= VERTEX_CACHE_SIZE + 3)
-						return VC_BADCACHETAG;
+					// If this cache slot contains a real vertex, update its cache tag
+					if (cache[j] >= 0)
+						cacheTag[cache[j]]++;
 				}
+
+				// Insert the current vertex into its new target slot
+				cache[i] = v;
+				cacheTag[v] = i;
 			}
 
-			// Insert the current vertex into its new target slot
-			cache[i] = v;
-			cacheTag[v] = i;
-
-			// Find the current triangle in the list of active triangles and remove it
-			// (moving the last triangle in the list to the slot of this triangle).
+			// Find the current triangle in the list of active triangles and remove it (moving the last triangle in the list to the slot of this triangle).
 			for (j = 0; j < numActiveTris[v]; j++)
 			{
 				if (triangleIndices[offsets[v] + j] == bestTriangle)
@@ -372,7 +356,7 @@ static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsi
 }
 
 
-void VCache_ReorderIndices (char *name, unsigned short *outIndices, const unsigned short *indices, int nTriangles, int nVertices)
+qboolean VCache_ReorderIndices (char *name, unsigned short *outIndices, const unsigned short *indices, int nTriangles, int nVertices)
 {
 	int stat = VC_OK;
 
@@ -386,13 +370,16 @@ void VCache_ReorderIndices (char *name, unsigned short *outIndices, const unsign
 		case VS_ONETRIANGLE: ri.Con_Printf (PRINT_ALL, "One triangle\n"); break;
 		case VC_SMALLMODEL: ri.Con_Printf (PRINT_ALL, "Few vertices\n"); break;
 		case VC_TOOCOMPLEX: ri.Con_Printf (PRINT_ALL, "Too complex\n"); break;
-		case VC_BADCACHETAG: ri.Con_Printf (PRINT_ALL, "Bad cache tag\n"); break;
 		default: ri.Con_Printf (PRINT_ALL, "Other crap\n");
 		}
 #endif
 
 		// if we didn't reorder for whatever reason, just copy input over to output
 		memcpy (outIndices, indices, sizeof (unsigned short) * nTriangles * 3);
+		return false;
 	}
+
+	// it optimized OK
+	return true;
 }
 

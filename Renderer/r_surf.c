@@ -223,6 +223,7 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 	for (i = 0; i < mod->numtexinfo; i++)
 	{
 		mtexinfo_t *ti = &mod->texinfo[i];
+		msurface_t *reversechain = NULL;
 
 		// no surfaces
 		if ((surf = ti->texturechain) == NULL) continue;
@@ -239,12 +240,22 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		// select the correct texture
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
 
+		// reverse the texture chain to provide f2b ordering
+		// this only needs to be done for the world (to lay down a baseline) and helps reduce overdraw for a few percent speedup
 		for (; surf; surf = surf->texturechain)
+		{
+			surf->reversechain = reversechain;
+			reversechain = surf;
+		}
+
+		// now, using the reversed chain, draw it
+		for (surf = reversechain; surf; surf = surf->reversechain)
 		{
 			R_AddSurfaceToBatch (surf);
 			surf->dlightframe = r_dlightframecount;
 		}
 
+		// and done
 		R_EndSurfaceBatch ();
 		ti->texturechain = NULL;
 	}
