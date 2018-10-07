@@ -572,7 +572,7 @@ void SCR_DrawConsole (void)
 	{
 		// forced full screen console
 		if (cls.key_dest == key_menu)
-			re.DrawFill (0, 0, viddef.conwidth, viddef.conheight, 0);
+			re.Clear ();
 		else Con_DrawConsole (1.0f, 255);
 		return;
 	}
@@ -580,15 +580,15 @@ void SCR_DrawConsole (void)
 	if (cls.state != ca_active || !cl.refresh_prepped)
 	{
 		// connected, but can't render
+		re.Clear ();
 		Con_DrawConsole (0.5f, 255);
-		re.DrawFill (0, viddef.conheight / 2, viddef.conwidth, viddef.conheight / 2, 0);
 		return;
 	}
 
 	if (scr_con_current)
 	{
 		if (cls.key_dest == key_menu && scr_con_current > 0.999f)
-			re.DrawFill (0, 0, viddef.conwidth, viddef.conheight, 0);
+			re.Clear ();
 		else if (cls.key_dest != key_menu)
 			Con_DrawConsole (scr_con_current, (int) (scr_con_current * 320.0f));
 	}
@@ -1189,7 +1189,7 @@ void SCR_UpdateScreen (int scrflags)
 		scr_draw_loading = false;
 
 		re.Set2D ();
-		re.DrawFill (0, 0, viddef.conwidth, viddef.conheight, 0); // this was never done
+		re.Clear (); // this was never done
 		re.DrawGetPicSize (&w, &h, "loading");
 		re.DrawPic ((viddef.conwidth - w) / 2, (viddef.conheight - h) / 2, "loading");
 	}

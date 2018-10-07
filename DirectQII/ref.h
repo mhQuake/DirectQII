@@ -203,6 +203,7 @@ typedef struct refexport_s
 	void (*DrawPic) (int x, int y, char *name);
 	void (*DrawFill) (int x, int y, int w, int h, int c);
 	void (*DrawFadeScreen) (void);
+	void (*Clear) (void);
 
 	void (*DrawChar) (int x, int y, int num);
 	void (*DrawString) (void);

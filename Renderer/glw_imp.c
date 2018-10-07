@@ -917,3 +917,5 @@ void GLimp_AppActivate (qboolean active)
 			ShowWindow (glw_state.hWnd, SW_MINIMIZE);
 	}
 }
+
+

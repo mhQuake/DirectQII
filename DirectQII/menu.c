@@ -386,7 +386,7 @@ void M_Draw (void)
 
 	// dim everything behind it down
 	if (cl.cinematictime > 0)
-		re.DrawFill (0, 0, viddef.conwidth, viddef.conheight, 0);
+		re.Clear ();
 	else re.DrawFadeScreen ();
 
 	m_drawfunc ();

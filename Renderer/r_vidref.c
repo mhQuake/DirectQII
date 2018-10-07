@@ -196,7 +196,7 @@ void Draw_Fill (int x, int y, int w, int h, int c);
 void Draw_FadeScreen (void);
 void D_EnumerateVideoModes (void);
 void D_CaptureScreenshot (char *checkname);
-
+void R_ClearToBlack (void);
 
 /*
 ===============
@@ -226,6 +226,7 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.DrawPic = Draw_Pic;
 	re.DrawFill = Draw_Fill;
 	re.DrawFadeScreen = Draw_FadeScreen;
+	re.Clear = R_ClearToBlack;
 
 	re.DrawChar = Draw_Char;
 	re.DrawString = Draw_Flush;
