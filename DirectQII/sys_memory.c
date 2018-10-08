@@ -213,6 +213,9 @@ void Load_FreeMemory (void)
 
 void *Load_AllocMemory (int size)
 {
+	// 16-align all allocations
+	size = (size + 15) & ~15;
+
 	if (load_buffer_mark + size >= LOAD_BUFFER_SIZE)
 	{
 		Sys_Error ("Load_AllocMemory overflow");

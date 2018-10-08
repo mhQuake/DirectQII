@@ -32,7 +32,7 @@ MODIFICATIONS
 - some renaming
 - remove C99isms
 - added "do not optimize" case for when model fits entirely in cache
-- replaced bad cacheTag case with proper degenerate tris fix from https://github.com/vivkin/forsyth/commit/fc33e3101cf77004d75c02ed48be3fc49c3fd7f4
+- updated for proper degenerate tris fix from https://github.com/vivkin/forsyth/commit/fc33e3101cf77004d75c02ed48be3fc49c3fd7f4
 =========================================
 */
 
@@ -142,7 +142,8 @@ static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsi
 	unsigned short *lastScore = (unsigned short *) ri.Load_AllocMemory (sizeof (unsigned short) * nVertices);
 	char *cacheTag = (char *) ri.Load_AllocMemory (sizeof (char) * nVertices);
 
-	byte *triangleAdded = (byte *) ri.Load_AllocMemory (nTriangles);
+	byte *triangleAdded = (byte *) ri.Load_AllocMemory ((nTriangles + 7) >> 3);
+	//byte *triangleAdded = (byte *) ri.Load_AllocMemory (nTriangles);
 	unsigned short *triangleScore = (unsigned short *) ri.Load_AllocMemory (sizeof (unsigned short) * nTriangles);
 	int *triangleIndices = (int *) ri.Load_AllocMemory (sizeof (int) * 3 * nTriangles);
 
@@ -223,8 +224,8 @@ static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsi
 	while (bestTriangle >= 0)
 	{
 		// Mark the triangle as added
-		//triangleAdded[bestTriangle >> 3] |= 1 << (bestTriangle & 7);
-		triangleAdded[bestTriangle] = 1;
+		triangleAdded[bestTriangle >> 3] |= 1 << (bestTriangle & 7);
+		//triangleAdded[bestTriangle] = 1;
 
 		// Output this triangle
 		outTriangles[outPos++] = bestTriangle;
@@ -327,8 +328,8 @@ static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsi
 		{
 			for (; scanPos < nTriangles; scanPos++)
 			{
-				//if (!(triangleAdded[scanPos >> 3] & (1 << (scanPos & 7))))
-				if (!triangleAdded[scanPos])
+				//if (!triangleAdded[scanPos])
+				if (!(triangleAdded[scanPos >> 3] & (1 << (scanPos & 7))))
 				{
 					bestTriangle = scanPos;
 					break;
