@@ -379,6 +379,7 @@ void R_DrawParticles (void)
 		d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_ParticleVertexes, 0);
 
 		// go to points for the geometry shader
+		// (we could alternatively attach an index buffer with indices 0|0|0|1|1|1|2|2|2 etc, and do triangle-to-quad expansion, which would be hellishly cute)
 		d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 		// and draw it
@@ -398,7 +399,7 @@ void R_DrawParticles (void)
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // sprites
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-typedef struct spriteconstants_s {
+__declspec(align(16)) typedef struct spriteconstants_s {
 	float spriteOrigin[3];
 	float spritealpha;
 	float xywh[4];

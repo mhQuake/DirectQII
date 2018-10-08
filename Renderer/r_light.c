@@ -513,7 +513,7 @@ void R_BindLightmaps (void)
 
 void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags)
 {
-	dlight_t consts;
+	__declspec(align(16)) dlight_t consts;
 
 	// transformed origin goes to the GPU so we don't need to mess with normal matrixes and other such shenanigans
 	consts.origin[0] = transformedorigin[0];

@@ -40,7 +40,7 @@ typedef struct aliasbuffers_s {
 	int registration_sequence;
 } aliasbuffers_t;
 
-typedef struct meshconstants_s {
+__declspec(align(16)) typedef struct meshconstants_s {
 	float shadelight[4];	// padded for cbuffer
 	float shadevector[4];	// padded for cbuffer
 	float move[4];			// padded for cbuffer

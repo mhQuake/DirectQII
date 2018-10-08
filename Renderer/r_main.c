@@ -27,7 +27,7 @@ void R_SetLightLevel (void);
 void R_PrepareDlights (void);
 
 
-typedef struct mainconstants_s {
+__declspec(align(16)) typedef struct mainconstants_s {
 	QMATRIX mvpMatrix;
 	float viewOrigin[4]; // padded for cbuffer packing
 	float viewForward[4]; // padded for cbuffer packing
@@ -44,12 +44,12 @@ typedef struct mainconstants_s {
 	QMATRIX skyMatrix;
 } mainconstants_t;
 
-typedef struct entityconstants_s {
+__declspec(align(16)) typedef struct entityconstants_s {
 	QMATRIX localMatrix;
 	float shadecolor[4]; // padded for cbuffer packing
 } entityconstants_t;
 
-typedef struct alphaconstants_s {
+__declspec(align(16)) typedef struct alphaconstants_s {
 	float alphaVal;
 	float junk[3];
 } alphaconstants_t;

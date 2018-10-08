@@ -68,7 +68,7 @@ static ID3D11Buffer *d3d_DrawConstants = NULL;
 static ID3D11Buffer *d3d_CineConstants = NULL;
 
 
-typedef struct drawconstants_s {
+__declspec(align(16)) typedef struct drawconstants_s {
 	QMATRIX OrthoMatrix;
 	float gamma;
 	float brightness;
@@ -187,7 +187,7 @@ void Draw_InitLocal (void)
 
 void Draw_UpdateConstants (int scrflags)
 {
-	drawconstants_t consts;
+	__declspec(align(16)) drawconstants_t consts;
 
 	R_MatrixIdentity (&consts.OrthoMatrix);
 	R_MatrixOrtho (&consts.OrthoMatrix, 0, vid.conwidth, vid.conheight, 0, -1, 1);
@@ -521,7 +521,7 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 
 	// matrix transform for positioning the cinematic correctly
 	// sampler state should be set to clamp-to-border with a border color of black
-	QMATRIX cineMatrix;
+	__declspec(align(16)) QMATRIX cineMatrix;
 	float strans, ttrans;
 
 	// if the dimensions change the texture needs to be recreated
