@@ -524,6 +524,7 @@ void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags)
 	consts.radius = dl->radius;
 
 	// select the appropriate state
+	// note - light colour is scaled by the "intensity" cvar in V_AddLight so it should not be likewise scaled here
 	if (dl->color[0] < 0 || dl->color[1] < 0 || dl->color[2] < 0)
 	{
 		// anti-light - invert colour and use a reverse-subtract blend to get the correct behaviour

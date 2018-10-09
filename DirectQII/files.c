@@ -171,7 +171,7 @@ Creates any directories needed to store the given filename
 */
 void FS_CreatePath (char *path)
 {
-	char	*ofs;
+	char *ofs;
 
 	for (ofs = path + 1; *ofs; ofs++)
 	{
@@ -206,23 +206,14 @@ void FS_FCloseFile (FILE *f)
 	*/
 int	Developer_searchpath (int who)
 {
-	int		ch;
-
-	// PMM - warning removal
-	//	char	*start;
 	searchpath_t	*search;
-
-	if (who == 1) // xatrix
-		ch = 'x';
-	else if (who == 2)
-		ch = 'r';
 
 	for (search = fs_searchpaths; search; search = search->next)
 	{
-		if (strstr (search->filename, "xatrix"))
+		if (strstr (search->filename, "xatrix") && who == 1)
 			return 1;
 
-		if (strstr (search->filename, "rogue"))
+		if (strstr (search->filename, "rogue") && who == 2)
 			return 2;
 	}
 
@@ -327,6 +318,7 @@ Properly handles partial reads
 */
 void CDAudio_Stop (void);
 #define	MAX_READ	0x10000		// read in blocks of 64k
+
 void FS_Read (void *buffer, int len, FILE *f)
 {
 	int		block, remaining;
@@ -339,33 +331,34 @@ void FS_Read (void *buffer, int len, FILE *f)
 	// read in chunks for progress bar
 	remaining = len;
 	tries = 0;
+
 	while (remaining)
 	{
 		block = remaining;
+
 		if (block > MAX_READ)
 			block = MAX_READ;
+
 		read = fread (buf, 1, block, f);
+
 		if (read == 0)
 		{
 			// we might have been trying to read from a CD
+			// (this is not affecting CD audio anymore but is retained for compat)
 			if (!tries)
-			{
 				tries = 1;
-				CDAudio_Stop ();
-			}
-			else
-				Com_Error (ERR_FATAL, "FS_Read: 0 bytes read");
+			else Com_Error (ERR_FATAL, "FS_Read: 0 bytes read");
 		}
 
 		if (read == -1)
 			Com_Error (ERR_FATAL, "FS_Read: -1 bytes read");
 
 		// do some progress bar thing here...
-
 		remaining -= read;
 		buf += read;
 	}
 }
+
 
 /*
 ============

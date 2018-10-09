@@ -31,7 +31,6 @@ extern	HWND	cl_hwnd;
 
 static qboolean	playing = false;
 static qboolean	wasPlaying = false;
-static qboolean	initialized = false;
 static qboolean	enabled = false;
 static qboolean playLooping = false;
 
@@ -133,7 +132,15 @@ qboolean CDAudio_TryPlay (char *track, qboolean looping)
 				if (!mciSendString ("play "Q_MCI_DEVICE" notify", NULL, 0, cl_hwnd))
 				{
 					// got it; retrieve the device id for the CDAudio_MessageHandler proc
-					wDeviceID = mciGetDeviceID (Q_MCI_DEVICE);
+					if ((wDeviceID = mciGetDeviceID (Q_MCI_DEVICE)) == 0)
+					{
+						// if we can't get a device ID then we assume something else went wrong and just kill it
+						Com_Printf ("failed to get device ID for track %i\n", track);
+						CDAudio_Stop ();
+						return false;
+					}
+
+					// NOW it's OK
 					return true;
 				}
 			}
@@ -167,7 +174,7 @@ void CDAudio_Play2 (int track, qboolean looping)
 	// get the track from the remap
 	track = remap[track];
 
-	// if it's out of range don't even try (some maps send track 0) (it was already stopped above)
+	// if it's out of range don't even try (some maps send track 0 which we interpret as an explicit request for no music) (it was already stopped above so it doesn't need to be again)
 	if (track < 1 || track > maxTrack) return;
 
 	// try it
@@ -394,7 +401,6 @@ int CDAudio_Init (void)
 	for (n = 0; n < 100; n++)
 		remap[n] = n;
 
-	initialized = true;
 	enabled = true;
 
 	CDAudio_GetAudioDiskInfo ();
@@ -408,9 +414,6 @@ int CDAudio_Init (void)
 
 void CDAudio_Shutdown (void)
 {
-	if (!initialized)
-		return;
-
 	CDAudio_Stop ();
 }
 

@@ -139,6 +139,7 @@ float4 GenericDynamicPS (PS_DYNAMICLIGHT ps_in) : SV_TARGET0
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
 
 	// this calc isn't correct per-theory but it matches with the calc used by light.exe and qrad.exe
+	// at this stage we don't adjust for the overbright range; that will be done via the "intensity" cvar in the C code
 	float Angle = ((dot (normalize (ps_in.Normal), normalize (ps_in.LightVector)) * 0.5f) + 0.5f) / 256.0f;
 
 	// using our own custom attenuation, again it's not correct per-theory but matches the Quake tools

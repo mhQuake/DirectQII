@@ -25,35 +25,37 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 // development tools for weapons
 //
-int			gun_frame;
+int		gun_frame;
 struct model_s	*gun_model;
 
 //=============
 
 cvar_t		*crosshair;
-cvar_t		*cl_testparticles;
-cvar_t		*cl_testentities;
-cvar_t		*cl_testlights;
-cvar_t		*cl_testblend;
 
-cvar_t		*cl_stats;
+static cvar_t		*cl_testparticles;
+static cvar_t		*cl_testentities;
+static cvar_t		*cl_testlights;
+static cvar_t		*cl_testblend;
 
-cvar_t		*intensity;
+static cvar_t		*cl_stats;
+
+static cvar_t		*intensity;
 
 
-int			r_numdlights;
-dlight_t	r_dlights[MAX_DLIGHTS];
+static int			r_numdlights;
+static dlight_t	r_dlights[MAX_DLIGHTS];
 
-int			r_numentities;
-entity_t	r_entities[MAX_ENTITIES];
+static int			r_numentities;
+static entity_t	r_entities[MAX_ENTITIES];
 
-int			r_numparticles;
-particle_t	r_particles[MAX_PARTICLES];
+static int			r_numparticles;
+static particle_t	r_particles[MAX_PARTICLES];
 
-float		r_lightstyles[MAX_LIGHTSTYLES];
+static float		r_lightstyles[MAX_LIGHTSTYLES];
 
 char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
 int num_cl_weaponmodels;
+
 
 /*
 ====================
@@ -142,7 +144,7 @@ void V_AddLight (vec3_t org, float radius, float r, float g, float b)
 		dl->color[1] = g;
 		dl->color[2] = b;
 
-		// normalize lighting to 1, 1, 1 scale
+		// normalize colour scale
 		VectorNormalize (dl->color);
 
 		// scale by intensity
