@@ -31,10 +31,6 @@ Don't update if nothing has changed (this may be more expensive to check than ju
 
 Batch updates to dynamic buffers (the code for this could get nasty...)
 
-encode trans33/trans66 into the texture image, put entity alpha back to the entity cbuffer, get rid of alpha cbuffer
-
-wall and skin textures should read palette index 255 with it's correct original value
-
 roll sprite constants into per-entity and build a billboarding matrix
 
 roll cinematics into 2D constants stuff
