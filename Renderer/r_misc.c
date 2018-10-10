@@ -21,22 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-// special texture loading
-// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-void R_CreateSpecialTextures (void)
-{
-	unsigned blacktexturedata[4] = {0xff000000, 0xff000000, 0xff000000, 0xff000000};
-	unsigned greytexturedata[4] = {0xff7f7f7f, 0xff7f7f7f, 0xff7f7f7f, 0xff7f7f7f};
-	unsigned whitetexturedata[4] = {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
-	unsigned notexturedata[4] = {0xff000000, 0xff7f7f7f, 0xff7f7f7f, 0xffffffff};
-
-	r_blacktexture = GL_LoadPic ("***r_blacktexture***", (byte *) blacktexturedata, 2, 2, it_wall, 32, NULL);
-	r_greytexture = GL_LoadPic ("***r_greytexture***", (byte *) greytexturedata, 2, 2, it_wall, 32, NULL);
-	r_whitetexture = GL_LoadPic ("***r_whitetexture***", (byte *) whitetexturedata, 2, 2, it_wall, 32, NULL);
-	r_notexture = GL_LoadPic ("***r_notexture***", (byte *) notexturedata, 2, 2, it_wall, 32, NULL);
-}
-
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // screenshots
@@ -226,13 +210,12 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 	if (e->alpha > 0)
 	{
 		float color[3] = {
-			(float) ((byte *) &d_8to24table[e->skinnum & 0xff])[0] / 255.0f,
-			(float) ((byte *) &d_8to24table[e->skinnum & 0xff])[1] / 255.0f,
-			(float) ((byte *) &d_8to24table[e->skinnum & 0xff])[2] / 255.0f
+			(float) ((byte *) &d_8to24table_solid[e->skinnum & 0xff])[0] / 255.0f,
+			(float) ((byte *) &d_8to24table_solid[e->skinnum & 0xff])[1] / 255.0f,
+			(float) ((byte *) &d_8to24table_solid[e->skinnum & 0xff])[2] / 255.0f
 		};
 
-		R_UpdateEntityConstants (localmatrix, color, 0);
-		R_UpdateEntityAlphaState (RF_TRANSLUCENT, e->alpha);
+		R_PrepareEntityForRendering (localmatrix, color, e->alpha, RF_TRANSLUCENT);
 		D_BindShaderBundle (d3d_BeamShader);
 
 		if (r_beamdetail->modified)
@@ -301,8 +284,7 @@ void R_DrawNullModel (entity_t *e)
 	R_MatrixTranslate (&localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
 	R_MatrixRotate (&localmatrix, -e->angles[0], e->angles[1], -e->angles[2]);
 
-	R_UpdateEntityConstants (&localmatrix, shadelight, 0);
-	R_UpdateEntityAlphaState (e->flags, e->alpha);
+	R_PrepareEntityForRendering (&localmatrix, shadelight, e->alpha, e->flags);
 	D_BindShaderBundle (d3d_NullShader);
 
 	d3d_Context->lpVtbl->Draw (d3d_Context, 24, 0);
@@ -424,7 +406,7 @@ void R_InitSprites (void)
 	d3d_SpriteShader = D_CreateShaderBundle (IDR_MISCSHADER, "SpriteVS", "SpriteGS", "SpritePS", NULL, 0);
 
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbPerSpriteDesc, NULL, &d3d_SpriteConstants);
-	D_RegisterConstantBuffer (d3d_SpriteConstants, 6);
+	D_RegisterConstantBuffer (d3d_SpriteConstants, 5);
 }
 
 
@@ -545,7 +527,7 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 		sky_width[i] = sky_height[i] = -1;
 
 		// attempt to load it
-		LoadTGA (va ("env/%s%s.tga", skyname, suf[i]), &sky_pic[i], &sky_width[i], &sky_height[i]);
+		if ((sky_pic[i] = Image_LoadTGA (va ("env/%s%s.tga", skyname, suf[i]), &sky_width[i], &sky_height[i])) == NULL) continue;
 
 		// figure the max size to create the cubemap at
 		if (sky_width[i] > max_size) max_size = sky_width[i];

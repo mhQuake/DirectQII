@@ -740,8 +740,7 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 	}
 
 	// cbuffers/states
-	R_UpdateEntityConstants (localmatrix, NULL, e->flags);
-	R_UpdateEntityAlphaState (e->flags, e->alpha);
+	R_PrepareEntityForRendering (localmatrix, NULL, e->alpha, e->flags);
 
 	// set up our mesh constants
 	R_LightAliasModel (e, &consts, localmatrix);

@@ -23,7 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 image_t		gltextures[MAX_GLTEXTURES];
 
-unsigned	d_8to24table[256];
+unsigned	d_8to24table_solid[256];
+unsigned	d_8to24table_alpha[256];
+unsigned	d_8to24table_trans33[256];
+unsigned	d_8to24table_trans66[256];
 
 
 void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int arraysize, int flags)
@@ -288,17 +291,49 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 }
 
 
+image_t *GL_HaveImage (char *name, int flags)
+{
+	int		i;
+	image_t	*image;
+
+	// look for it
+	for (i = 0, image = gltextures; i < MAX_GLTEXTURES; i++, image++)
+	{
+		// not a valid image
+		if (!image->Texture) continue;
+		if (!image->SRV) continue;
+
+		// only brush models send texinfo flags and they must match because we're encoding alpha into the textures
+		if (image->texinfoflags != flags) continue;
+
+		if (!strcmp (name, image->name))
+		{
+			image->registration_sequence = r_registration_sequence;
+			return image;
+		}
+	}
+
+	// don't have it
+	return NULL;
+}
+
+
 /*
 ================
 GL_LoadWal
 ================
 */
-image_t *GL_LoadWal (char *name)
+image_t *GL_LoadWal (char *name, int flags)
 {
 	miptex_t	*mt;
 	int			width, height, ofs;
 	image_t		*image;
 
+	// look for it
+	if ((image = GL_HaveImage (name, flags)) != NULL)
+		return image;
+
+	// load the pic from disk
 	ri.FS_LoadFile (name, (void **) &mt);
 
 	if (!mt)
@@ -311,9 +346,20 @@ image_t *GL_LoadWal (char *name)
 	height = LittleLong (mt->height);
 	ofs = LittleLong (mt->offsets[0]);
 
-	image = GL_LoadPic (name, (byte *) mt + ofs, width, height, it_wall, 8, d_8to24table);
+	// choose the correct palette to use (note: using texinfo flags here)
+	if (flags & SURF_TRANS33)
+		image = GL_LoadPic (name, (byte *) mt + ofs, width, height, it_wall, 8, d_8to24table_trans33);
+	else if (flags & SURF_TRANS66)
+		image = GL_LoadPic (name, (byte *) mt + ofs, width, height, it_wall, 8, d_8to24table_trans66);
+	else image = GL_LoadPic (name, (byte *) mt + ofs, width, height, it_wall, 8, d_8to24table_solid);
 
 	ri.FS_FreeFile ((void *) mt);
+
+	// free any memory used for loading
+	ri.Load_FreeMemory ();
+
+	// store out the flags used for matching
+	image->texinfoflags = flags;
 
 	return image;
 }
@@ -326,10 +372,10 @@ GL_FindImage
 Finds or loads the given image
 ===============
 */
-image_t	*GL_FindImage (char *name, imagetype_t type)
+image_t *GL_FindImage (char *name, imagetype_t type)
 {
 	image_t	*image;
-	int		i, len;
+	int		len;
 	byte	*pic, *palette;
 	int		width, height;
 
@@ -338,48 +384,47 @@ image_t	*GL_FindImage (char *name, imagetype_t type)
 	if ((len = strlen (name)) < 5) return NULL;
 
 	// look for it
-	for (i = 0, image = gltextures; i < MAX_GLTEXTURES; i++, image++)
-	{
-		// not a valid image
-		if (!image->Texture) continue;
-		if (!image->SRV) continue;
-
-		if (!strcmp (name, image->name))
-		{
-			image->registration_sequence = r_registration_sequence;
-			return image;
-		}
-	}
+	if ((image = GL_HaveImage (name, 0)) != NULL)
+		return image;
 
 	// load the pic from disk
 	pic = NULL;
 	palette = NULL;
 
+	// PCX/TGA types only; WAL is sent directly through GL_LoadWal
 	if (!strcmp (name + len - 4, ".pcx"))
 	{
 		unsigned table[256];
+
 		LoadPCX (name, &pic, &palette, &width, &height);
+
 		if (!pic)
 			return NULL;
-		Image_QuakePalFromPCXPal (table, palette);
+
+		// skins use the solid palette; everything else has alpha
+		if (type == it_skin)
+			Image_QuakePalFromPCXPal (table, palette, 0);
+		else Image_QuakePalFromPCXPal (table, palette, TEX_ALPHA);
+
 		image = GL_LoadPic (name, pic, width, height, type, 8, table);
-	}
-	else if (!strcmp (name + len - 4, ".wal"))
-	{
-		image = GL_LoadWal (name);
 	}
 	else if (!strcmp (name + len - 4, ".tga"))
 	{
-		LoadTGA (name, &pic, &width, &height);
-		if (!pic)
+		if ((pic = Image_LoadTGA (name, &width, &height)) == NULL)
 			return NULL;
-		image = GL_LoadPic (name, pic, width, height, type, 32, NULL);
+		else image = GL_LoadPic (name, pic, width, height, type, 32, NULL);
 	}
 	else
+	{
+		ri.Sys_Error (ERR_DROP, "GL_FindImage : %s is unsupported file type\n", name);
 		return NULL;
+	}
 
 	// free any memory used for loading
 	ri.Load_FreeMemory ();
+
+	// store out the flags used for matching
+	image->texinfoflags = 0;
 
 	return image;
 }
@@ -492,7 +537,7 @@ image_t *R_LoadTexArray (char *base)
 		if (sb_width[i] != sb_width[0]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
 		if (sb_height[i] != sb_height[0]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
 
-		srd[i].pSysMem = GL_Image8To32 (sb_pic[i], sb_width[i], sb_height[i], d_8to24table);
+		srd[i].pSysMem = GL_Image8To32 (sb_pic[i], sb_width[i], sb_height[i], d_8to24table_alpha);
 		srd[i].SysMemPitch = sb_width[i] << 2;
 		srd[i].SysMemSlicePitch = 0;
 	}
@@ -626,6 +671,23 @@ void R_CopyScreen (rendertarget_t *dst)
 		// and done
 		pBackBuffer->lpVtbl->Release (pBackBuffer);
 	}
+}
+
+
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// special texture loading
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+void R_CreateSpecialTextures (void)
+{
+	unsigned blacktexturedata[4] = {0xff000000, 0xff000000, 0xff000000, 0xff000000};
+	unsigned greytexturedata[4] = {0xff7f7f7f, 0xff7f7f7f, 0xff7f7f7f, 0xff7f7f7f};
+	unsigned whitetexturedata[4] = {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
+	unsigned notexturedata[4] = {0xff000000, 0xff7f7f7f, 0xff7f7f7f, 0xffffffff};
+
+	r_blacktexture = GL_LoadPic ("***r_blacktexture***", (byte *) blacktexturedata, 2, 2, it_wall, 32, NULL);
+	r_greytexture = GL_LoadPic ("***r_greytexture***", (byte *) greytexturedata, 2, 2, it_wall, 32, NULL);
+	r_whitetexture = GL_LoadPic ("***r_whitetexture***", (byte *) whitetexturedata, 2, 2, it_wall, 32, NULL);
+	r_notexture = GL_LoadPic ("***r_notexture***", (byte *) notexturedata, 2, 2, it_wall, 32, NULL);
 }
 
 

@@ -208,7 +208,7 @@ void Mod_LoadTexinfo (lump_t *l, dbsp_t *bsp)
 
 		Com_sprintf (name, sizeof (name), "textures/%s.wal", in->texture);
 
-		if ((out->image = GL_FindImage (name, it_wall)) == NULL)
+		if ((out->image = GL_LoadWal (name, out->flags)) == NULL)
 		{
 			ri.Con_Printf (PRINT_ALL, "Couldn't load %s\n", name);
 			out->image = r_notexture;

@@ -129,7 +129,8 @@ typedef enum _imagetype_t {
 
 typedef struct image_s {
 	char	name[MAX_QPATH];			// game path, including extension
-	int		flags;
+	int		flags;						// loading flags
+	int		texinfoflags;				// flags from texinfo object for wall textures
 	int		width, height;				// source image
 	int		registration_sequence;		// 0 = free
 
@@ -234,7 +235,10 @@ void R_DynamicLightPoint (vec3_t p, vec3_t color);
 
 extern	model_t	*r_worldmodel;
 
-extern	unsigned	d_8to24table[256];
+extern	unsigned	d_8to24table_solid[256];
+extern	unsigned	d_8to24table_alpha[256];
+extern	unsigned	d_8to24table_trans33[256];
+extern	unsigned	d_8to24table_trans66[256];
 
 extern	int		r_registration_sequence;
 
@@ -275,10 +279,9 @@ void Draw_Field (int x, int y, int color, int width, int value);
 
 int Draw_GetPalette (void);
 
-struct image_s *R_RegisterSkin (char *name);
-
-image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, unsigned *palette);
-image_t	*GL_FindImage (char *name, imagetype_t type);
+image_t *R_RegisterSkin (char *name);
+image_t *GL_FindImage (char *name, imagetype_t type);
+image_t *GL_LoadWal (char *name, int flags);
 
 void R_InitImages (void);
 void R_ShutdownImages (void);
@@ -353,8 +356,7 @@ void D_SetPixelShader (ID3D11PixelShader *ps);
 void D_BindShaderBundle (int sb);
 void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot);
 void D_BindConstantBuffers (void);
-void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, int rflags);
-void R_UpdateEntityAlphaState (int rflags, float alphaval);
+void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alpha, int rflags);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -400,9 +402,11 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 #define TEX_UPSCALE			(1 << 12) // texture was upscaled
 #define TEX_CHARSET			(1 << 13) // charset uses a 16x16 texture array
 #define TEX_MUTABLE			(1 << 14) // textures are immutable unless this flag is specified
+#define TEX_TRANS33			(1 << 15) // 0.333 alpha encoded into the texture
+#define TEX_TRANS66			(1 << 16) // 0.666 alpha encoded into the texture
 
 // if any of these are set the texture may be processed for having an alpha channel
-#define TEX_ANYALPHA		(TEX_ALPHA | TEX_TRANSPARENT | TEX_HOLEY | TEX_SPECIAL_TRANS)
+#define TEX_ANYALPHA		(TEX_ALPHA | TEX_TRANSPARENT | TEX_HOLEY | TEX_SPECIAL_TRANS | TEX_TRANS33 | TEX_TRANS66)
 
 // textures marked disposable may be flushed on map changes
 #define TEX_DISPOSABLE		(1 << 30)
@@ -426,7 +430,7 @@ typedef struct _TargaHeader
 } TargaHeader;
 #pragma pack(pop)
 
-void LoadTGA (char *name, byte **pic, int *width, int *height);
+byte *Image_LoadTGA (char *name, int *width, int *height);
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
 
 unsigned *Image_ResampleToSize (unsigned *in, int inwidth, int inheight, int outwidth, int outheight);
@@ -436,7 +440,7 @@ unsigned *Image_MipReduceBoxFilter (unsigned *data, int width, int height);
 void R_FloodFillSkin (byte *skin, int skinwidth, int skinheight);
 unsigned *GL_Image8To32 (byte *data, int width, int height, unsigned *palette);
 
-void Image_QuakePalFromPCXPal (unsigned *qpal, const byte *pcxpal);
+void Image_QuakePalFromPCXPal (unsigned *qpal, const byte *pcxpal, int flags);
 
 byte *Image_Upscale8 (byte *in, int inwidth, int inheight);
 unsigned *Image_Upscale32 (unsigned *in, int inwidth, int inheight);

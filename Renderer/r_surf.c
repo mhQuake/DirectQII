@@ -214,8 +214,7 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 	msurface_t	*surf;
 
 	// and now set it up
-	R_UpdateEntityConstants (localmatrix, NULL, 0);
-	R_UpdateEntityAlphaState (e->flags, alphaval);
+	R_PrepareEntityForRendering (localmatrix, NULL, alphaval, e->flags);
 
 	D_BindVertexBuffer (0, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
 	D_BindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
@@ -319,33 +318,20 @@ void R_DrawAlphaSurfaces (void)
 	msurface_t	*s;
 	QMATRIX	localMatrix;
 	image_t *lasttexture = NULL;
-	float thisalpha = 1;
-	float lastalpha = -1;
 
 	if (!r_alpha_surfaces) return;
 
+	// go back to the world matrix
 	R_MatrixIdentity (&localMatrix);
 
-	D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSNoCull);
 	D_BindVertexBuffer (0, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
 	D_BindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
-	R_UpdateEntityConstants (&localMatrix, NULL, 0);
+	R_PrepareEntityForRendering (&localMatrix, NULL, 1.0f, RF_TRANSLUCENT);
 
+	// we can't sort these by texture because they need to be drawn in back-to-front order, so we go through them in BSP order
+	// (which is back to front) and snoop for texture changes manually
 	for (s = r_alpha_surfaces; s; s = s->texturechain)
 	{
-		if (s->texinfo->flags & SURF_TRANS33)
-			thisalpha = 0.33f;
-		else if (s->texinfo->flags & SURF_TRANS66)
-			thisalpha = 0.66f;
-		else thisalpha = 1.0f;
-
-		if (thisalpha != lastalpha)
-		{
-			R_EndSurfaceBatch ();
-			R_UpdateEntityAlphaState (RF_TRANSLUCENT, thisalpha);
-			lastalpha = thisalpha;
-		}
-
 		if (s->texinfo->image != lasttexture)
 		{
 			R_EndSurfaceBatch ();

@@ -46,17 +46,13 @@ __declspec(align(16)) typedef struct mainconstants_s {
 
 __declspec(align(16)) typedef struct entityconstants_s {
 	QMATRIX localMatrix;
-	float shadecolor[4]; // padded for cbuffer packing
+	float shadecolor[3];
+	float alphaval;
 } entityconstants_t;
 
-__declspec(align(16)) typedef struct alphaconstants_s {
-	float alphaVal;
-	float junk[3];
-} alphaconstants_t;
 
 ID3D11Buffer *d3d_MainConstants = NULL;
 ID3D11Buffer *d3d_EntityConstants = NULL;
-ID3D11Buffer *d3d_AlphaConstants = NULL;
 
 int d3d_PolyblendShader = 0;
 
@@ -80,22 +76,11 @@ void R_InitMain (void)
 		0
 	};
 
-	D3D11_BUFFER_DESC cbAlphaDesc = {
-		sizeof (alphaconstants_t),
-		D3D11_USAGE_DEFAULT,
-		D3D11_BIND_CONSTANT_BUFFER,
-		0,
-		0,
-		0
-	};
-
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbMainDesc, NULL, &d3d_MainConstants);
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbEntityDesc, NULL, &d3d_EntityConstants);
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbAlphaDesc, NULL, &d3d_AlphaConstants);
 
 	D_RegisterConstantBuffer (d3d_MainConstants, 1);
 	D_RegisterConstantBuffer (d3d_EntityConstants, 2);
-	D_RegisterConstantBuffer (d3d_AlphaConstants, 5);
 
 	d3d_PolyblendShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawPolyblendVS", NULL, "DrawPolyblendPS", NULL, 0);
 }
@@ -170,7 +155,7 @@ cvar_t	*vid_height;
 cvar_t	*vid_vsync;
 
 
-void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, int rflags)
+void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alpha, int rflags)
 {
 	entityconstants_t consts;
 
@@ -201,41 +186,18 @@ void R_UpdateEntityConstants (QMATRIX *localMatrix, float *color, int rflags)
 		Vector3Copy (consts.shadecolor, color);
 	else Vector3Set (consts.shadecolor, 1, 1, 1);
 
+	// alpha is only set if we're explicitly translucent
+	if (rflags & RF_TRANSLUCENT)
+		consts.alphaval = alpha;
+	else consts.alphaval = 1.0f;
+
 	// and update to the cbuffer
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_EntityConstants, 0, NULL, &consts, 0, 0);
-}
 
-
-void R_UpdateAlpha (float alphaval)
-{
-	static float oldalpha = 0.0f;
-
-	if (alphaval != oldalpha)
-	{
-		alphaconstants_t consts;
-
-		// store it off
-		consts.alphaVal = alphaval;
-
-		// and update to the cbuffer
-		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_AlphaConstants, 0, NULL, &consts, 0, 0);
-		oldalpha = alphaval;
-	}
-}
-
-
-void R_UpdateEntityAlphaState (int rflags, float alphaval)
-{
+	// and set the correct states
 	if (rflags & RF_TRANSLUCENT)
-	{
 		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, R_GetRasterizerState (rflags));
-		R_UpdateAlpha (alphaval);
-	}
-	else
-	{
-		D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, R_GetRasterizerState (rflags));
-		R_UpdateAlpha (1);
-	}
+	else D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, R_GetRasterizerState (rflags));
 }
 
 
@@ -695,11 +657,21 @@ void R_RenderScene (void)
 
 	R_DrawEntitiesOnList (false);
 
+	// we could depth-sort alpha objects but for now we're working on the assumption that original Q2 content was designed around it's engine
+	// behaviours, and trying to change as little of that as possible.
 	R_DrawEntitiesOnList (true);
 
-	R_DrawParticles ();
-
-	R_DrawAlphaSurfaces ();
+	// switch the drawing order if under vs above water so things will look approximately correct
+	if (r_newrefdef.rdflags & RDF_UNDERWATER)
+	{
+		R_DrawParticles ();
+		R_DrawAlphaSurfaces ();
+	}
+	else
+	{
+		R_DrawAlphaSurfaces ();
+		R_DrawParticles ();
+	}
 }
 
 

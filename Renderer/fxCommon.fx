@@ -33,6 +33,7 @@ cbuffer cbMainPerFrame : register(b1) {
 cbuffer cbPerObject : register(b2) {
 	matrix LocalMatrix : packoffset(c0);
 	float3 ShadeColor : packoffset(c4.x); // for non-mesh objects that use a colour (beams/null models/etc)
+	float AlphaVal : packoffset(c4.w);
 };
 
 cbuffer cbPerMesh : register(b3) {
@@ -51,18 +52,13 @@ cbuffer cbPerLight : register(b4) {
 	float3 LightColour : packoffset(c1.x);
 };
 
-// now, if D3D11 had, say, 256 standalone constant registers suitable for pushing single floats to, this wouldn't be needed
-cbuffer cbAlphaVal : register(b5) {
-	float AlphaVal : packoffset(c0.x);
-};
-
-cbuffer cbPerSprite : register(b6) {
+cbuffer cbPerSprite : register(b5) {
 	float3 SpriteOrigin : packoffset(c0.x);
 	float SpriteAlpha : packoffset(c0.w);
 	float4 SpriteXYWH : packoffset(c1);
 };
 
-cbuffer cbCinematic : register(b7) {
+cbuffer cbCinematic : register(b6) {
 	matrix cineMatrix : packoffset(c0);
 };
 

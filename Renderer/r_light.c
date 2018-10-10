@@ -289,7 +289,7 @@ void R_InitLight (void)
 
 	R_CreateTBuffer (&d3d_LightStyles, NULL, MAX_LIGHTSTYLES, sizeof (float), DXGI_FORMAT_R32_FLOAT, D3D11_USAGE_DEFAULT);
 	R_CreateTBuffer (&d3d_LightNormals, r_avertexnormals, NUMVERTEXNORMALS, sizeof (r_avertexnormals[0]), DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_USAGE_IMMUTABLE);
-	R_CreateTBuffer (&d3d_QuakePalette, d_8to24table, 256, sizeof (d_8to24table[0]), DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_USAGE_IMMUTABLE); // this is a stupid place to do this
+	R_CreateTBuffer (&d3d_QuakePalette, d_8to24table_solid, 256, sizeof (d_8to24table_solid[0]), DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_USAGE_IMMUTABLE); // this is a stupid place to do this
 }
 
 

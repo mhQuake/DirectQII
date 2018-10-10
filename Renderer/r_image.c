@@ -115,6 +115,7 @@ void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *heigh
 
 	// load the file
 	len = ri.FS_LoadFile (filename, (void **) &raw);
+
 	if (!raw)
 	{
 		ri.Con_Printf (PRINT_DEVELOPER, "Bad pcx file %s\n", filename);
@@ -196,10 +197,10 @@ TARGA LOADING
 
 /*
 =============
-LoadTGA
+Image_LoadTGA
 =============
 */
-void LoadTGA (char *name, byte **pic, int *width, int *height)
+byte *Image_LoadTGA (char *name, int *width, int *height)
 {
 	int		columns, rows, numPixels;
 	byte	*pixbuf;
@@ -209,9 +210,7 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 	int		length;
 	TargaHeader		*targa_header;
 	byte			*targa_rgba;
-//	byte tmp[2];
-
-	*pic = NULL;
+	byte *pic = NULL;
 
 	// load the file
 	length = ri.FS_LoadFile (name, (void **) &buffer);
@@ -219,7 +218,7 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 	if (!buffer)
 	{
 		ri.Con_Printf (PRINT_DEVELOPER, "Bad tga file %s\n", name);
-		return;
+		return NULL;
 	}
 
 	buf_p = buffer;
@@ -236,22 +235,20 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 	targa_header->height = LittleShort (targa_header->height);
 
 	if (targa_header->image_type != 2 && targa_header->image_type != 10)
-		ri.Sys_Error (ERR_DROP, "LoadTGA: Only type 2 and 10 targa RGB images supported\n");
+		ri.Sys_Error (ERR_DROP, "Image_LoadTGA: Only type 2 and 10 targa RGB images supported\n");
 
 	if (targa_header->colormap_type != 0 || (targa_header->pixel_size != 32 && targa_header->pixel_size != 24))
-		ri.Sys_Error (ERR_DROP, "LoadTGA: Only 32 or 24 bit images supported (no colormaps)\n");
+		ri.Sys_Error (ERR_DROP, "Image_LoadTGA: Only 32 or 24 bit images supported (no colormaps)\n");
 
 	columns = targa_header->width;
 	rows = targa_header->height;
 	numPixels = columns * rows;
 
-	if (width)
-		*width = columns;
-	if (height)
-		*height = rows;
+	if (width) *width = columns;
+	if (height) *height = rows;
 
 	targa_rgba = ri.Load_AllocMemory (numPixels * 4);
-	*pic = targa_rgba;
+	pic = targa_rgba;
 
 	if (targa_header->id_length != 0)
 		buf_p += targa_header->id_length;  // skip TARGA image comment
@@ -399,6 +396,7 @@ breakOut:;
 	}
 
 	ri.FS_FreeFile (buffer);
+	return pic;
 }
 
 
@@ -451,10 +449,11 @@ void R_FloodFillSkin (byte *skin, int skinwidth, int skinheight)
 	if (filledcolor == -1)
 	{
 		filledcolor = 0;
+
 		// attempt to find opaque black
 		for (i = 0; i < 256; ++i)
 		{
-			if (d_8to24table[i] == (255 << 0)) // alpha 1.0
+			if (d_8to24table_solid[i] == (255 << 0)) // alpha 1.0
 			{
 				filledcolor = i;
 				break;
@@ -586,7 +585,7 @@ unsigned *Image_MipReduceBoxFilter (unsigned *data, int width, int height)
 }
 
 
-void Image_QuakePalFromPCXPal (unsigned *qpal, const byte *pcxpal)
+void Image_QuakePalFromPCXPal (unsigned *qpal, const byte *pcxpal, int flags)
 {
 	int i;
 
@@ -596,10 +595,15 @@ void Image_QuakePalFromPCXPal (unsigned *qpal, const byte *pcxpal)
 		int g = pcxpal[1];
 		int b = pcxpal[2];
 
-		qpal[i] = (255 << 24) | (r << 0) | (g << 8) | (b << 16);
+		if (flags & TEX_TRANS33)
+			qpal[i] = (85 << 24) | (r << 0) | (g << 8) | (b << 16);
+		else if (flags & TEX_TRANS66)
+			qpal[i] = (170 << 24) | (r << 0) | (g << 8) | (b << 16);
+		else qpal[i] = (255 << 24) | (r << 0) | (g << 8) | (b << 16);
 	}
 
-	qpal[255] = 0;	// 255 is transparent
+	if (flags & TEX_ALPHA)
+		qpal[255] = 0;	// 255 is transparent
 }
 
 
@@ -620,7 +624,10 @@ int Draw_GetPalette (void)
 	if (!pal)
 		ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
 
-	Image_QuakePalFromPCXPal (d_8to24table, pal);
+	Image_QuakePalFromPCXPal (d_8to24table_solid, pal, TEX_RGBA8);
+	Image_QuakePalFromPCXPal (d_8to24table_alpha, pal, TEX_ALPHA);
+	Image_QuakePalFromPCXPal (d_8to24table_trans33, pal, TEX_TRANS33);
+	Image_QuakePalFromPCXPal (d_8to24table_trans66, pal, TEX_TRANS66);
 	ri.Load_FreeMemory ();
 
 	// gamma-correct to 16-bit precision, average, then mix back down to 8-bit precision so that we don't lose ultra-darks in the correction process

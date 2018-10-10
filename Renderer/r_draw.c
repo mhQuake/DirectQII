@@ -163,7 +163,7 @@ void Draw_InitLocal (void)
 	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
 
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbCineDesc, NULL, &d3d_CineConstants);
-	D_RegisterConstantBuffer (d3d_CineConstants, 7);
+	D_RegisterConstantBuffer (d3d_CineConstants, 6);
 
 	// shaders
 	d3d_DrawTexturedShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
@@ -466,10 +466,10 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 
 	if (Draw_EnsureBufferSpace ())
 	{
-		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y, d_8to24table[c]);
-		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y, d_8to24table[c]);
-		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, d_8to24table[c]);
-		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y + h, d_8to24table[c]);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y, d_8to24table_solid[c]);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y, d_8to24table_solid[c]);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, d_8to24table_solid[c]);
+		Draw_ColouredVertex (&d_drawverts[d_numdrawverts++], x, y + h, d_8to24table_solid[c]);
 
 		Draw_Flush ();
 	}
@@ -547,10 +547,10 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 		if (palette)
 		{
 			unsigned r_rawpalette[256];
-			Image_QuakePalFromPCXPal (r_rawpalette, palette);
+			Image_QuakePalFromPCXPal (r_rawpalette, palette, TEX_RGBA8);
 			R_TexSubImage8 (r_CinematicPic.Texture, 0, 0, 0, cols, rows, data, r_rawpalette);
 		}
-		else R_TexSubImage8 (r_CinematicPic.Texture, 0, 0, 0, cols, rows, data, d_8to24table);
+		else R_TexSubImage8 (r_CinematicPic.Texture, 0, 0, 0, cols, rows, data, d_8to24table_solid);
 
 		r_rawframe = frame;
 	}
