@@ -35,7 +35,10 @@ roll cinematics into 2D constants stuff
 
 move screen functions from glw_imp/r_main/etc to r_screen.c
 
-split r_sky and r_warp from r_misc
-
 reinstate sprite vertex buffer and get rid of the extra cbuffer
 
+split up fxMisc
+
+clean up Zone allocations
+
+Explosion dlight fades are jerky - lerp them???

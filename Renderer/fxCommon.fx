@@ -52,11 +52,7 @@ cbuffer cbPerLight : register(b4) {
 	float3 LightColour : packoffset(c1.x);
 };
 
-cbuffer cbPerSprite : register(b5) {
-	float4 SpriteXYWH : packoffset(c0);
-};
-
-cbuffer cbCinematic : register(b6) {
+cbuffer cbCinematic : register(b5) {
 	matrix cineMatrix : packoffset(c0);
 };
 

@@ -379,7 +379,9 @@ void R_EndRegistration (void)
 		}
 	}
 
+	// free any GPU objects not touched in this reg sequence
 	R_FreeUnusedAliasBuffers ();
+	R_FreeUnusedSpriteBuffers ();
 	R_FreeUnusedImages ();
 }
 

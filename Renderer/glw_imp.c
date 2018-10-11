@@ -624,8 +624,10 @@ void GLimp_Shutdown (void)
 	R_ShutdownSurfaces ();
 	R_ShutdownLight ();
 	R_ShutdownWarp ();
+	R_ShutdownSky ();
 	R_ShutdownMesh ();
 	R_ShutdownBeam ();
+	R_ShutdownSprites ();
 
 	// handle cacheable objects
 	D_ReleaseObjectCache ();
@@ -791,6 +793,7 @@ qboolean GLimp_InitGL (int modenum)
 	R_InitSprites ();
 	R_InitLight ();
 	R_InitWarp ();
+	R_InitSky ();
 	R_InitMesh ();
 	R_InitBeam ();
 	R_InitNull ();

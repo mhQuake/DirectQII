@@ -70,5 +70,8 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer)
 	}
 
 	mod->type = mod_sprite;
+
+	// and create buffers for it
+	D_MakeSpriteBuffers (mod);
 }
 

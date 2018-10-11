@@ -1196,6 +1196,7 @@ void SCR_UpdateScreen (int scrflags)
 	else if (cl.cinematictime > 0)
 	{
 		re.Set2D ();
+		re.Clear (); // always
 
 		// if a cinematic is supposed to be running, handle menus
 		// and console specially

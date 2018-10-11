@@ -13,11 +13,6 @@ struct GS_PARTICLE {
 	float4 Color : COLOR;
 };
 
-struct PS_SPRITE {
-	float4 Position : SV_POSITION;
-	float2 TexCoord : TEXCOORD;
-};
-
 struct PS_PARTICLE {
 	float4 Position : SV_POSITION;
 	float4 Color : COLOUR;
@@ -30,12 +25,6 @@ struct PS_NULL {
 };
 
 #ifdef VERTEXSHADER
-float SpriteVS (uint vertexId : SV_VertexID) : BULLSHIT
-{
-	// not sure if a NULL VS is allowed but that's what we really actually want here, so we just do it this way instead
-	return 1.0f;
-}
-
 GS_PARTICLE ParticleVS (VS_PARTICLE vs_in)
 {
 	GS_PARTICLE vs_out;
@@ -132,35 +121,10 @@ void ParticleSquareGS (point GS_PARTICLE gs_in[1], inout TriangleStream<PS_PARTI
 {
 	ParticleCommonGS (gs_in[0], gs_out, 0.5f, 0.002f);
 }
-
-PS_SPRITE GetSpriteVert (float ofsx, float ofsy, float2 TexCoord)
-{
-	PS_SPRITE vs_out;
-
-	vs_out.Position = mul (LocalMatrix, float4 ((viewRight * ofsy) + (viewUp * ofsx), 1.0f));
-	vs_out.TexCoord = TexCoord;
-
-	return vs_out;
-}
-
-[maxvertexcount (4)]
-void SpriteGS (triangle float gs_in[3] : BULLSHIT, inout TriangleStream<PS_SPRITE> gs_out)
-{
-	gs_out.Append (GetSpriteVert (SpriteXYWH.y, SpriteXYWH.x, float2 (0, 1)));
-	gs_out.Append (GetSpriteVert (SpriteXYWH.w, SpriteXYWH.x, float2 (0, 0)));
-	gs_out.Append (GetSpriteVert (SpriteXYWH.y, SpriteXYWH.z, float2 (1, 1)));
-	gs_out.Append (GetSpriteVert (SpriteXYWH.w, SpriteXYWH.z, float2 (1, 0)));
-}
 #endif
 
 
 #ifdef PIXELSHADER
-float4 SpritePS (PS_SPRITE ps_in) : SV_TARGET0
-{
-	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
-	return float4 (diff.rgb, diff.a * AlphaVal);
-}
-
 float4 ParticleCirclePS (PS_PARTICLE ps_in) : SV_TARGET0
 {
 	// procedurally generate the particle dot for good speed and per-pixel accuracy at any scale

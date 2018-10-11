@@ -74,10 +74,13 @@ void R_InitSurfaces (void);
 void R_ShutdownSurfaces (void);
 void R_InitParticles (void);
 void R_InitSprites (void);
+void R_ShutdownSprites (void);
 void R_InitLight (void);
 void R_ShutdownLight (void);
 void R_InitWarp (void);
+void R_InitSky (void);
 void R_ShutdownWarp (void);
+void R_ShutdownSky (void);
 void R_InitMesh (void);
 void R_ShutdownMesh (void);
 void R_InitBeam (void);
@@ -488,6 +491,12 @@ void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV);
 void R_FreeUnusedAliasBuffers (void);
 void D_MakeAliasBuffers (model_t *mod, dmdl_t *src);
 void D_RegisterAliasBuffers (model_t *mod);
+
+
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// sprites
+void D_MakeSpriteBuffers (model_t *mod);
+void R_FreeUnusedSpriteBuffers (void);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------

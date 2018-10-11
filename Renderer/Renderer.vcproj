@@ -198,10 +198,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\r_misc.c"
-				>
-			</File>
-			<File
 				RelativePath=".\r_model.c"
 				>
 			</File>
@@ -219,6 +215,10 @@
 			</File>
 			<File
 				RelativePath=".\r_shader.c"
+				>
+			</File>
+			<File
+				RelativePath=".\r_sky.c"
 				>
 			</File>
 			<File
@@ -243,6 +243,10 @@
 			</File>
 			<File
 				RelativePath=".\r_vidref.c"
+				>
+			</File>
+			<File
+				RelativePath=".\r_warp.c"
 				>
 			</File>
 		</Filter>
@@ -301,6 +305,10 @@
 			</File>
 			<File
 				RelativePath=".\fxMisc.fx"
+				>
+			</File>
+			<File
+				RelativePath=".\fxSprite.fx"
 				>
 			</File>
 			<File

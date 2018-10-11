@@ -163,7 +163,7 @@ void Draw_InitLocal (void)
 	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
 
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbCineDesc, NULL, &d3d_CineConstants);
-	D_RegisterConstantBuffer (d3d_CineConstants, 6);
+	D_RegisterConstantBuffer (d3d_CineConstants, 5);
 
 	// shaders
 	d3d_DrawTexturedShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
