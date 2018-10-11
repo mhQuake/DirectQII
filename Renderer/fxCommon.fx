@@ -53,9 +53,7 @@ cbuffer cbPerLight : register(b4) {
 };
 
 cbuffer cbPerSprite : register(b5) {
-	float3 SpriteOrigin : packoffset(c0.x);
-	float SpriteAlpha : packoffset(c0.w);
-	float4 SpriteXYWH : packoffset(c1);
+	float4 SpriteXYWH : packoffset(c0);
 };
 
 cbuffer cbCinematic : register(b6) {

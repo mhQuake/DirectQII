@@ -137,7 +137,7 @@ PS_SPRITE GetSpriteVert (float ofsx, float ofsy, float2 TexCoord)
 {
 	PS_SPRITE vs_out;
 
-	vs_out.Position = mul (mvpMatrix, float4 ((viewRight * ofsy) + (viewUp * ofsx) + SpriteOrigin, 1.0f));
+	vs_out.Position = mul (LocalMatrix, float4 ((viewRight * ofsy) + (viewUp * ofsx), 1.0f));
 	vs_out.TexCoord = TexCoord;
 
 	return vs_out;
@@ -158,7 +158,7 @@ void SpriteGS (triangle float gs_in[3] : BULLSHIT, inout TriangleStream<PS_SPRIT
 float4 SpritePS (PS_SPRITE ps_in) : SV_TARGET0
 {
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
-	return float4 (diff.rgb, diff.a * SpriteAlpha);
+	return float4 (diff.rgb, diff.a * AlphaVal);
 }
 
 float4 ParticleCirclePS (PS_PARTICLE ps_in) : SV_TARGET0

@@ -24,8 +24,6 @@ Make a Com_ValidatePath for all the little cases of paths with "..", ".\", "./",
 
 Save/Load menu with mapshots/etc
 
-Discard-free buffers: https://www.gamedevs.org/uploads/efficient-buffer-management.pdf
-
 cBuffer updates via Map/Discard.
 Don't update if nothing has changed (this may be more expensive to check than just updating...)
 
@@ -34,4 +32,10 @@ Batch updates to dynamic buffers (the code for this could get nasty...)
 roll sprite constants into per-entity and build a billboarding matrix
 
 roll cinematics into 2D constants stuff
+
+move screen functions from glw_imp/r_main/etc to r_screen.c
+
+split r_sky and r_warp from r_misc
+
+reinstate sprite vertex buffer and get rid of the extra cbuffer
 

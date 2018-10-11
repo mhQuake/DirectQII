@@ -174,6 +174,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\r_beam.c"
+				>
+			</File>
+			<File
 				RelativePath=".\r_draw.c"
 				>
 			</File>
@@ -202,7 +206,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\r_null.c"
+				>
+			</File>
+			<File
+				RelativePath=".\r_particles.c"
+				>
+			</File>
+			<File
+				RelativePath=".\r_screen.c"
+				>
+			</File>
+			<File
 				RelativePath=".\r_shader.c"
+				>
+			</File>
+			<File
+				RelativePath=".\r_sprite.c"
+				>
+			</File>
+			<File
+				RelativePath=".\r_state.c"
 				>
 			</File>
 			<File

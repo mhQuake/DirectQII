@@ -343,7 +343,7 @@ void R_DrawEntitiesOnList (qboolean trans)
 				break;
 
 			case mod_sprite:
-				R_DrawSpriteModel (e);
+				R_DrawSpriteModel (e, &r_local_matrix[i]);
 				break;
 
 			default:
@@ -641,6 +641,10 @@ void R_PrepareEntities (void)
 
 			case mod_brush:
 				R_PrepareBrushModel (e, &r_local_matrix[i]);
+				break;
+
+			case mod_sprite:
+				R_PrepareSpriteModel (e, &r_local_matrix[i]);
 				break;
 
 			default:
