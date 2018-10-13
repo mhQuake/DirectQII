@@ -403,7 +403,7 @@ image_t *GL_FindImage (char *name, imagetype_t type)
 
 		// skins use the solid palette; everything else has alpha
 		if (type == it_skin)
-			Image_QuakePalFromPCXPal (table, palette, 0);
+			Image_QuakePalFromPCXPal (table, palette, TEX_RGBA8);
 		else Image_QuakePalFromPCXPal (table, palette, TEX_ALPHA);
 
 		image = GL_LoadPic (name, pic, width, height, type, 8, table);

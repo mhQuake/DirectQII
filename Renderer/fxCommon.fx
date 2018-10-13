@@ -52,9 +52,6 @@ cbuffer cbPerLight : register(b4) {
 	float3 LightColour : packoffset(c1.x);
 };
 
-cbuffer cbCinematic : register(b5) {
-	matrix cineMatrix : packoffset(c0);
-};
 
 // common to mesh and surf
 struct PS_DYNAMICLIGHT {

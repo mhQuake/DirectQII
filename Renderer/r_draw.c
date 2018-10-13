@@ -57,7 +57,6 @@ static image_t	*draw_chars;
 static image_t	*sb_nums[2];
 
 static int d3d_DrawTexturedShader;
-static int d3d_DrawFinalizeShader;
 static int d3d_DrawCinematicShader;
 static int d3d_DrawColouredShader;
 static int d3d_DrawTexArrayShader;
@@ -65,7 +64,6 @@ static int d3d_DrawFadescreenShader;
 
 
 static ID3D11Buffer *d3d_DrawConstants = NULL;
-static ID3D11Buffer *d3d_CineConstants = NULL;
 
 
 __declspec(align(16)) typedef struct drawconstants_s {
@@ -162,17 +160,13 @@ void Draw_InitLocal (void)
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDrawDesc, NULL, &d3d_DrawConstants);
 	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
 
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbCineDesc, NULL, &d3d_CineConstants);
-	D_RegisterConstantBuffer (d3d_CineConstants, 5);
-
 	// shaders
 	d3d_DrawTexturedShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
 	d3d_DrawColouredShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
 	d3d_DrawTexArrayShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
+	d3d_DrawCinematicShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", DEFINE_LAYOUT (layout_standard));
 
 	// shaders for use without buffers
-	d3d_DrawFinalizeShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawFinalizeVS", NULL, "DrawFinalizePS", NULL, 0);
-	d3d_DrawCinematicShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", NULL, 0);
 	d3d_DrawFadescreenShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawFadescreenVS", NULL, "DrawFadescreenPS", NULL, 0);
 
 	// vertex and index buffers
@@ -519,11 +513,6 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 	// we only need to refresh the texture if the frame changes
 	static int r_rawframe = -1;
 
-	// matrix transform for positioning the cinematic correctly
-	// sampler state should be set to clamp-to-border with a border color of black
-	__declspec(align(16)) QMATRIX cineMatrix;
-	float strans, ttrans;
-
 	// if the dimensions change the texture needs to be recreated
 	if (r_CinematicPic.Desc.Width != cols || r_CinematicPic.Desc.Height != rows)
 		Draw_ShutdownRawImage ();
@@ -558,30 +547,32 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 	// free any memory we may have used for loading it
 	ri.Load_FreeMemory ();
 
-	// derive the texture matrix for the cinematic pic
-	if (vid.conwidth > vid.conheight)
-	{
-		strans = 0.5f * ((float) rows / (float) cols) * ((float) vid.conwidth / (float) vid.conheight);
-		ttrans = -0.5f;
-	}
-	else
-	{
-		strans = 0.5f;
-		ttrans = -0.5f * ((float) cols / (float) rows) * ((float) vid.conheight / (float) vid.conwidth);
-	}
-
-	// load it on
-	R_MatrixLoadf (&cineMatrix, strans, 0, 0, 0, 0, ttrans, 0, 0, 0, 0, 1, 0, 0.5f, 0.5f, 0, 1);
-
-	// and upload it to the GPU
-	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_CineConstants, 0, NULL, &cineMatrix, 0, 0);
-
 	R_BindTexture (r_CinematicPic.SRV);
 
 	D_BindShaderBundle (d3d_DrawCinematicShader);
 	D_SetRenderStates (d3d_BSNone, d3d_DSNoDepth, d3d_RSNoCull);
 
-	d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
+	if (Draw_EnsureBufferSpace ())
+	{
+		// matrix transform for positioning the cinematic correctly
+		// sampler state should be set to clamp-to-border with a border color of black
+		float strans = 0.5f, ttrans = -0.5f;
+
+		// derive the texture matrix for the cinematic pic
+		if (vid.conwidth > vid.conheight)
+			strans *= ((float) rows / (float) cols) * ((float) vid.conwidth / (float) vid.conheight);
+		else
+			ttrans *= ((float) cols / (float) rows) * ((float) vid.conheight / (float) vid.conwidth);
+
+		// drawn without projection
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], -1, -1, 0xffffffff, strans, ttrans);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++],  1, -1, 0xffffffff, strans, ttrans);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++],  1,  1, 0xffffffff, strans, ttrans);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], -1,  1, 0xffffffff, strans, ttrans);
+
+		// always flush
+		Draw_Flush ();
+	}
 }
 
 
