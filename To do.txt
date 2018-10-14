@@ -29,13 +29,7 @@ Don't update if nothing has changed (this may be more expensive to check than ju
 
 Batch updates to dynamic buffers (the code for this could get nasty...)
 
-roll sprite constants into per-entity and build a billboarding matrix
-
-roll cinematics into 2D constants stuff
-
 move screen functions from glw_imp/r_main/etc to r_screen.c
-
-reinstate sprite vertex buffer and get rid of the extra cbuffer
 
 split up fxMisc
 

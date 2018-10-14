@@ -25,7 +25,7 @@ int d3d_NullShader = 0;
 
 void R_InitNull (void)
 {
-	d3d_NullShader = D_CreateShaderBundle (IDR_MISCSHADER, "NullVS", "NullGS", "NullPS", NULL, 0);
+	d3d_NullShader = D_CreateShaderBundle (IDR_NULLSHADER, "NullVS", "NullGS", "NullPS", NULL, 0);
 }
 
 

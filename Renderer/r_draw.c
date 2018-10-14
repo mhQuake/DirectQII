@@ -209,16 +209,21 @@ void Draw_Flush (void)
 		d_drawverts = NULL;
 	}
 
-	if (d_numdrawverts)
+	if (d_numdrawverts == 3)
+	{
+		D_BindVertexBuffer (0, d3d_DrawVertexes, sizeof (drawpolyvert_t), 0);
+		d3d_Context->lpVtbl->Draw (d3d_Context, d_numdrawverts, d_firstdrawvert);
+	}
+	else if (d_numdrawverts > 3)
 	{
 		D_BindVertexBuffer (0, d3d_DrawVertexes, sizeof (drawpolyvert_t), 0);
 		D_BindIndexBuffer (d3d_DrawIndexes, DXGI_FORMAT_R16_UINT);
 
 		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
-
-		d_firstdrawvert += d_numdrawverts;
-		d_numdrawverts = 0;
 	}
+
+	d_firstdrawvert += d_numdrawverts;
+	d_numdrawverts = 0;
 }
 
 
@@ -564,11 +569,10 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 		else
 			ttrans *= ((float) cols / (float) rows) * ((float) vid.conheight / (float) vid.conwidth);
 
-		// drawn without projection
+		// drawn without projection, full-screen triangle coords
 		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], -1, -1, 0xffffffff, strans, ttrans);
-		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++],  1, -1, 0xffffffff, strans, ttrans);
-		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++],  1,  1, 0xffffffff, strans, ttrans);
-		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], -1,  1, 0xffffffff, strans, ttrans);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++],  3, -1, 0xffffffff, strans, ttrans);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], -1,  3, 0xffffffff, strans, ttrans);
 
 		// always flush
 		Draw_Flush ();

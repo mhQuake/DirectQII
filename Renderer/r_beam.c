@@ -120,7 +120,7 @@ void R_InitBeam (void)
 		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0)
 	};
 
-	d3d_BeamShader = D_CreateShaderBundle (IDR_MISCSHADER, "BeamVS", NULL, "BeamPS", DEFINE_LAYOUT (layout));
+	d3d_BeamShader = D_CreateShaderBundle (IDR_BEAMSHADER, "BeamVS", NULL, "BeamPS", DEFINE_LAYOUT (layout));
 
 	if (r_beamdetail)
 	{

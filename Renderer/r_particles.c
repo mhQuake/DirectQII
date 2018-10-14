@@ -54,8 +54,8 @@ void R_InitParticles (void)
 	D_CacheObject ((ID3D11DeviceChild *) d3d_ParticleVertexes, "d3d_ParticleVertexes");
 
 	// creating a square shader even though we don't currently use it
-	d3d_ParticleCircleShader = D_CreateShaderBundle (IDR_MISCSHADER, "ParticleVS", "ParticleCircleGS", "ParticleCirclePS", DEFINE_LAYOUT (layout));
-	d3d_ParticleSquareShader = D_CreateShaderBundle (IDR_MISCSHADER, "ParticleVS", "ParticleSquareGS", "ParticleSquarePS", DEFINE_LAYOUT (layout));
+	d3d_ParticleCircleShader = D_CreateShaderBundle (IDR_PARTSHADER, "ParticleVS", "ParticleCircleGS", "ParticleCirclePS", DEFINE_LAYOUT (layout));
+	d3d_ParticleSquareShader = D_CreateShaderBundle (IDR_PARTSHADER, "ParticleVS", "ParticleSquareGS", "ParticleSquarePS", DEFINE_LAYOUT (layout));
 	d3d_ParticleShader = d3d_ParticleCircleShader;
 }
 

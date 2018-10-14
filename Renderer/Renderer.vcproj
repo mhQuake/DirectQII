@@ -292,6 +292,10 @@
 			Name="Shaders"
 			>
 			<File
+				RelativePath=".\fxBeam.fx"
+				>
+			</File>
+			<File
 				RelativePath=".\fxCommon.fx"
 				>
 			</File>
@@ -304,7 +308,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\fxMisc.fx"
+				RelativePath=".\fxNull.fx"
+				>
+			</File>
+			<File
+				RelativePath=".\fxParticles.fx"
 				>
 			</File>
 			<File
