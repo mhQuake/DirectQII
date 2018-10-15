@@ -10,11 +10,9 @@ CVAR_VIDEO should not write to console if in the menus
 
 Music sometimes stops when it shouldn't...
 
-we have the palette on the VS as a texture so read it as a colour for beams (how???)
+we have the palette on the VS as a texture so read it as a colour for beams (how to send the correct index to the shader???)
 
 beam transform is messy - this should be quick and easy to calculate...
-
-reduce number of cbuffers
 
 shaders as embedded resources: 1: get them into the renderer lib, and 2: get a recompile of resources if they change.
 
@@ -31,8 +29,6 @@ Batch updates to dynamic buffers (the code for this could get nasty...)
 
 move screen functions from glw_imp/r_main/etc to r_screen.c
 
-split up fxMisc
-
 clean up Zone allocations
 
-Explosion dlight fades are jerky - lerp them???
+

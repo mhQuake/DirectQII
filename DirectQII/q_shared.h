@@ -127,34 +127,25 @@ struct cplane_s;
 
 extern vec3_t vec3_origin;
 
-#define	nanmask (255<<23)
+#define	nanmask (255 << 23)
 
-#define	IS_NAN(x) (((*(int *)&x)&nanmask)==nanmask)
+#define	IS_NAN(x) (((*(int *) &x) & nanmask) == nanmask)
 
 // microsoft's fabs seems to be ungodly slow...
 //float Q_fabs (float f);
 //#define	fabs(f) Q_fabs(f)
-#if !defined C_ONLY && !defined __linux__ && !defined __sgi
 extern long Q_ftol (float f);
-#else
-#define Q_ftol( f ) ( long ) (f)
-#endif
 
-#define DotProduct(x, y)		(x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
-#define VectorSubtract(a, b, c)	(c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] = a[2] - b[2])
-#define VectorAdd(a, b, c)		(c[0] = a[0] + b[0], c[1] = a[1] + b[1], c[2] = a[2] + b[2])
-#define VectorCopy(a, b)		(b[0] = a[0], b[1] = a[1], b[2] = a[2])
-#define VectorClear(a)			(a[0] = a[1] = a[2] = 0)
-#define VectorNegate(a, b)		(b[0] = -a[0], b[1] = -a[1], b[2] = -a[2])
-#define VectorSet(v, x, y, z)	(v[0] = (x), v[1] = (y), v[2] = (z))
-
-void VectorMA (vec3_t veca, float scale, vec3_t vecb, vec3_t vecc);
+void VectorMA (vec3_t add, float scale, vec3_t mult, vec3_t out);
 
 // just in case you do't want to use the macros
-vec_t _DotProduct (vec3_t v1, vec3_t v2);
-void _VectorSubtract (vec3_t veca, vec3_t vecb, vec3_t out);
-void _VectorAdd (vec3_t veca, vec3_t vecb, vec3_t out);
-void _VectorCopy (vec3_t in, vec3_t out);
+vec_t DotProduct (vec3_t v1, vec3_t v2);
+void VectorNegate (vec3_t in, vec3_t out);
+void VectorClear (vec3_t v);
+void VectorSet (vec3_t v, float x, float y, float z);
+void VectorSubtract (vec3_t veca, vec3_t vecb, vec3_t out);
+void VectorAdd (vec3_t veca, vec3_t vecb, vec3_t out);
+void VectorCopy (vec3_t in, vec3_t out);
 
 int VectorCompare (vec3_t v1, vec3_t v2);
 vec_t VectorLength (vec3_t v);

@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_main.c
 #include "r_local.h"
 
-void R_DrawNullModel (entity_t *e);
 void R_DrawParticles (void);
 void R_SetupSky (QMATRIX *SkyMatrix);
 void R_SetLightLevel (void);
@@ -328,7 +327,7 @@ void R_DrawEntitiesOnList (qboolean trans)
 		{
 			if (!e->model)
 			{
-				R_DrawNullModel (e);
+				R_DrawNullModel (e, &r_local_matrix[i]);
 				continue;
 			}
 
@@ -631,7 +630,11 @@ void R_PrepareEntities (void)
 		}
 		else
 		{
-			if (!e->model) continue;
+			if (!e->model)
+			{
+				R_PrepareNullModel (e, &r_local_matrix[i]);
+				continue;
+			}
 
 			switch (e->model->type)
 			{
@@ -648,6 +651,7 @@ void R_PrepareEntities (void)
 				break;
 
 			default:
+				ri.Sys_Error (ERR_DROP, "Bad modeltype");
 				break;
 			}
 		}

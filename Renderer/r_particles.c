@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-
 static int d3d_ParticleCircleShader;
 static int d3d_ParticleSquareShader;
 static int d3d_ParticleShader = 0;

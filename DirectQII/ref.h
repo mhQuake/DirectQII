@@ -199,7 +199,8 @@ typedef struct refexport_s
 	void (*RenderFrame) (refdef_t *fd);
 
 	void (*DrawConsoleBackground) (int x, int y, int w, int h, char *pic, int alpha);
-	void (*DrawGetPicSize) (int *w, int *h, char *name);	// will return 0 0 if not found
+	qboolean (*DrawGetPicSize) (int *w, int *h, char *name);	// will return 0 0 if not found
+	void (*DrawStretchPic) (int x, int y, int w, int h, char *pic);
 	void (*DrawPic) (int x, int y, char *name);
 	void (*DrawFill) (int x, int y, int w, int h, int c);
 	void (*DrawFadeScreen) (void);

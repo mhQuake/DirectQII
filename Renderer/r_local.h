@@ -270,7 +270,8 @@ void R_MarkLeaves (void);
 
 void COM_StripExtension (char *in, char *out);
 
-void Draw_GetPicSize (int *w, int *h, char *name);
+qboolean Draw_GetPicSize (int *w, int *h, char *name);
+void Draw_StretchPic (int x, int y, int w, int h, char *pic);
 void Draw_Pic (int x, int y, char *name);
 void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha);
 void Draw_Fill (int x, int y, int w, int h, int c);
@@ -502,6 +503,11 @@ void R_FreeUnusedSpriteBuffers (void);
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // memory
 extern HANDLE hRefHeap;
+
+
+// null model
+void R_DrawNullModel (entity_t *e, QMATRIX *localmatrix);
+void R_PrepareNullModel (entity_t *e, QMATRIX *localmatrix);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -199,6 +199,22 @@ void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
 	int framenum = e->currframe % psprite->numframes;
 	dsprframe_t *frame = &psprite->frames[framenum];
 
+	// because there's buffer, shader and texture changes, as well as cbuffer updates, it's worth spending some CPU
+	// time on cullboxing sprites
+	float mins[3] = {
+		e->currorigin[0] - frame->origin_x,
+		e->currorigin[1] - frame->origin_y,
+		e->currorigin[2] - 1 // so that the box isn't a 2d plane...
+	};
+
+	float maxs[3] = {
+		e->currorigin[0] + frame->width - frame->origin_x,
+		e->currorigin[1] + frame->height - frame->origin_y,
+		e->currorigin[2] + 1 // so that the box isn't a 2d plane...
+	};
+
+	if (R_CullBox (mins, maxs)) return;
+
 	R_PrepareEntityForRendering (localmatrix, NULL, e->alpha, e->flags);
 	D_BindShaderBundle (d3d_SpriteShader);
 	R_BindTexture (mod->skins[framenum]->SRV);

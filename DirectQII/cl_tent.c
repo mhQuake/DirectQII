@@ -34,7 +34,7 @@ typedef struct explosion_s
 	int			frames;
 	float		light;
 	vec3_t		lightcolor;
-	float		start;
+	int			start;
 	int			baseframe;
 } explosion_t;
 
@@ -237,6 +237,7 @@ explosion_t *CL_AllocExplosion (void)
 	int		time;
 	int		index;
 
+	// find a free explosion
 	for (i = 0; i < MAX_EXPLOSIONS; i++)
 	{
 		if (cl_explosions[i].type == ex_free)
@@ -245,16 +246,20 @@ explosion_t *CL_AllocExplosion (void)
 			return &cl_explosions[i];
 		}
 	}
+
 	// find the oldest explosion
 	time = cl.time;
 	index = 0;
 
 	for (i = 0; i < MAX_EXPLOSIONS; i++)
+	{
 		if (cl_explosions[i].start < time)
 		{
 			time = cl_explosions[i].start;
 			index = i;
 		}
+	}
+
 	memset (&cl_explosions[index], 0, sizeof (cl_explosions[index]));
 	return &cl_explosions[index];
 }
@@ -324,6 +329,7 @@ int CL_ParseBeam (struct model_s *model)
 
 	// override any beam with the same entity
 	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
+	{
 		if (b->entity == ent)
 		{
 			b->entity = ent;
@@ -334,6 +340,7 @@ int CL_ParseBeam (struct model_s *model)
 			VectorClear (b->offset);
 			return ent;
 		}
+	}
 
 	// find a free beam
 	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
@@ -349,6 +356,7 @@ int CL_ParseBeam (struct model_s *model)
 			return ent;
 		}
 	}
+
 	Com_Printf ("beam list overflow!\n");
 	return ent;
 }
@@ -374,8 +382,8 @@ int CL_ParseBeam2 (struct model_s *model)
 	//	Com_Printf ("end- %f %f %f\n", end[0], end[1], end[2]);
 
 	// override any beam with the same entity
-
 	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
+	{
 		if (b->entity == ent)
 		{
 			b->entity = ent;
@@ -386,6 +394,7 @@ int CL_ParseBeam2 (struct model_s *model)
 			VectorCopy (offset, b->offset);
 			return ent;
 		}
+	}
 
 	// find a free beam
 	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
@@ -401,6 +410,7 @@ int CL_ParseBeam2 (struct model_s *model)
 			return ent;
 		}
 	}
+
 	Com_Printf ("beam list overflow!\n");
 	return ent;
 }
@@ -423,6 +433,7 @@ int CL_ParsePlayerBeam (struct model_s *model)
 
 	MSG_ReadPos (&net_message, start);
 	MSG_ReadPos (&net_message, end);
+
 	// PMM - network optimization
 	if (model == cl_mod_heatbeam)
 		VectorSet (offset, 2, 7, -3);
@@ -466,6 +477,7 @@ int CL_ParsePlayerBeam (struct model_s *model)
 			return ent;
 		}
 	}
+
 	Com_Printf ("beam list overflow!\n");
 	return ent;
 }
@@ -491,6 +503,7 @@ int CL_ParseLightning (struct model_s *model)
 
 	// override any beam with the same source AND destination entities
 	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
+	{
 		if (b->entity == srcEnt && b->dest_entity == destEnt)
 		{
 			//			Com_Printf("%d: OVERRIDE  %d -> %d\n", cl.time, srcEnt, destEnt);
@@ -503,6 +516,7 @@ int CL_ParseLightning (struct model_s *model)
 			VectorClear (b->offset);
 			return srcEnt;
 		}
+	}
 
 	// find a free beam
 	for (i = 0, b = cl_beams; i < MAX_BEAMS; i++, b++)
@@ -520,6 +534,7 @@ int CL_ParseLightning (struct model_s *model)
 			return srcEnt;
 		}
 	}
+
 	Com_Printf ("beam list overflow!\n");
 	return srcEnt;
 }
@@ -556,6 +571,7 @@ void CL_ParseLaser (int colors)
 	}
 }
 
+
 //=============
 //ROGUE
 void CL_ParseSteam (void)
@@ -569,10 +585,12 @@ void CL_ParseSteam (void)
 	cl_sustain_t	*s, *free_sustain;
 
 	id = MSG_ReadShort (&net_message);		// an id of -1 is an instant effect
+
 	if (id != -1) // sustains
 	{
 		//			Com_Printf ("Sustain effect id %d\n", id);
 		free_sustain = NULL;
+
 		for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++)
 		{
 			if (s->id == 0)
@@ -581,6 +599,7 @@ void CL_ParseSteam (void)
 				break;
 			}
 		}
+
 		if (free_sustain)
 		{
 			s->id = id;
@@ -620,6 +639,7 @@ void CL_ParseSteam (void)
 	}
 }
 
+
 void CL_ParseWidow (void)
 {
 	vec3_t	pos;
@@ -629,6 +649,7 @@ void CL_ParseWidow (void)
 	id = MSG_ReadShort (&net_message);
 
 	free_sustain = NULL;
+
 	for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++)
 	{
 		if (s->id == 0)
@@ -637,6 +658,7 @@ void CL_ParseWidow (void)
 			break;
 		}
 	}
+
 	if (free_sustain)
 	{
 		s->id = id;
@@ -660,6 +682,7 @@ void CL_ParseNuke (void)
 	cl_sustain_t	*s, *free_sustain;
 
 	free_sustain = NULL;
+
 	for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++)
 	{
 		if (s->id == 0)
@@ -668,6 +691,7 @@ void CL_ParseNuke (void)
 			break;
 		}
 	}
+
 	if (free_sustain)
 	{
 		s->id = 21000;
@@ -1015,6 +1039,7 @@ void CL_ParseTEnt (void)
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.currorigin);
 		ex->ent.angles[0] = acos (dir[2]) / M_PI * 180;
+
 		// PMM - fixed to correct for pitch of 0
 		if (dir[0])
 			ex->ent.angles[1] = atan2 (dir[1], dir[0]) / M_PI * 180;
@@ -1036,6 +1061,7 @@ void CL_ParseTEnt (void)
 
 		ex->start = cl.frame.servertime - 100;
 		ex->light = 150;
+
 		// PMM
 		if (type == TE_BLASTER2)
 			ex->lightcolor[1] = 1;
@@ -1045,6 +1071,7 @@ void CL_ParseTEnt (void)
 			ex->lightcolor[1] = 0.41;
 			ex->lightcolor[2] = 0.75;
 		}
+
 		ex->ent.model = cl_mod_explode;
 		ex->frames = 4;
 		S_StartSound (pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
@@ -1076,9 +1103,12 @@ void CL_ParseTEnt (void)
 		ex->lightcolor[2] = 0.5;
 		ex->ent.angles[1] = rand () % 360;
 		ex->ent.model = cl_mod_explo4;
+
 		if (frand () < 0.5)
 			ex->baseframe = 15;
+
 		ex->frames = 15;
+
 		if (type == TE_ROCKET_EXPLOSION_WATER)
 			S_StartSound (pos, 0, 0, cl_sfx_watrexp, 1, ATTN_NORM, 0);
 		else
@@ -1231,6 +1261,7 @@ void CL_AddBeams (void)
 			VectorCopy (cl.refdef.vieworg, b->start);
 			b->start[2] -= 22;	// adjust for view height
 		}
+
 		VectorAdd (b->start, b->offset, org);
 
 		// calculate pitch and yaw
@@ -1239,6 +1270,7 @@ void CL_AddBeams (void)
 		if (dist[1] == 0 && dist[0] == 0)
 		{
 			yaw = 0;
+
 			if (dist[2] > 0)
 				pitch = 90;
 			else
@@ -1275,6 +1307,7 @@ void CL_AddBeams (void)
 		{
 			model_length = 30.0;
 		}
+
 		steps = ceil (d / model_length);
 		len = (d - model_length) / (steps - 1);
 
@@ -1295,10 +1328,12 @@ void CL_AddBeams (void)
 			V_AddEntity (&ent);
 			return;
 		}
+
 		while (d > 0)
 		{
 			VectorCopy (org, ent.currorigin);
 			ent.model = b->model;
+
 			if (b->model == cl_mod_lightning)
 			{
 				ent.flags = RF_FULLBRIGHT;
@@ -1608,6 +1643,7 @@ void CL_AddExplosions (void)
 	{
 		if (ex->type == ex_free)
 			continue;
+
 		frac = (cl.time - ex->start) / 100.0;
 		f = floor (frac);
 
@@ -1619,22 +1655,27 @@ void CL_AddExplosions (void)
 			if (f >= ex->frames - 1)
 				ex->type = ex_free;
 			break;
+
 		case ex_misc:
 			if (f >= ex->frames - 1)
 			{
 				ex->type = ex_free;
 				break;
 			}
+
 			ent->alpha = 1.0 - frac / (ex->frames - 1);
 			break;
+
 		case ex_flash:
 			if (f >= 1)
 			{
 				ex->type = ex_free;
 				break;
 			}
+
 			ent->alpha = 1.0;
 			break;
+
 		case ex_poly:
 			if (f >= ex->frames - 1)
 			{
@@ -1642,7 +1683,8 @@ void CL_AddExplosions (void)
 				break;
 			}
 
-			ent->alpha = (16.0 - (float) f) / 16.0;
+			// using frac instead of (float) f for smoother fade; we don't need the optimization of "has this light actually changed" with the new dlight code
+			ent->alpha = (16.0 - frac) / 16.0;
 
 			if (f < 10)
 			{
@@ -1659,6 +1701,7 @@ void CL_AddExplosions (void)
 					ent->skinnum = 6;
 			}
 			break;
+
 		case ex_poly2:
 			if (f >= ex->frames - 1)
 			{
@@ -1666,7 +1709,8 @@ void CL_AddExplosions (void)
 				break;
 			}
 
-			ent->alpha = (5.0 - (float) f) / 5.0;
+			// using frac instead of (float) f for smoother fade; we don't need the optimization of "has this light actually changed" with the new dlight code
+			ent->alpha = (5.0 - frac) / 5.0;
 			ent->skinnum = 0;
 			ent->flags |= RF_TRANSLUCENT;
 			break;
@@ -1674,7 +1718,8 @@ void CL_AddExplosions (void)
 
 		if (ex->type == ex_free)
 			continue;
-		if (ex->light)
+
+		if (ex->light > 0)
 		{
 			V_AddLight (ent->currorigin, ex->light * ent->alpha, ex->lightcolor[0], ex->lightcolor[1], ex->lightcolor[2]);
 		}
@@ -1719,13 +1764,13 @@ void CL_ProcessSustain ()
 	for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++)
 	{
 		if (s->id)
+		{
+			// how is this not nasty????
 			if ((s->endtime >= cl.time) && (cl.time >= s->nextthink))
-			{
-				//				Com_Printf ("think %d %d %d\n", cl.time, s->nextthink, s->thinkinterval);
 				s->think (s);
-			}
 			else if (s->endtime < cl.time)
 				s->id = 0;
+		}
 	}
 }
 
@@ -1744,3 +1789,5 @@ void CL_AddTEnts (void)
 	// PMM - set up sustain
 	CL_ProcessSustain ();
 }
+
+

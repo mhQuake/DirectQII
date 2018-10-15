@@ -1083,19 +1083,27 @@ void PM_SnapPosition (void)
 	{
 		if (pml.origin[i] >= 0)
 			sign[i] = 1;
-		else
-			sign[i] = -1;
+		else sign[i] = -1;
+
 		pm->s.origin[i] = (int) (pml.origin[i] * 8);
+
 		if (pm->s.origin[i] * 0.125 == pml.origin[i])
 			sign[i] = 0;
 	}
-	VectorCopy (pm->s.origin, base);
+
+	base[0] = pm->s.origin[0];
+	base[1] = pm->s.origin[1];
+	base[2] = pm->s.origin[2];
 
 	// try all combinations
 	for (j = 0; j < 8; j++)
 	{
 		bits = jitterbits[j];
-		VectorCopy (base, pm->s.origin);
+
+		pm->s.origin[0] = base[0];
+		pm->s.origin[1] = base[1];
+		pm->s.origin[2] = base[2];
+
 		for (i = 0; i < 3; i++)
 			if (bits & (1 << i))
 				pm->s.origin[i] += sign[i];
@@ -1105,7 +1113,9 @@ void PM_SnapPosition (void)
 	}
 
 	// go back to the last position
-	VectorCopy (pml.previous_origin, pm->s.origin);
+	pm->s.origin[0] = pml.previous_origin[0];
+	pm->s.origin[1] = pml.previous_origin[1];
+	pm->s.origin[2] = pml.previous_origin[2];
 	//	Com_DPrintf ("using previous_origin\n");
 }
 
@@ -1160,23 +1170,31 @@ void PM_InitialSnapPosition (void)
 	short      base[3];
 	static int offset[3] = {0, -1, 1};
 
-	VectorCopy (pm->s.origin, base);
+	base[0] = pm->s.origin[0];
+	base[1] = pm->s.origin[1];
+	base[2] = pm->s.origin[2];
 
 	for (z = 0; z < 3; z++)
 	{
 		pm->s.origin[2] = base[2] + offset[z];
+
 		for (y = 0; y < 3; y++)
 		{
 			pm->s.origin[1] = base[1] + offset[y];
+
 			for (x = 0; x < 3; x++)
 			{
 				pm->s.origin[0] = base[0] + offset[x];
+
 				if (PM_GoodPosition ())
 				{
 					pml.origin[0] = pm->s.origin[0] * 0.125;
 					pml.origin[1] = pm->s.origin[1] * 0.125;
 					pml.origin[2] = pm->s.origin[2] * 0.125;
-					VectorCopy (pm->s.origin, pml.previous_origin);
+
+					pml.previous_origin[0] = pm->s.origin[0];
+					pml.previous_origin[1] = pm->s.origin[1];
+					pml.previous_origin[2] = pm->s.origin[2];
 					return;
 				}
 			}
@@ -1255,7 +1273,9 @@ void Pmove (pmove_t *pmove)
 	pml.velocity[2] = pm->s.velocity[2] * 0.125;
 
 	// save old org in case we get stuck
-	VectorCopy (pm->s.origin, pml.previous_origin);
+	pml.previous_origin[0] = pm->s.origin[0];
+	pml.previous_origin[1] = pm->s.origin[1];
+	pml.previous_origin[2] = pm->s.origin[2];
 
 	pml.frametime = pm->cmd.msec * 0.001;
 

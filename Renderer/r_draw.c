@@ -70,8 +70,7 @@ __declspec(align(16)) typedef struct drawconstants_s {
 	QMATRIX OrthoMatrix;
 	float gamma;
 	float brightness;
-	float aspectW;
-	float aspectH;
+	float ConScale[2]; // conw/w, conh/h
 } drawconstants_t;
 
 
@@ -194,8 +193,8 @@ void Draw_UpdateConstants (int scrflags)
 		consts.brightness = 1.0f;
 	else consts.brightness = vid_brightness->value;
 
-	consts.aspectW = (float) vid.conwidth / (float) vid.width;
-	consts.aspectH = (float) vid.conheight / (float) vid.height;
+	consts.ConScale[0] = (float) vid.conwidth / (float) vid.width;
+	consts.ConScale[1] = (float) vid.conheight / (float) vid.height;
 
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DrawConstants, 0, NULL, &consts, 0, 0);
 }
@@ -218,7 +217,6 @@ void Draw_Flush (void)
 	{
 		D_BindVertexBuffer (0, d3d_DrawVertexes, sizeof (drawpolyvert_t), 0);
 		D_BindIndexBuffer (d3d_DrawIndexes, DXGI_FORMAT_R16_UINT);
-
 		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
 	}
 
@@ -404,20 +402,24 @@ image_t	*Draw_FindPic (char *name)
 /*
 =============
 Draw_GetPicSize
+
+modded to also allow the return value to be tested
 =============
 */
-void Draw_GetPicSize (int *w, int *h, char *pic)
+qboolean Draw_GetPicSize (int *w, int *h, char *pic)
 {
 	image_t *gl = Draw_FindPic (pic);
 
 	if (!gl)
 	{
 		*w = *h = -1;
-		return;
+		return false;
 	}
 
 	*w = gl->width;
 	*h = gl->height;
+
+	return true;
 }
 
 
@@ -426,6 +428,20 @@ void Draw_GetPicSize (int *w, int *h, char *pic)
 Draw_Pic
 =============
 */
+void Draw_StretchPic (int x, int y, int w, int h, char *pic)
+{
+	image_t *gl = Draw_FindPic (pic);
+
+	if (!gl)
+	{
+		ri.Con_Printf (PRINT_ALL, "Can't find pic: %s\n", pic);
+		return;
+	}
+
+	Draw_TexturedQuad (gl, x, y, w, h, 0xffffffff);
+}
+
+
 void Draw_Pic (int x, int y, char *pic)
 {
 	image_t *gl = Draw_FindPic (pic);

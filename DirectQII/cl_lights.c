@@ -152,9 +152,34 @@ void CL_NewDlight (cdlight_t *dl, int key)
 
 	dl->minlight = 0;
 	dl->key = key;
-	dl->time = cl.time;
+	dl->start = cl.time;
 
 	CL_SetDlightColour (dl, DL_COLOR_WHITE);
+}
+
+
+cdlight_t *CL_OldestDlight (void)
+{
+	int		i;
+	int		time;
+	int		index;
+	cdlight_t	*dl;
+
+	// find the oldest explosion (offsetting time by +1 ms in case all MAX_DLIGHTS lights are the same age and that age is the current frametime!!!!)
+	time = cl.time + 1;
+	index = 0;
+	dl = cl_dlights;
+
+	for (i = 0; i < MAX_DLIGHTS; i++, dl++)
+	{
+		if (dl->start < time)
+		{
+			time = dl->start;
+			index = i;
+		}
+	}
+
+	return &cl_dlights[index];
 }
 
 
@@ -184,7 +209,7 @@ cdlight_t *CL_AllocDlight (int key)
 		}
 	}
 
-	// then look for anything else
+	// then look for any dead light
 	dl = cl_dlights;
 
 	for (i = 0; i < MAX_DLIGHTS; i++, dl++)
@@ -196,8 +221,8 @@ cdlight_t *CL_AllocDlight (int key)
 		}
 	}
 
-	// just take the first one
-	dl = &cl_dlights[0];
+	// take the oldest dlight
+	dl = CL_OldestDlight ();
 	CL_NewDlight (dl, key);
 
 	return dl;
@@ -830,7 +855,7 @@ void CL_AddDLights (void)
 			continue;
 		else
 		{
-			float radius = dl->radius - ((float) (cl.time - dl->time) * dl->decay * 0.001f);
+			float radius = dl->radius - ((float) (cl.time - dl->start) * dl->decay * 0.001f);
 
 			// fixed up minlight so it now works as expected
 			if (radius > dl->minlight)

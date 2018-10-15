@@ -41,10 +41,13 @@ void CL_CheckPredictionError (void)
 	frame &= (CMD_BACKUP - 1);
 
 	// compare what the server returned with what we had predicted it to be
-	VectorSubtract (cl.frame.playerstate.pmove.origin, cl.predicted_origins[frame], delta);
+	delta[0] = cl.frame.playerstate.pmove.origin[0] - cl.predicted_origins[frame][0];
+	delta[1] = cl.frame.playerstate.pmove.origin[1] - cl.predicted_origins[frame][1];
+	delta[2] = cl.frame.playerstate.pmove.origin[2] - cl.predicted_origins[frame][2];
 
 	// save the prediction error for interpolation
 	len = abs (delta[0]) + abs (delta[1]) + abs (delta[2]);
+
 	if (len > 640)	// 80 world units
 	{
 		// a teleport or something
@@ -53,10 +56,11 @@ void CL_CheckPredictionError (void)
 	else
 	{
 		if (cl_showmiss->value && (delta[0] || delta[1] || delta[2]))
-			Com_Printf ("prediction miss on %i: %i\n", cl.frame.serverframe,
-			delta[0] + delta[1] + delta[2]);
+			Com_Printf ("prediction miss on %i: %i\n", cl.frame.serverframe, delta[0] + delta[1] + delta[2]);
 
-		VectorCopy (cl.frame.playerstate.pmove.origin, cl.predicted_origins[frame]);
+		cl.predicted_origins[frame][0] = cl.frame.playerstate.pmove.origin[0];
+		cl.predicted_origins[frame][1] = cl.frame.playerstate.pmove.origin[1];
+		cl.predicted_origins[frame][2] = cl.frame.playerstate.pmove.origin[2];
 
 		// save for error itnerpolation
 		for (i = 0; i < 3; i++)
@@ -260,18 +264,21 @@ void CL_PredictMovement (void)
 		Pmove (&pm);
 
 		// save for debug checking
-		VectorCopy (pm.s.origin, cl.predicted_origins[frame]);
+		cl.predicted_origins[frame][0] = pm.s.origin[0];
+		cl.predicted_origins[frame][1] = pm.s.origin[1];
+		cl.predicted_origins[frame][2] = pm.s.origin[2];
 	}
 
+	// ???smooth out stair step-ups???
 	oldframe = (ack - 2) & (CMD_BACKUP - 1);
 	oldz = cl.predicted_origins[oldframe][2];
 	step = pm.s.origin[2] - oldz;
+
 	if (step > 63 && step < 160 && (pm.s.pm_flags & PMF_ON_GROUND))
 	{
 		cl.predicted_step = step * 0.125;
 		cl.predicted_step_time = cls.realtime - cls.frametime * 500;
 	}
-
 
 	// copy results out for rendering
 	cl.predicted_origin[0] = pm.s.origin[0] * 0.125;

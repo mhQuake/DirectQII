@@ -80,8 +80,12 @@ void R_CreateBeamIndexBuffer (void)
 void R_CreateBeamVertexes (int slices)
 {
 	int i;
+	beampolyvert_t srcverts[255];
 	beampolyvert_t *verts = NULL;
 	D3D11_SUBRESOURCE_DATA srd;
+
+		float mins[3] = {999999, 999999, 999999};
+		float maxs[3] = {-999999, -999999, -999999};
 
 	// clamp sensibly
 	if (slices < 3) slices = 3;
@@ -89,7 +93,8 @@ void R_CreateBeamVertexes (int slices)
 
 	r_numbeamverts = (slices + 1) * 2;
 	r_numbeamindexes = (r_numbeamverts - 2) * 3;
-	verts = (beampolyvert_t *) ri.Load_AllocMemory (r_numbeamverts * sizeof (beampolyvert_t));
+	//verts = (beampolyvert_t *) ri.Load_AllocMemory (r_numbeamverts * sizeof (beampolyvert_t));
+	verts = srcverts;
 
 	srd.pSysMem = verts;
 	srd.SysMemPitch = 0;
@@ -101,6 +106,19 @@ void R_CreateBeamVertexes (int slices)
 
 		Vector3Set (verts[0].position, sin (angle) * 0.5f, cos (angle) * 0.5f, 1);
 		Vector3Set (verts[1].position, sin (angle) * 0.5f, cos (angle) * 0.5f, 0);
+
+		if (verts[0].position[0] < mins[0]) mins[0] = verts[0].position[0];
+		if (verts[0].position[1] < mins[1]) mins[1] = verts[0].position[1];
+		if (verts[0].position[2] < mins[2]) mins[2] = verts[0].position[2];
+		if (verts[1].position[0] < mins[0]) mins[0] = verts[1].position[0];
+		if (verts[1].position[1] < mins[1]) mins[1] = verts[1].position[1];
+		if (verts[1].position[2] < mins[2]) mins[2] = verts[1].position[2];
+		if (verts[0].position[0] > maxs[0]) maxs[0] = verts[0].position[0];
+		if (verts[0].position[1] > maxs[1]) maxs[1] = verts[0].position[1];
+		if (verts[0].position[2] > maxs[2]) maxs[2] = verts[0].position[2];
+		if (verts[1].position[0] > maxs[0]) maxs[0] = verts[1].position[0];
+		if (verts[1].position[1] > maxs[1]) maxs[1] = verts[1].position[1];
+		if (verts[1].position[2] > maxs[2]) maxs[2] = verts[1].position[2];
 	}
 
 	// create the buffers from the generated data
@@ -140,8 +158,15 @@ void R_ShutdownBeam (void)
 
 void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 {
+	float mins[3] = {-0.5f, -0.5f, 0.0f};
+	float maxs[3] = {0.5f, 0.5f, 1.0f};
+
 	// don't draw fully translucent beams
-	if (e->alpha > 0)
+	if (!(e->alpha > 0))
+		return;
+	else if (R_CullForEntity (mins, maxs, localmatrix))
+		return;
+	else
 	{
 		float color[3] = {
 			(float) ((byte *) &d_8to24table_solid[e->skinnum & 0xff])[0] / 255.0f,

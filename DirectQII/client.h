@@ -292,8 +292,8 @@ typedef struct cdlight_s
 	vec3_t	rgb;
 	vec3_t	origin;
 	float	radius;				// initial radius, never adjusted after the DL is spawned
-	int		time;				// time the dl was started at
-	float	die;				// stop lighting after this time
+	int		start;				// time the dl was started at
+	int		die;				// stop lighting after this time
 	float	decay;				// drop this each second
 	float	minlight;			// don't add when contributing less
 } cdlight_t;

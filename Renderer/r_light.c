@@ -95,7 +95,7 @@ int R_RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 		tex = surf->texinfo;
 
 		s = Vector3Dot (mid, tex->vecs[0]) + tex->vecs[0][3];
-		t = Vector3Dot (mid, tex->vecs[1]) + tex->vecs[1][3];;
+		t = Vector3Dot (mid, tex->vecs[1]) + tex->vecs[1][3];
 
 		if (s < surf->texturemins[0] || t < surf->texturemins[1])
 			continue;

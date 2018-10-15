@@ -29,10 +29,15 @@ void R_InitNull (void)
 }
 
 
-void R_DrawNullModel (entity_t *e)
+void R_DrawNullModel (entity_t *e, QMATRIX *localmatrix)
 {
 	float shadelight[3];
-	QMATRIX localmatrix;
+
+	float mins[3] = {-16, -16, -16};
+	float maxs[3] = {16, 16, 16};
+
+	if (R_CullForEntity (mins, maxs, localmatrix))
+		return;
 
 	if (e->flags & RF_FULLBRIGHT)
 		Vector3Set (shadelight, 1, 1, 1);
@@ -42,14 +47,17 @@ void R_DrawNullModel (entity_t *e)
 		R_DynamicLightPoint (e->currorigin, shadelight);
 	}
 
-	R_MatrixIdentity (&localmatrix);
-	R_MatrixTranslate (&localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
-	R_MatrixRotate (&localmatrix, -e->angles[0], e->angles[1], -e->angles[2]);
-
-	R_PrepareEntityForRendering (&localmatrix, shadelight, e->alpha, e->flags);
+	R_PrepareEntityForRendering (localmatrix, shadelight, e->alpha, e->flags);
 	D_BindShaderBundle (d3d_NullShader);
 
 	d3d_Context->lpVtbl->Draw (d3d_Context, 24, 0);
 }
 
+
+void R_PrepareNullModel (entity_t *e, QMATRIX *localmatrix)
+{
+	R_MatrixIdentity (localmatrix);
+	R_MatrixTranslate (localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
+	R_MatrixRotate (localmatrix, -e->angles[0], e->angles[1], -e->angles[2]);
+}
 
