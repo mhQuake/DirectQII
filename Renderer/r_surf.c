@@ -41,6 +41,7 @@ ID3D11Buffer *d3d_SurfVertexes = NULL;
 ID3D11Buffer *d3d_SurfIndexes = NULL;
 
 static int d3d_SurfBasicShader;
+static int d3d_SurfAlphaShader;
 static int d3d_SurfLightmapShader;
 static int d3d_SurfDynamicShader;
 static int d3d_SurfDrawTurbShader;
@@ -77,6 +78,7 @@ void R_InitSurfaces (void)
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, NULL, &d3d_SurfIndexes);
 
 	d3d_SurfBasicShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfBasicVS", NULL, "SurfBasicPS", DEFINE_LAYOUT (layout));
+	d3d_SurfAlphaShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfAlphaVS", NULL, "SurfAlphaPS", DEFINE_LAYOUT (layout));
 	d3d_SurfLightmapShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfLightmapVS", NULL, "SurfLightmapPS", DEFINE_LAYOUT (layout));
 	d3d_SurfDrawTurbShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawTurbVS", NULL, "SurfDrawTurbPS", DEFINE_LAYOUT (layout));
 	d3d_SurfDynamicShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDynamicVS", "SurfDynamicGS", "GenericDynamicPS", DEFINE_LAYOUT (layout));
@@ -230,11 +232,14 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		// select the correct shader
 		if (ti->flags & SURF_WARP)
 			D_BindShaderBundle (d3d_SurfDrawTurbShader);
-		else if (!r_worldmodel->lightdata || r_fullbright->value)
-			D_BindShaderBundle (d3d_SurfBasicShader);
 		else if (e->flags & RF_TRANSLUCENT)
-			D_BindShaderBundle (d3d_SurfBasicShader);
-		else D_BindShaderBundle (d3d_SurfLightmapShader);
+			D_BindShaderBundle (d3d_SurfAlphaShader);
+		else
+		{
+			if (!r_worldmodel->lightdata || r_fullbright->value)
+				D_BindShaderBundle (d3d_SurfBasicShader);
+			else D_BindShaderBundle (d3d_SurfLightmapShader);
+		}
 
 		// select the correct texture
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
@@ -340,7 +345,7 @@ void R_DrawAlphaSurfaces (void)
 
 			if (s->texinfo->flags & SURF_WARP)
 				D_BindShaderBundle (d3d_SurfDrawTurbShader);
-			else D_BindShaderBundle (d3d_SurfBasicShader);
+			else D_BindShaderBundle (d3d_SurfAlphaShader);
 
 			lasttexture = s->texinfo->image;
 		}

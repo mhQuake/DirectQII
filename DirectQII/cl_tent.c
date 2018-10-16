@@ -1637,10 +1637,14 @@ void CL_AddExplosions (void)
 	float		frac;
 	int			f;
 
-	memset (&ent, 0, sizeof (ent));
+	// huh??? obviously a holdover from an earlier version when ent was not a pointer
+	// memset (&ent, 0, sizeof (ent));
 
 	for (i = 0, ex = cl_explosions; i < MAX_EXPLOSIONS; i++, ex++)
 	{
+		// don't add light if contributing less
+		float minlight = 0;
+
 		if (ex->type == ex_free)
 			continue;
 
@@ -1700,6 +1704,8 @@ void CL_AddExplosions (void)
 				else
 					ent->skinnum = 6;
 			}
+
+			minlight = 32;
 			break;
 
 		case ex_poly2:
@@ -1719,8 +1725,10 @@ void CL_AddExplosions (void)
 		if (ex->type == ex_free)
 			continue;
 
-		if (ex->light > 0)
+		// using the actual value that will be used for the light
+		if ((ex->light * ent->alpha) > minlight)
 		{
+			//Com_Printf ("light is %0.2f\n", ex->light * ent->alpha);
 			V_AddLight (ent->currorigin, ex->light * ent->alpha, ex->lightcolor[0], ex->lightcolor[1], ex->lightcolor[2]);
 		}
 
