@@ -328,6 +328,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Images"
+			>
+			<File
+				RelativePath=".\envmap.pcx"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

@@ -679,15 +679,15 @@ void R_CopyScreen (rendertarget_t *dst)
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 void R_CreateSpecialTextures (void)
 {
-	unsigned blacktexturedata[4] = {0xff000000, 0xff000000, 0xff000000, 0xff000000};
-	unsigned greytexturedata[4] = {0xff7f7f7f, 0xff7f7f7f, 0xff7f7f7f, 0xff7f7f7f};
-	unsigned whitetexturedata[4] = {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
-	unsigned notexturedata[4] = {0xff000000, 0xff7f7f7f, 0xff7f7f7f, 0xffffffff};
+	unsigned blacktexturedata = 0xff000000;
+	unsigned greytexturedata = 0xff7f7f7f;
+	unsigned whitetexturedata = 0xffffffff;
+	byte notexturedata[16] = {0x00, 0x00, 0x0f, 0x0f, 0x00, 0x00, 0x0f, 0x0f, 0x0f, 0x0f, 0x00, 0x00, 0x0f, 0x0f, 0x00, 0x00};
 
-	r_blacktexture = GL_LoadPic ("***r_blacktexture***", (byte *) blacktexturedata, 2, 2, it_wall, 32, NULL);
-	r_greytexture = GL_LoadPic ("***r_greytexture***", (byte *) greytexturedata, 2, 2, it_wall, 32, NULL);
-	r_whitetexture = GL_LoadPic ("***r_whitetexture***", (byte *) whitetexturedata, 2, 2, it_wall, 32, NULL);
-	r_notexture = GL_LoadPic ("***r_notexture***", (byte *) notexturedata, 2, 2, it_wall, 32, NULL);
+	r_blacktexture = GL_LoadPic ("***r_blacktexture***", (byte *) &blacktexturedata, 1, 1, it_wall, 32, NULL);
+	r_greytexture = GL_LoadPic ("***r_greytexture***", (byte *) &greytexturedata, 1, 1, it_wall, 32, NULL);
+	r_whitetexture = GL_LoadPic ("***r_whitetexture***", (byte *) &whitetexturedata, 1, 1, it_wall, 32, NULL);
+	r_notexture = GL_LoadPic ("***r_notexture***", notexturedata, 4, 4, it_wall, 8, d_8to24table_solid);
 }
 
 

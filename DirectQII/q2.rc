@@ -6,6 +6,9 @@
 // remains consistent on all systems.
 IDI_ICON1			ICON	DISCARDABLE		"q2.ico"
 
+// image resources	belong in the Reflib but must be embedded in the main .exe to load successfully
+IDR_ENVMAP			RCDATA		"../Renderer/envmap.pcx"
+
 // shader resources	belong in the Reflib but must be embedded in the main .exe to load successfully
 IDR_BEAMSHADER		RCDATA		"../Renderer/fxBeam.fx"
 IDR_DRAWSHADER		RCDATA		"../Renderer/fxDraw.fx"

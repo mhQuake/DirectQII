@@ -1,6 +1,8 @@
 
 #define IDI_ICON1			101
 
+#define IDR_ENVMAP			400
+
 #define IDR_BEAMSHADER		500
 #define IDR_DRAWSHADER		505
 #define IDR_MESHSHADER		510
