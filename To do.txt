@@ -31,4 +31,10 @@ move screen functions from glw_imp/r_main/etc to r_screen.c
 
 clean up Zone allocations
 
+environment mapped alpha and water surfaces (rip from my Q3A code)
+alpha of the surf is inverse intensity of the envmap (more opaque = less envmapping)
+
+bind lightmaps to a single textuer rather than to 3
+reduces number of texture array slots...
+
 

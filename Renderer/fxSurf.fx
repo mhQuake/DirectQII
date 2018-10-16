@@ -53,6 +53,16 @@ PS_BASIC SurfBasicVS (VS_SURFCOMMON vs_in)
 	return vs_out;
 }
 
+PS_BASIC SurfAlphaVS (VS_SURFCOMMON vs_in)
+{
+	PS_BASIC vs_out;
+
+	vs_out.Position = mul (LocalMatrix, vs_in.Position);
+	vs_out.TexCoord = GetTextureScroll (vs_in);
+
+	return vs_out;
+}
+
 PS_LIGHTMAPPED SurfLightmapVS (VS_SURFCOMMON vs_in)
 {
 	PS_LIGHTMAPPED vs_out;
@@ -101,6 +111,33 @@ PS_DRAWSKY SurfDrawSkyVS (VS_DRAWSKY vs_in)
 
 
 #ifdef GEOMETRYSHADER
+PS_DYNAMICLIGHT GetEnvmappedVertex (float4 Position, float3 Normal, float2 TexCoord)
+{
+	PS_DYNAMICLIGHT vs_out;
+
+	vs_out.Position = mul (LocalMatrix, Position);
+	vs_out.TexCoord = TexCoord;
+	vs_out.LightVector = viewOrigin - Position.xyz; // this isn't really a light vector but it will do
+	vs_out.Normal = Normal;
+
+	return vs_out;
+}
+
+[maxvertexcount (3)]
+void SurfEnvmappedGS (triangle VS_SURFCOMMON gs_in[3], inout TriangleStream<PS_DYNAMICLIGHT> gs_out)
+{
+	// this is the same normal calculation as QBSP does
+	// strictly speaking we should first transform the positions from local space to world space, but in practice all alpha surfs
+	// are using world space to begin with, so we don't need to
+	float3 Normal = normalize (
+		cross (gs_in[0].Position.xyz - gs_in[1].Position.xyz, gs_in[2].Position.xyz - gs_in[1].Position.xyz)
+	);
+
+	gs_out.Append (GetEnvmappedVertex (gs_in[0].Position, Normal, GetTextureScroll (gs_in[0])));
+	gs_out.Append (GetEnvmappedVertex (gs_in[1].Position, Normal, GetTextureScroll (gs_in[1])));
+	gs_out.Append (GetEnvmappedVertex (gs_in[2].Position, Normal, GetTextureScroll (gs_in[2])));
+}
+
 [maxvertexcount (3)]
 void SurfDynamicGS (triangle VS_SURFCOMMON gs_in[3], inout TriangleStream<PS_DYNAMICLIGHT> gs_out)
 {
@@ -122,6 +159,12 @@ void SurfDynamicGS (triangle VS_SURFCOMMON gs_in[3], inout TriangleStream<PS_DYN
 float4 SurfBasicPS (PS_BASIC ps_in) : SV_TARGET0
 {
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
+	return float4 (diff.rgb, 1.0f);
+}
+
+float4 SurfAlphaPS (PS_BASIC ps_in) : SV_TARGET0
+{
+	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
 	return float4 (diff.rgb, diff.a * AlphaVal);
 }
 
@@ -135,7 +178,7 @@ float4 SurfLightmapPS (PS_LIGHTMAPPED ps_in) : SV_TARGET0
 		dot (lmap2Texture.Sample (lmapSampler, ps_in.Lightmap), ps_in.Styles)
 	);
 
-	return float4 (diff.rgb * lmap, diff.a * AlphaVal);
+	return float4 (diff.rgb * lmap, 1.0f);
 }
 
 float4 SurfDrawTurbPS (PS_DRAWTURB ps_in) : SV_TARGET0
