@@ -31,4 +31,5 @@ move screen functions from glw_imp/r_main/etc to r_screen.c
 
 clean up Zone allocations
 
+Input - if more than 500ms has passed since an input message, discard it.
 
