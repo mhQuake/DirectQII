@@ -179,7 +179,7 @@ Mod_LoadTexinfo
 */
 void Mod_LoadTexinfo (lump_t *l, dbsp_t *bsp)
 {
-	texinfo_t *in= (texinfo_t *) (mod_base + l->fileofs);
+	texinfo_t *in = (texinfo_t *) (mod_base + l->fileofs);
 	mtexinfo_t *out, *step;
 	int 	i, j, count;
 	char	name[MAX_QPATH];

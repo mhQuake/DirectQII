@@ -138,6 +138,9 @@ typedef struct image_s {
 	int		width, height;				// source image
 	int		registration_sequence;		// 0 = free
 
+	// color that was used in radiosity calcs
+	float	color[3];
+
 	// D3D texture object
 	ID3D11Texture2D *Texture;
 	ID3D11ShaderResourceView *SRV;

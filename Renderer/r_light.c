@@ -90,7 +90,9 @@ int R_RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 
 	for (i = 0; i < node->numsurfaces; i++, surf++)
 	{
-		if (surf->texinfo->flags & SURF_NOLIGHTMAP) continue;	// no lightmaps
+		// as an exception here we actually want to trace to sky because if it hits sky we'll make it fullbright and take it's colour from the sky
+		// this solves cases like e.g. the strogg viper ships outside the map in base1
+		if (surf->texinfo->flags & (SURF_NOLIGHTMAP & ~SURF_SKY)) continue;	// no lightmaps
 
 		tex = surf->texinfo;
 
@@ -105,6 +107,12 @@ int R_RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 
 		if (ds > surf->extents[0] || dt > surf->extents[1])
 			continue;
+
+		if (surf->texinfo->flags & SURF_SKY)
+		{
+			Vector3Copy (pointcolor, surf->texinfo->image->color);
+			return 1;
+		}
 
 		if (!surf->samples)
 			return 0;

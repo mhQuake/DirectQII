@@ -318,6 +318,22 @@ image_t *GL_HaveImage (char *name, int flags)
 }
 
 
+float ColorNormalize (vec3_t out, vec3_t in)
+{
+	float max = in[0];
+
+	if (in[1] > max) max = in[1];
+	if (in[2] > max) max = in[2];
+
+	if (max == 0)
+		return 0;
+
+	Vector3Scalef (out, in, 1.0f / max);
+
+	return max;
+}
+
+
 /*
 ================
 GL_LoadWal
@@ -326,8 +342,10 @@ GL_LoadWal
 image_t *GL_LoadWal (char *name, int flags)
 {
 	miptex_t	*mt;
-	int			width, height, ofs;
+	int			i, width, height;
 	image_t		*image;
+	byte		*texels;
+	float		scale;
 
 	// look for it
 	if ((image = GL_HaveImage (name, flags)) != NULL)
@@ -344,18 +362,42 @@ image_t *GL_LoadWal (char *name, int flags)
 
 	width = LittleLong (mt->width);
 	height = LittleLong (mt->height);
-	ofs = LittleLong (mt->offsets[0]);
+	texels = (byte *) mt + LittleLong (mt->offsets[0]);
 
 	// choose the correct palette to use (note: using texinfo flags here)
 	if (flags & SURF_TRANS33)
-		image = GL_LoadPic (name, (byte *) mt + ofs, width, height, it_wall, 8, d_8to24table_trans33);
+		image = GL_LoadPic (name, texels, width, height, it_wall, 8, d_8to24table_trans33);
 	else if (flags & SURF_TRANS66)
-		image = GL_LoadPic (name, (byte *) mt + ofs, width, height, it_wall, 8, d_8to24table_trans66);
-	else image = GL_LoadPic (name, (byte *) mt + ofs, width, height, it_wall, 8, d_8to24table_solid);
+		image = GL_LoadPic (name, texels, width, height, it_wall, 8, d_8to24table_trans66);
+	else image = GL_LoadPic (name, texels, width, height, it_wall, 8, d_8to24table_solid);
 
-	ri.FS_FreeFile ((void *) mt);
+	// calculate the colour that was used to generate radiosity for this texture
+	// https://github.com/id-Software/Quake-2-Tools/blob/master/bsp/qrad3/patches.c#L88
+	// this is used for R_LightPoint tracing that hits sky and may also be used for contents colours in the future
+	Vector3Set (image->color, 0, 0, 0);
+
+	// accumulate the colours
+	for (i = 0; i < width * height; i++)
+	{
+		image->color[0] += ((byte *) &d_8to24table_solid[texels[i]])[0];
+		image->color[1] += ((byte *) &d_8to24table_solid[texels[i]])[1];
+		image->color[2] += ((byte *) &d_8to24table_solid[texels[i]])[2];
+	}
+
+	// average them out and bring to 0..1 scale
+	image->color[0] = image->color[0] / (width * height) / 255.0f;
+	image->color[1] = image->color[1] / (width * height) / 255.0f;
+	image->color[2] = image->color[2] / (width * height) / 255.0f;
+
+	// scale the reflectivity up, because the textures are so dim
+	scale = ColorNormalize (image->color, image->color);
+
+	// ??? can this even happen ???
+	if (scale < 0.5)
+		Vector3Scalef (image->color, image->color, scale * 2);
 
 	// free any memory used for loading
+	ri.FS_FreeFile ((void *) mt);
 	ri.Load_FreeMemory ();
 
 	// store out the flags used for matching
