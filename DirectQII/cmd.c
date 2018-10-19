@@ -120,7 +120,7 @@ void Cbuf_InsertText (char *text)
 	templen = cmd_text.cursize;
 	if (templen)
 	{
-		temp = Z_Alloc (templen);
+		temp = Zone_Alloc (templen);
 		memcpy (temp, cmd_text.data, templen);
 		SZ_Clear (&cmd_text);
 	}
@@ -134,7 +134,7 @@ void Cbuf_InsertText (char *text)
 	if (templen)
 	{
 		SZ_Write (&cmd_text, temp, templen);
-		Z_Free (temp);
+		Zone_Free (temp);
 	}
 }
 
@@ -311,7 +311,7 @@ qboolean Cbuf_AddLateCommands (void)
 	if (!s)
 		return false;
 
-	text = Z_Alloc (s + 1);
+	text = Zone_Alloc (s + 1);
 	text[0] = 0;
 	for (i = 1; i < argc; i++)
 	{
@@ -321,7 +321,7 @@ qboolean Cbuf_AddLateCommands (void)
 	}
 
 	// pull out the commands
-	build = Z_Alloc (s + 1);
+	build = Zone_Alloc (s + 1);
 	build[0] = 0;
 
 	for (i = 0; i < s - 1; i++)
@@ -347,8 +347,8 @@ qboolean Cbuf_AddLateCommands (void)
 	if (ret)
 		Cbuf_AddText (build);
 
-	Z_Free (text);
-	Z_Free (build);
+	Zone_Free (text);
+	Zone_Free (build);
 
 	return ret;
 }
@@ -388,13 +388,13 @@ void Cmd_Exec_f (void)
 	Com_Printf ("execing %s\n", Cmd_Argv (1));
 
 	// the file doesn't have a trailing 0, so we need to copy it off
-	f2 = Z_Alloc (len + 1);
+	f2 = Zone_Alloc (len + 1);
 	memcpy (f2, f, len);
 	f2[len] = 0;
 
 	Cbuf_InsertText (f2);
 
-	Z_Free (f2);
+	Zone_Free (f2);
 	FS_FreeFile (f);
 }
 
@@ -449,14 +449,14 @@ void Cmd_Alias_f (void)
 	{
 		if (!strcmp (s, a->name))
 		{
-			Z_Free (a->value);
+			Zone_Free (a->value);
 			break;
 		}
 	}
 
 	if (!a)
 	{
-		a = Z_Alloc (sizeof (cmdalias_t));
+		a = Zone_Alloc (sizeof (cmdalias_t));
 		a->next = cmd_alias;
 		cmd_alias = a;
 	}
@@ -624,7 +624,7 @@ void Cmd_TokenizeString (char *text, qboolean macroExpand)
 
 	// clear the args from the last string
 	for (i = 0; i < cmd_argc; i++)
-		Z_Free (cmd_argv[i]);
+		Zone_Free (cmd_argv[i]);
 
 	cmd_argc = 0;
 	cmd_args[0] = 0;
@@ -675,7 +675,7 @@ void Cmd_TokenizeString (char *text, qboolean macroExpand)
 
 		if (cmd_argc < MAX_STRING_TOKENS)
 		{
-			cmd_argv[cmd_argc] = Z_Alloc (strlen (com_token) + 1);
+			cmd_argv[cmd_argc] = Zone_Alloc (strlen (com_token) + 1);
 			strcpy (cmd_argv[cmd_argc], com_token);
 			cmd_argc++;
 		}
@@ -710,7 +710,7 @@ void Cmd_AddCommand (char *cmd_name, xcommand_t function)
 		}
 	}
 
-	cmd = Z_Alloc (sizeof (cmd_function_t));
+	cmd = Zone_Alloc (sizeof (cmd_function_t));
 	cmd->name = cmd_name;
 	cmd->function = function;
 	cmd->next = cmd_functions;
@@ -727,20 +727,24 @@ void Cmd_RemoveCommand (char *cmd_name)
 	cmd_function_t	*cmd, **back;
 
 	back = &cmd_functions;
+
 	while (1)
 	{
 		cmd = *back;
+
 		if (!cmd)
 		{
 			Com_Printf ("Cmd_RemoveCommand: %s not added\n", cmd_name);
 			return;
 		}
+
 		if (!strcmp (cmd_name, cmd->name))
 		{
 			*back = cmd->next;
-			Z_Free (cmd);
+			Zone_Free (cmd);
 			return;
 		}
+
 		back = &cmd->next;
 	}
 }

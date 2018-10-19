@@ -203,7 +203,7 @@ void StartServer_MenuInit (void)
 		length = ftell(fp);
 		fseek(fp, 0, SEEK_SET);
 #endif
-		buffer = Z_Alloc (length);
+		buffer = Zone_Alloc (length);
 		fread (buffer, length, 1, fp);
 	}
 
@@ -220,7 +220,7 @@ void StartServer_MenuInit (void)
 	if (nummaps == 0)
 		Com_Error (ERR_DROP, "no maps in maps.lst\n");
 
-	mapnames = Z_Alloc (sizeof (char *) * (nummaps + 1));
+	mapnames = Zone_Alloc (sizeof (char *) * (nummaps + 1));
 	memset (mapnames, 0, sizeof (char *) * (nummaps + 1));
 
 	s = buffer;
@@ -239,7 +239,7 @@ void StartServer_MenuInit (void)
 		strcpy (longname, COM_Parse (&s));
 		Com_sprintf (scratch, sizeof (scratch), "%s\n%s", longname, shortname);
 
-		mapnames[i] = Z_Alloc (strlen (scratch) + 1);
+		mapnames[i] = Zone_Alloc (strlen (scratch) + 1);
 		strcpy (mapnames[i], scratch);
 	}
 
@@ -248,7 +248,7 @@ void StartServer_MenuInit (void)
 	if (fp != 0)
 	{
 		fp = 0;
-		Z_Free (buffer);
+		Zone_Free (buffer);
 	}
 	else
 	{
@@ -378,8 +378,8 @@ const char *StartServer_MenuKey (int key)
 			int i;
 
 			for (i = 0; i < nummaps; i++)
-				Z_Free (mapnames[i]);
-			Z_Free (mapnames);
+				Zone_Free (mapnames[i]);
+			Zone_Free (mapnames);
 		}
 
 		mapnames = 0;

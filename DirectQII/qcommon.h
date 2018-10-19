@@ -754,11 +754,12 @@ extern	cvar_t	*developer;
 extern	cvar_t	*dedicated;
 
 void Z_Free (void *ptr);
-void *Z_Alloc (int size);			// returns 0 filled memory
 void *Z_TagAlloc (int size, int tag);
 void Z_FreeTags (int tag);
 void Z_Init (void);
-void Z_Stats_f (void);
+
+void *Zone_Alloc (int size);
+void Zone_Free (void *ptr);
 
 void Qcommon_Init (int argc, char **argv);
 void Qcommon_Frame (int msec);

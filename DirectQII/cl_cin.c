@@ -87,13 +87,13 @@ void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *h
 		return;
 	}
 
-	out = Z_Alloc ((pcx->ymax + 1) * (pcx->xmax + 1));
+	out = Zone_Alloc ((pcx->ymax + 1) * (pcx->xmax + 1));
 	*pic = out;
 	pix = out;
 
 	if (palette)
 	{
-		*palette = Z_Alloc (768);
+		*palette = Zone_Alloc (768);
 		memcpy (*palette, (byte *) pcx + len - 768, 768);
 	}
 	else *palette = NULL;
@@ -123,7 +123,7 @@ void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *h
 	if (raw - (byte *) pcx > len)
 	{
 		Com_Printf ("PCX file %s was malformed", filename);
-		Z_Free (*pic);
+		Zone_Free (*pic);
 		*pic = NULL;
 	}
 
@@ -143,13 +143,13 @@ void SCR_StopCinematic (void)
 
 	if (cin.pic)
 	{
-		Z_Free (cin.pic);
+		Zone_Free (cin.pic);
 		cin.pic = NULL;
 	}
 
 	if (cin.pic_pending)
 	{
-		Z_Free (cin.pic_pending);
+		Zone_Free (cin.pic_pending);
 		cin.pic_pending = NULL;
 	}
 
@@ -161,7 +161,7 @@ void SCR_StopCinematic (void)
 
 	if (cin.hnodes1)
 	{
-		Z_Free (cin.hnodes1);
+		Zone_Free (cin.hnodes1);
 		cin.hnodes1 = NULL;
 	}
 }
@@ -233,7 +233,7 @@ void Huff1TableInit (void)
 	byte	counts[256];
 	int		numhnodes;
 
-	cin.hnodes1 = Z_Alloc (256 * 256 * 2 * 4);
+	cin.hnodes1 = Zone_Alloc (256 * 256 * 2 * 4);
 	memset (cin.hnodes1, 0, 256 * 256 * 2 * 4);
 
 	for (prev = 0; prev < 256; prev++)
@@ -288,7 +288,7 @@ cblock_t Huff1Decompress (cblock_t in)
 	// get decompressed count
 	int count = in.data[0] + (in.data[1] << 8) + (in.data[2] << 16) + (in.data[3] << 24);
 	byte *input = in.data + 4;
-	byte *out_p = out.data = Z_Alloc (count);
+	byte *out_p = out.data = Zone_Alloc (count);
 
 	// read bits
 	int *hnodesbase = cin.hnodes1 - 256 * 2;	// nodes 0-255 aren't stored
@@ -429,7 +429,7 @@ void SCR_RunCinematic (void)
 	}
 
 	if (cin.pic)
-		Z_Free (cin.pic);
+		Zone_Free (cin.pic);
 
 	cin.pic = cin.pic_pending;
 	cin.pic_pending = NULL;
@@ -499,7 +499,7 @@ void SCR_PlayCinematic (char *arg)
 		else
 		{
 			memcpy (cl.cinematicpalette, palette, sizeof (cl.cinematicpalette));
-			Z_Free (palette);
+			Zone_Free (palette);
 		}
 
 		return;

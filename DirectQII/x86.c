@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
 #include <stdlib.h>
 #include "client.h"
 
@@ -84,7 +85,7 @@ void x86_TimerInit (unsigned long smallest, unsigned length)
 	}
 
 	bias += smallest;
-	histogram = Z_Alloc (range * sizeof (unsigned long));
+	histogram = Zone_Alloc (range * sizeof (unsigned long));
 }
 
 unsigned long *x86_TimerGetHistogram (void)

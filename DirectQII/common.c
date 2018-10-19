@@ -1011,9 +1011,7 @@ int	memsearch (byte *start, int count, int search)
 
 char *CopyString (char *in)
 {
-	char	*out;
-
-	out = Z_Alloc (strlen (in) + 1);
+	char *out = Zone_Alloc (strlen (in) + 1);
 	strcpy (out, in);
 	return out;
 }
@@ -1303,7 +1301,6 @@ void Qcommon_Init (int argc, char **argv)
 	Cbuf_Execute ();
 
 	// init commands and vars
-	Cmd_AddCommand ("z_stats", Z_Stats_f);
 	Cmd_AddCommand ("error", Com_Error_f);
 
 	developer = Cvar_Get ("developer", "0", 0);

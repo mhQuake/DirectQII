@@ -392,7 +392,7 @@ int FS_LoadFile (char *path, void **buffer)
 		return len;
 	}
 
-	buf = Z_Alloc (len);
+	buf = Zone_Alloc (len);
 	*buffer = buf;
 
 	FS_Read (buf, len, h);
@@ -410,7 +410,7 @@ FS_FreeFile
 */
 void FS_FreeFile (void *buffer)
 {
-	Z_Free (buffer);
+	Zone_Free (buffer);
 }
 
 /*
@@ -450,7 +450,7 @@ pack_t *FS_LoadPackFile (char *packfile)
 	if (numpackfiles > MAX_FILES_IN_PACK)
 		Com_Error (ERR_FATAL, "%s has %i files", packfile, numpackfiles);
 
-	newfiles = Z_Alloc (numpackfiles * sizeof (dpackfile_t));
+	newfiles = Zone_Alloc (numpackfiles * sizeof (dpackfile_t));
 
 	fseek (packhandle, header.dirofs, SEEK_SET);
 	fread (newfiles, 1, header.dirlen, packhandle);
@@ -473,7 +473,7 @@ pack_t *FS_LoadPackFile (char *packfile)
 	// sort the pack by name for faster searching
 	qsort (newfiles, numpackfiles, sizeof (dpackfile_t), (sortfunc_t) FS_SortPackFile);
 
-	pack = Z_Alloc (sizeof (pack_t));
+	pack = Zone_Alloc (sizeof (pack_t));
 	strcpy (pack->filename, packfile);
 	pack->handle = packhandle;
 	pack->numfiles = numpackfiles;
@@ -516,7 +516,7 @@ void FS_AddGameDirectory (char *dir)
 	strcpy (fs_gamedir, dir);
 
 	// add the directory to the search path
-	search = Z_Alloc (sizeof (searchpath_t));
+	search = Zone_Alloc (sizeof (searchpath_t));
 	strcpy (search->filename, dir);
 	search->next = fs_searchpaths;
 	fs_searchpaths = search;
@@ -528,7 +528,7 @@ void FS_AddGameDirectory (char *dir)
 		pak = FS_LoadPackFile (pakfile);
 		if (!pak)
 			continue;
-		search = Z_Alloc (sizeof (searchpath_t));
+		search = Zone_Alloc (sizeof (searchpath_t));
 		search->pack = pak;
 		search->next = fs_searchpaths;
 		fs_searchpaths = search;
@@ -592,12 +592,12 @@ void FS_SetGamedir (char *dir)
 		if (fs_searchpaths->pack)
 		{
 			fclose (fs_searchpaths->pack->handle);
-			Z_Free (fs_searchpaths->pack->files);
-			Z_Free (fs_searchpaths->pack);
+			Zone_Free (fs_searchpaths->pack->files);
+			Zone_Free (fs_searchpaths->pack);
 		}
 
 		next = fs_searchpaths->next;
-		Z_Free (fs_searchpaths);
+		Zone_Free (fs_searchpaths);
 		fs_searchpaths = next;
 	}
 
@@ -646,14 +646,14 @@ void FS_Link_f (void)
 	{
 		if (!strcmp (l->from, Cmd_Argv (1)))
 		{
-			Z_Free (l->to);
+			Zone_Free (l->to);
 
 			if (!strlen (Cmd_Argv (2)))
 			{
 				// delete it
 				*prev = l->next;
-				Z_Free (l->from);
-				Z_Free (l);
+				Zone_Free (l->from);
+				Zone_Free (l);
 				return;
 			}
 			l->to = CopyString (Cmd_Argv (2));
@@ -663,7 +663,7 @@ void FS_Link_f (void)
 	}
 
 	// create a new link
-	l = Z_Alloc (sizeof (*l));
+	l = Zone_Alloc (sizeof (*l));
 	l->next = fs_links;
 	fs_links = l;
 	l->from = CopyString (Cmd_Argv (1));
@@ -695,7 +695,7 @@ char **FS_ListFiles (char *findname, int *numfiles, unsigned musthave, unsigned 
 	nfiles++; // add space for a guard
 	*numfiles = nfiles;
 
-	list = Z_Alloc (sizeof (char *) * nfiles);
+	list = Zone_Alloc (sizeof (char *) * nfiles);
 	memset (list, 0, sizeof (char *) * nfiles);
 
 	s = Sys_FindFirst (findname, musthave, canthave);
@@ -760,14 +760,14 @@ void FS_Dir_f (void)
 				else
 					Com_Printf ("%s\n", dirnames[i]);
 
-				Z_Free (dirnames[i]);
+				Zone_Free (dirnames[i]);
 			}
 
-			Z_Free (dirnames);
+			Zone_Free (dirnames);
 		}
 
 		Com_Printf ("\n");
-	};
+	}
 }
 
 /*

@@ -177,7 +177,7 @@ void S_Shutdown (void)
 		if (!sfx->name[0])
 			continue;
 		if (sfx->cache)
-			Z_Free (sfx->cache);
+			Zone_Free (sfx->cache);
 		memset (sfx, 0, sizeof (*sfx));
 	}
 
@@ -252,7 +252,7 @@ sfx_t *S_AliasName (char *aliasname, char *truename)
 	char	*s;
 	int		i;
 
-	s = Z_Alloc (MAX_QPATH);
+	s = Zone_Alloc (MAX_QPATH);
 	strcpy (s, truename);
 
 	// find a free sfx
@@ -332,7 +332,7 @@ void S_EndRegistration (void)
 		{
 			// don't need this sound
 			if (sfx->cache)	// it is possible to have a leftover
-				Z_Free (sfx->cache);	// from a server that didn't finish loading
+				Zone_Free (sfx->cache);	// from a server that didn't finish loading
 			memset (sfx, 0, sizeof (*sfx));
 		}
 	}

@@ -321,7 +321,7 @@ char *Sys_GetClipboardData (void)
 		{
 			if ((cliptext = GlobalLock (hClipboardData)) != 0)
 			{
-				data = Z_Alloc (GlobalSize (hClipboardData) + 1);
+				data = Zone_Alloc (GlobalSize (hClipboardData) + 1);
 				strcpy (data, cliptext);
 				GlobalUnlock (hClipboardData);
 			}

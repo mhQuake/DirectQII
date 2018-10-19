@@ -98,27 +98,6 @@ void Z_Free (void *ptr)
 
 /*
 ========================
-Z_Stats_f
-========================
-*/
-void Z_Stats_f (void)
-{
-	int i;
-	int z_bytes = 0;
-	int z_count = 0;
-
-	for (i = 0; i < MAX_ZONETAGS; i++)
-	{
-		z_bytes += z_zones[i].bytes;
-		z_count += z_zones[i].count;
-	}
-
-	Com_Printf ("%i bytes in %i blocks\n", z_bytes, z_count);
-}
-
-
-/*
-========================
 Z_FreeTags
 ========================
 */
@@ -127,6 +106,8 @@ void Z_FreeTags (int tag)
 	// this should never happen; if it does then we need to know
 	if (tag < 0) Com_Error (ERR_FATAL, "Z_FreeTags: bad tag");
 	if (tag >= MAX_ZONETAGS) Com_Error (ERR_FATAL, "Z_FreeTags: bad tag");
+
+	Com_Printf ("Freeing %i kb from tag %i\n", (z_zones[tag].bytes + 512) / 1024, tag);
 
 	// destroy and fully clear the zone
 	HeapDestroy (z_zones[tag].hZone);
@@ -171,21 +152,30 @@ void *Z_TagAlloc (int size, int tag)
 }
 
 
-/*
-========================
-Z_Alloc
-========================
-*/
-void *Z_Alloc (int size)
-{
-	return Z_TagAlloc (size, 0);
-}
-
-
 void Z_Init (void)
 {
 	memset (z_zones, 0, sizeof (z_zones));
-	Cmd_AddCommand ("z_stats", Z_Stats_f);
+}
+
+
+/*
+==============================================================================
+
+for use in the engine - these just wrap standard HeapAlloc/HeapFree for the
+convenience of modules that don't include windows.h 
+
+==============================================================================
+*/
+void *Zone_Alloc (int size)
+{
+	return HeapAlloc (GetProcessHeap (), HEAP_ZERO_MEMORY, size);
+}
+
+
+void Zone_Free (void *ptr)
+{
+	HeapFree (GetProcessHeap (), 0, ptr);
+	HeapCompact (GetProcessHeap (), 0);
 }
 
 

@@ -177,7 +177,7 @@ cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 	if (flags & CVAR_CHEAT)
 		Cvar_RegisterCheatVar (var_name, var_value);
 
-	var = Z_Alloc (sizeof (*var));
+	var = Zone_Alloc (sizeof (*var));
 	var->name = CopyString (var_name);
 	var->string = CopyString (var_value);
 	var->modified = true;
@@ -230,7 +230,7 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 			{
 				if (strcmp (value, var->latched_string) == 0)
 					return var;
-				Z_Free (var->latched_string);
+				Zone_Free (var->latched_string);
 			}
 			else
 			{
@@ -262,7 +262,7 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 	{
 		if (var->latched_string)
 		{
-			Z_Free (var->latched_string);
+			Zone_Free (var->latched_string);
 			var->latched_string = NULL;
 		}
 	}
@@ -275,7 +275,7 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 	if (var->flags & CVAR_USERINFO)
 		userinfo_modified = true;	// transmit at next oportunity
 
-	Z_Free (var->string);	// free the old value string
+	Zone_Free (var->string);	// free the old value string
 
 	var->string = CopyString (value);
 	var->value = atof (var->string);
@@ -323,7 +323,7 @@ cvar_t *Cvar_FullSet (char *var_name, char *value, int flags)
 	if (var->flags & CVAR_USERINFO)
 		userinfo_modified = true;	// transmit at next oportunity
 
-	Z_Free (var->string);	// free the old value string
+	Zone_Free (var->string);	// free the old value string
 
 	var->string = CopyString (value);
 	var->value = atof (var->string);
@@ -366,7 +366,7 @@ void Cvar_GetLatchedVars (void)
 		if (!var->latched_string)
 			continue;
 
-		Z_Free (var->string);
+		Zone_Free (var->string);
 		var->string = var->latched_string;
 		var->latched_string = NULL;
 		var->value = atof (var->string);

@@ -31,14 +31,12 @@ move screen functions from glw_imp/r_main/etc to r_screen.c
 
 clean up Zone allocations
 
-<<<<<<< HEAD
 Input - if more than 500ms has passed since an input message, discard it.
 =======
 environment mapped alpha and water surfaces (rip from my Q3A code)
 alpha of the surf is inverse intensity of the envmap (more opaque = less envmapping)
 
-bind lightmaps to a single textuer rather than to 3
+bind lightmaps to a single texture rather than to 3
 reduces number of texture array slots...
 
->>>>>>> bfe018cfe5df67b6a310a1e0f03e7c00243c6c77
 

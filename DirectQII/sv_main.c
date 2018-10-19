@@ -1027,9 +1027,9 @@ void SV_Shutdown (char *finalmsg, qboolean reconnect)
 
 	// free server static data
 	if (svs.clients)
-		Z_Free (svs.clients);
+		Zone_Free (svs.clients);
 	if (svs.client_entities)
-		Z_Free (svs.client_entities);
+		Zone_Free (svs.client_entities);
 	if (svs.demofile)
 		fclose (svs.demofile);
 	memset (&svs, 0, sizeof (svs));

@@ -88,12 +88,12 @@ static void FreeFileList (char **list, int n)
 	{
 		if (list[i])
 		{
-			Z_Free (list[i]);
+			Zone_Free (list[i]);
 			list[i] = 0;
 		}
 	}
 
-	Z_Free (list);
+	Zone_Free (list);
 }
 
 static qboolean IconOfSkinExists (char *skin, char **pcxfiles, int npcxfiles)
@@ -162,7 +162,7 @@ static qboolean PlayerConfig_ScanDirectories (void)
 		strcat (scratch, "/tris.md2");
 		if (!Sys_FindFirst (scratch, 0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM))
 		{
-			Z_Free (dirnames[i]);
+			Zone_Free (dirnames[i]);
 			dirnames[i] = 0;
 			Sys_FindClose ();
 			continue;
@@ -176,7 +176,7 @@ static qboolean PlayerConfig_ScanDirectories (void)
 
 		if (!pcxnames)
 		{
-			Z_Free (dirnames[i]);
+			Zone_Free (dirnames[i]);
 			dirnames[i] = 0;
 			continue;
 		}
@@ -196,7 +196,7 @@ static qboolean PlayerConfig_ScanDirectories (void)
 		if (!nskins)
 			continue;
 
-		skinnames = Z_Alloc (sizeof (char *) * (nskins + 1));
+		skinnames = Zone_Alloc (sizeof (char *) * (nskins + 1));
 		memset (skinnames, 0, sizeof (char *) * (nskins + 1));
 
 		// copy the valid skins
@@ -535,10 +535,11 @@ const char *PlayerConfig_MenuKey (int key)
 			for (j = 0; j < s_pmi[i].nskins; j++)
 			{
 				if (s_pmi[i].skindisplaynames[j])
-					Z_Free (s_pmi[i].skindisplaynames[j]);
+					Zone_Free (s_pmi[i].skindisplaynames[j]);
 				s_pmi[i].skindisplaynames[j] = 0;
 			}
-			Z_Free (s_pmi[i].skindisplaynames);
+
+			Zone_Free (s_pmi[i].skindisplaynames);
 			s_pmi[i].skindisplaynames = 0;
 			s_pmi[i].nskins = 0;
 		}

@@ -261,7 +261,7 @@ void Key_Console (int key)
 				key_linepos += i;
 			}
 
-			Z_Free (cbd);
+			Zone_Free (cbd);
 		}
 
 		return;
@@ -515,17 +515,18 @@ void Key_SetBinding (int keynum, char *binding)
 	// free old bindings
 	if (keybindings[keynum])
 	{
-		Z_Free (keybindings[keynum]);
+		Zone_Free (keybindings[keynum]);
 		keybindings[keynum] = NULL;
 	}
 
 	// allocate memory for new binding
 	l = strlen (binding);
-	new = Z_Alloc (l + 1);
+	new = Zone_Alloc (l + 1);
 	strcpy (new, binding);
 	new[l] = 0;
 	keybindings[keynum] = new;
 }
+
 
 /*
 ===================
