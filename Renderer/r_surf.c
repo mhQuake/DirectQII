@@ -228,7 +228,7 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		msurface_t *reversechain = NULL;
 
 		// no surfaces
-		if ((surf = ti->texturechain) == NULL) continue;
+		if ((surf = ti->image->texturechain) == NULL) continue;
 
 		// select the correct shader
 		if (ti->flags & SURF_WARP)
@@ -262,7 +262,7 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 
 		// and done
 		R_EndSurfaceBatch ();
-		ti->texturechain = NULL;
+		ti->image->texturechain = NULL;
 	}
 
 	if (r_sky_surfaces)
@@ -294,7 +294,7 @@ void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix)
 		mtexinfo_t *ti = &mod->texinfo[i];
 
 		// no surfaces
-		if ((surf = ti->texturechain) == NULL) continue;
+		if ((surf = ti->image->texturechain) == NULL) continue;
 
 		D_BindShaderBundle (d3d_SurfDynamicShader);
 
@@ -305,7 +305,7 @@ void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix)
 			R_AddSurfaceToBatch (surf);
 
 		R_EndSurfaceBatch ();
-		ti->texturechain = NULL;
+		ti->image->texturechain = NULL;
 	}
 }
 
@@ -376,8 +376,8 @@ void R_ChainSurface (msurface_t *surf)
 	else
 	{
 		// normal texture chain
-		surf->texturechain = surf->texinfo->texturechain;
-		surf->texinfo->texturechain = surf;
+		surf->texturechain = surf->texinfo->image->texturechain;
+		surf->texinfo->image->texturechain = surf;
 	}
 }
 

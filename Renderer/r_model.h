@@ -60,7 +60,6 @@ typedef struct mtexinfo_s {
 	int			numframes;
 	struct mtexinfo_s	*next;		// animation chain
 	image_t		*image;
-	struct msurface_s	*texturechain;
 } mtexinfo_t;
 
 

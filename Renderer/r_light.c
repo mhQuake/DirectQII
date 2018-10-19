@@ -635,8 +635,8 @@ void R_MarkLights (dlight_t *dl, float *transformedorigin, mnode_t *node, int vi
 		if (R_SurfaceDLImpact (surf, dl, transformedorigin, dist))
 		{
 			// chain it for lighting
-			surf->texturechain = surf->texinfo->texturechain;
-			surf->texinfo->texturechain = surf;
+			surf->texturechain = surf->texinfo->image->texturechain;
+			surf->texinfo->image->texturechain = surf;
 
 			// record surfaces in this light
 			dl->numsurfaces++;
