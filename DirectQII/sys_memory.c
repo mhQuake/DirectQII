@@ -45,15 +45,6 @@ the full heap rather than using individual Z_Free calls which makes it safe)
 
 // it's possible for games to exceed this (neither baseq2 nor ctf do) which would cause an error meaning we need to increase it
 #define MAX_ZONETAGS	1024
-#define Z_MAGIC			0x35012560
-
-typedef struct z_alloc_s
-{
-	int size;
-	int tag;
-	int magic;
-} z_alloc_t;
-
 
 typedef struct zone_s
 {
@@ -72,27 +63,7 @@ Z_Free
 */
 void Z_Free (void *ptr)
 {
-	// retrieve the allocation
-	z_alloc_t *zz = ((z_alloc_t *) ptr) - 1;
-
-	// retrieve the zone
-	zone_t *z = &z_zones[zz->tag];
-
-	// sanity-check it so that nothing is incorrectly freed; if it's mismatched we just leak it and the next Z_FreeTags will clean it up
-	if (zz->magic != Z_MAGIC) return;
-	if (zz->tag < 0) return;
-	if (zz->tag >= MAX_ZONETAGS) return;
-
-	// making sure that it's valid
-	if (!z->hZone) return;
-
-	// counts
-	z->bytes -= zz->size;
-	z->count--;
-
-	// and free it properly, then compact the heap to prevent memory fragmentation
-	HeapFree (z->hZone, 0, zz);
-	HeapCompact (z->hZone, 0);
+	// this exists but is not actually used directly by game code, so we can simplify greatly by just making it a nop
 }
 
 
@@ -107,7 +78,7 @@ void Z_FreeTags (int tag)
 	if (tag < 0) Com_Error (ERR_FATAL, "Z_FreeTags: bad tag");
 	if (tag >= MAX_ZONETAGS) Com_Error (ERR_FATAL, "Z_FreeTags: bad tag");
 
-	Com_Printf ("Freeing %i kb from tag %i\n", (z_zones[tag].bytes + 512) / 1024, tag);
+	Com_Printf ("Z_FreeTags : Freeing %i kb from tag %i\n", (z_zones[tag].bytes + 512) / 1024, tag);
 
 	// destroy and fully clear the zone
 	HeapDestroy (z_zones[tag].hZone);
@@ -122,32 +93,26 @@ Z_TagAlloc
 */
 void *Z_TagAlloc (int size, int tag)
 {
-	if (tag < 0) Com_Error (ERR_FATAL, "Z_TagAlloc: bad tag");
-	if (tag >= MAX_ZONETAGS) Com_Error (ERR_FATAL, "Z_TagAlloc: bad tag");
-
+	if (tag < 0 || tag >= MAX_ZONETAGS)
 	{
-	zone_t *z = &z_zones[tag];
-
-	// create the heap if necessary
-	if (!z->hZone) z->hZone = HeapCreate (0, 0, 0);
-	if (!z->hZone) Com_Error (ERR_FATAL, "Z_TagAlloc: failed on HeapCreate");
-
-	{
-	// make the zone block allocation
-	z_alloc_t *zz = (z_alloc_t *) HeapAlloc (z->hZone, HEAP_ZERO_MEMORY, size + sizeof (z_alloc_t));
-
-	// fill it in
-	zz->magic = Z_MAGIC;
-	zz->tag = tag;
-	zz->size = size;
-
-	// counts
-	z->bytes += size;
-	z->count++;
-
-	// return what we got
-	return (void *) (zz + 1);
+		Com_Error (ERR_FATAL, "Z_TagAlloc: bad tag");
+		return NULL;
 	}
+	else
+	{
+		// get the correct zone
+		zone_t *z = &z_zones[tag];
+
+		// create the heap if necessary
+		if (!z->hZone) z->hZone = HeapCreate (0, 0, 0);
+		if (!z->hZone) Com_Error (ERR_FATAL, "Z_TagAlloc: failed on HeapCreate");
+
+		// counts
+		z->bytes += size;
+		z->count++;
+
+		// return what we got
+		return HeapAlloc (z->hZone, HEAP_ZERO_MEMORY, size);
 	}
 }
 
