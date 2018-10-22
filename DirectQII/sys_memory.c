@@ -197,7 +197,12 @@ int load_buffer_mark = 0;
 
 void Load_FreeMemory (void)
 {
-	load_buffer_mark = 0;
+	if (load_buffer_mark > 0)
+	{
+		// future attempts to access the contents of the buffer should be errors
+		memset (load_buffer, 0, load_buffer_mark);
+		load_buffer_mark = 0;
+	}
 }
 
 
