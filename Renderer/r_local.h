@@ -155,6 +155,7 @@ typedef struct image_s {
 
 #define		MAX_GLTEXTURES	1024
 
+
 //===================================================================
 
 typedef enum _rserr_t
@@ -177,8 +178,6 @@ void R_SetDefaultState (void);
 
 
 //====================================================
-
-extern	image_t		gltextures[MAX_GLTEXTURES];
 
 
 extern	image_t		*r_notexture;
