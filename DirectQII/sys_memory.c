@@ -75,10 +75,13 @@ Z_FreeTags
 void Z_FreeTags (int tag)
 {
 	// this should never happen; if it does then we need to know
-	if (tag < 0) Com_Error (ERR_FATAL, "Z_FreeTags: bad tag");
-	if (tag >= MAX_ZONETAGS) Com_Error (ERR_FATAL, "Z_FreeTags: bad tag");
+	if (tag < 0 || tag >= MAX_ZONETAGS)
+	{
+		Com_Error (ERR_FATAL, "Z_FreeTags: bad tag");
+		return;
+	}
 
-	Com_Printf ("Z_FreeTags : Freeing %i kb from tag %i\n", (z_zones[tag].bytes + 512) / 1024, tag);
+	Com_Printf ("Z_FreeTags : Freeing %i kb in %i allocations from tag %i\n", (z_zones[tag].bytes + 512) / 1024, z_zones[tag].count, tag);
 
 	// destroy and fully clear the zone
 	HeapDestroy (z_zones[tag].hZone);
