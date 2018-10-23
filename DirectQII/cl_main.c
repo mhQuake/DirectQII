@@ -1663,8 +1663,12 @@ qboolean CL_FilterTime (int extratime)
 	if (cls.key_dest != key_game || cls.state != ca_active)
 		targettime = (1000 / cl_maxfps->value);
 
+	// reset if we accumulate too much; don't run this frame and the next will run as normal
 	if (targettime < 0)
+	{
 		targettime = (1000 / cl_maxfps->value);
+		return false;
+	}
 
 	if (!cl_timedemo->value)
 	{

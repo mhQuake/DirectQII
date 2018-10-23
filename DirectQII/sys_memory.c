@@ -81,7 +81,7 @@ void Z_FreeTags (int tag)
 		return;
 	}
 
-	Com_Printf ("Z_FreeTags : Freeing %i kb in %i allocations from tag %i\n", (z_zones[tag].bytes + 512) / 1024, z_zones[tag].count, tag);
+	// Com_Printf ("Z_FreeTags : Freeing %i kb in %i allocations from tag %i\n", (z_zones[tag].bytes + 512) / 1024, z_zones[tag].count, tag);
 
 	// destroy and fully clear the zone
 	HeapDestroy (z_zones[tag].hZone);
