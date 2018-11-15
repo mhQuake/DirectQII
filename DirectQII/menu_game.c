@@ -110,7 +110,7 @@ void Game_MenuInit (void)
 	s_nightmare_game_action.generic.flags = QMF_LEFT_JUSTIFY;
 	s_nightmare_game_action.generic.x = 0;
 	s_nightmare_game_action.generic.y = 30;
-	s_nightmare_game_action.generic.name = "NIGHTMARE!";
+	s_nightmare_game_action.generic.name = "NIGHTMARE!"; // correct skill name for ui from the game dll (used in the f1 help computer) is "hard+" but it's difficult to distinguish, so...
 	s_nightmare_game_action.generic.callback = NightmareGameFunc;
 
 	s_load_game_action.generic.type = MTYPE_ACTION;
