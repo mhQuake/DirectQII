@@ -54,9 +54,16 @@ PS_PARTICLE GetParticleVert (point GS_PARTICLE gs_in, float2 Offsets, float Scal
 
 void ParticleCommonGS (point GS_PARTICLE gs_in, inout TriangleStream<PS_PARTICLE> gs_out, float TypeScale, float HackUp)
 {
+	// frustum cull the particle
+	if (dot (gs_in.Origin, frustum0.xyz) - frustum0.w <= -1) return;
+	if (dot (gs_in.Origin, frustum1.xyz) - frustum1.w <= -1) return;
+	if (dot (gs_in.Origin, frustum2.xyz) - frustum2.w <= -1) return;
+	if (dot (gs_in.Origin, frustum3.xyz) - frustum3.w <= -1) return;
+
 	// hack a scale up to keep particles from disapearing
 	float ScaleUp = (1.0f + dot (gs_in.Origin - viewOrigin, viewForward) * HackUp) * TypeScale;
 
+	// and write it out
 	gs_out.Append (GetParticleVert (gs_in, float2 (-1, -1), ScaleUp));
 	gs_out.Append (GetParticleVert (gs_in, float2 (-1,  1), ScaleUp));
 	gs_out.Append (GetParticleVert (gs_in, float2 ( 1, -1), ScaleUp));

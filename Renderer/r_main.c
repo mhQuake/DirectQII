@@ -41,6 +41,10 @@ __declspec(align(16)) typedef struct mainconstants_s {
 	float RefdefW;
 	float RefdefH;
 	QMATRIX skyMatrix;
+	float frustum0[4];
+	float frustum1[4];
+	float frustum2[4];
+	float frustum3[4];
 } mainconstants_t;
 
 __declspec(align(16)) typedef struct entityconstants_s {
@@ -535,6 +539,12 @@ void R_SetupGL (void)
 
 	// set up sky for drawing (also binds the sky texture)
 	R_SetupSky (&consts.skyMatrix);
+
+	// copy off the frustum
+	Vector4Copy (consts.frustum0, frustum[0].normal);	// overflow is deliberate
+	Vector4Copy (consts.frustum1, frustum[1].normal);	// overflow is deliberate
+	Vector4Copy (consts.frustum2, frustum[2].normal);	// overflow is deliberate
+	Vector4Copy (consts.frustum3, frustum[3].normal);	// overflow is deliberate
 
 	// and update to the cbuffer
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MainConstants, 0, NULL, &consts, 0, 0);

@@ -28,6 +28,11 @@ cbuffer cbMainPerFrame : register(b1) {
 	float RefdefH : packoffset(c10.w);
 
 	matrix SkyMatrix : packoffset(c11);
+
+	float4 frustum0 : packoffset(c15);
+	float4 frustum1 : packoffset(c16);
+	float4 frustum2 : packoffset(c17);
+	float4 frustum3 : packoffset(c18);
 };
 
 cbuffer cbPerObject : register(b2) {
