@@ -35,13 +35,6 @@ struct PS_DRAWSKY {
 	float3 TexCoord : TEXCOORD;
 };
 
-struct PS_ENVMAPPED {
-	float4 Position : SV_POSITION;
-	float2 TexCoord : TEXCOORD;
-	float3 ViewVector : VIEWVECTOR;
-	float3 Normal : NORMAL;
-};
-
 float2 GetTextureScroll (VS_SURFCOMMON vs_in)
 {
 	// ensure that SURF_FLOWING scroll is applied consistently
@@ -117,33 +110,6 @@ PS_DRAWSKY SurfDrawSkyVS (VS_DRAWSKY vs_in)
 
 
 #ifdef GEOMETRYSHADER
-PS_ENVMAPPED GetEnvmappedVertex (float4 Position, float3 Normal, float2 TexCoord)
-{
-	PS_ENVMAPPED vs_out;
-
-	vs_out.Position = mul (LocalMatrix, Position);
-	vs_out.TexCoord = TexCoord;
-	vs_out.ViewVector = viewOrigin - Position.xyz;
-	vs_out.Normal = Normal;
-
-	return vs_out;
-}
-
-[maxvertexcount (3)]
-void SurfEnvmappedGS (triangle VS_SURFCOMMON gs_in[3], inout TriangleStream<PS_ENVMAPPED> gs_out)
-{
-	// this is the same normal calculation as QBSP does
-	// strictly speaking we should first transform the positions from local space to world space, but in practice all alpha surfs
-	// are using world space to begin with, so we don't need to
-	float3 Normal = normalize (
-		cross (gs_in[0].Position.xyz - gs_in[1].Position.xyz, gs_in[2].Position.xyz - gs_in[1].Position.xyz)
-	);
-
-	gs_out.Append (GetEnvmappedVertex (gs_in[0].Position, Normal, GetTextureScroll (gs_in[0])));
-	gs_out.Append (GetEnvmappedVertex (gs_in[1].Position, Normal, GetTextureScroll (gs_in[1])));
-	gs_out.Append (GetEnvmappedVertex (gs_in[2].Position, Normal, GetTextureScroll (gs_in[2])));
-}
-
 [maxvertexcount (3)]
 void SurfDynamicGS (triangle VS_SURFCOMMON gs_in[3], inout TriangleStream<PS_DYNAMICLIGHT> gs_out)
 {
@@ -174,18 +140,6 @@ float4 SurfBasicPS (PS_BASIC ps_in) : SV_TARGET0
 {
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
 	return float4 (diff.rgb, 1.0f);
-}
-
-float4 SurfEnvmappedPS (PS_ENVMAPPED ps_in) : SV_TARGET0
-{
-	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
-
-	float2 reflected = reflect (normalize (ps_in.ViewVector), ps_in.Normal).yz;
-	float2 EnvMapCoord = float2 (0.5f + reflected.x * 0.5f, 0.5f - reflected.y * 0.5f);
-
-	float3 env = GetGamma (mainTexture.Sample (mainSampler, EnvMapCoord)).rgb;
-
-	return float4 (diff.rgb + env, diff.a * AlphaVal);
 }
 
 float4 SurfAlphaPS (PS_BASIC ps_in) : SV_TARGET0

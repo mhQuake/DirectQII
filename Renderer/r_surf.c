@@ -78,7 +78,6 @@ void R_InitSurfaces (void)
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, NULL, &d3d_SurfIndexes);
 
 	d3d_SurfBasicShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfBasicVS", NULL, "SurfBasicPS", DEFINE_LAYOUT (layout));
-	//d3d_SurfAlphaShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDynamicVS", "SurfEnvmappedGS", "SurfEnvmappedPS", DEFINE_LAYOUT (layout));
 	d3d_SurfAlphaShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfAlphaVS", NULL, "SurfAlphaPS", DEFINE_LAYOUT (layout));
 	d3d_SurfLightmapShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfLightmapVS", NULL, "SurfLightmapPS", DEFINE_LAYOUT (layout));
 	d3d_SurfDrawTurbShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawTurbVS", NULL, "SurfDrawTurbPS", DEFINE_LAYOUT (layout));
@@ -394,7 +393,22 @@ void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix)
 	model_t		*mod = e->model;
 	msurface_t	*psurf = &mod->surfaces[mod->firstmodelsurface];
 
-	if (R_CullForEntity (mod->mins, mod->maxs, localmatrix))
+	// the culling is incorrect for rotated bmodels so revert to the original cull
+	// this is probably only the case if angles[0] or angles[2] are non-zero
+	if (e->angles[0] || /*e->angles[1] ||*/ e->angles[2])
+	{
+		float mins[3], maxs[3];
+
+		for (i = 0; i < 3; i++)
+		{
+			mins[i] = e->currorigin[i] - mod->radius;
+			maxs[i] = e->currorigin[i] + mod->radius;
+		}
+
+		// and do the cull
+		if (R_CullBox (mins, maxs)) return;
+	}
+	else if (R_CullForEntity (mod->mins, mod->maxs, localmatrix))
 		return;
 
 	R_VectorInverseTransform (localmatrix, modelorg, r_newrefdef.vieworg);
