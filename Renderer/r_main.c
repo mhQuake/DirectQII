@@ -45,6 +45,8 @@ __declspec(align(16)) typedef struct mainconstants_s {
 	float frustum1[4];
 	float frustum2[4];
 	float frustum3[4];
+	float desaturation;
+	float junk[3];
 } mainconstants_t;
 
 __declspec(align(16)) typedef struct entityconstants_s {
@@ -142,6 +144,7 @@ cvar_t	*r_novis;
 cvar_t	*r_lefthand;
 
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
+cvar_t	*r_desaturatelighting;
 
 cvar_t	*vid_mode;
 cvar_t	*gl_finish;
@@ -545,6 +548,12 @@ void R_SetupGL (void)
 	Vector4Copy (consts.frustum1, frustum[1].normal);	// overflow is deliberate
 	Vector4Copy (consts.frustum2, frustum[2].normal);	// overflow is deliberate
 	Vector4Copy (consts.frustum3, frustum[3].normal);	// overflow is deliberate
+
+	if (r_desaturatelighting->value < 0)
+		consts.desaturation = 0;
+	else if (r_desaturatelighting->value > 1)
+		consts.desaturation = 1;
+	else consts.desaturation = r_desaturatelighting->value;
 
 	// and update to the cbuffer
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MainConstants, 0, NULL, &consts, 0, 0);

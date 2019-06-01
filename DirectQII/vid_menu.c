@@ -29,6 +29,7 @@ static cvar_t *vid_width;
 static cvar_t *vid_height;
 static cvar_t *vid_vsync;
 
+
 void M_ForceMenuOff (void);
 void VID_ResetMode (void);
 void M_PopMenu (void);
@@ -53,6 +54,7 @@ static menunumberlist_s	s_width_list;
 static menunumberlist_s	s_height_list;
 static menuslider_s		s_screensize_slider;
 static menuslider_s		s_brightness_slider;
+static menuslider_s		s_desat_slider;
 static menulist_s  		s_fs_box;
 static menulist_s  		s_vsync_box;
 
@@ -94,6 +96,14 @@ static void BrightnessCallback (void *s)
 	float gamma = (0.8 - (slider->curvalue / 10.0 - 0.5)) + 0.5;
 
 	Cvar_SetValue ("vid_gamma", gamma);
+}
+
+
+static void SaturationCallback (void *s)
+{
+	// this now works without needing a vid_restart
+	menuslider_s *slider = (menuslider_s *) s;
+	Cvar_SetValue ("r_desaturatelighting", slider->curvalue * 0.1f);
 }
 
 
@@ -232,9 +242,18 @@ void VID_MenuInit (void)
 	s_brightness_slider.maxvalue = 13;
 	s_brightness_slider.curvalue = (1.3 - vid_gamma->value + 0.5) * 10;
 
+	s_desat_slider.generic.type = MTYPE_SLIDER;
+	s_desat_slider.generic.x = 0;
+	s_desat_slider.generic.y = 70;
+	s_desat_slider.generic.name = "saturation";
+	s_desat_slider.generic.callback = SaturationCallback;
+	s_desat_slider.minvalue = 0;
+	s_desat_slider.maxvalue = 10;
+	s_desat_slider.curvalue = Cvar_VariableValue ("r_desaturatelighting") * 10;
+
 	s_vsync_box.generic.type = MTYPE_SPINCONTROL;
 	s_vsync_box.generic.x = 0;
-	s_vsync_box.generic.y = 70;
+	s_vsync_box.generic.y = 80;
 	s_vsync_box.generic.name = "vertical sync";
 	s_vsync_box.curvalue = vid_vsync->value;
 	s_vsync_box.itemnames = yesno_names;
@@ -242,19 +261,19 @@ void VID_MenuInit (void)
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset";
 	s_defaults_action.generic.x = 0;
-	s_defaults_action.generic.y = 90;
+	s_defaults_action.generic.y = 100;
 	s_defaults_action.generic.callback = ResetDefaults;
 
 	s_cancel_action.generic.type = MTYPE_ACTION;
 	s_cancel_action.generic.name = "cancel";
 	s_cancel_action.generic.x = 0;
-	s_cancel_action.generic.y = 100;
+	s_cancel_action.generic.y = 110;
 	s_cancel_action.generic.callback = CancelChanges;
 
 	s_apply_action.generic.type = MTYPE_ACTION;
 	s_apply_action.generic.name = "apply changes";
 	s_apply_action.generic.x = 0;
-	s_apply_action.generic.y = 110;
+	s_apply_action.generic.y = 120;
 	s_apply_action.generic.callback = ApplyChanges;
 
 	Menu_AddItem (&s_windowed_menu, (void *) &s_fs_box);
@@ -262,6 +281,7 @@ void VID_MenuInit (void)
 	Menu_AddItem (&s_windowed_menu, (void *) &s_height_list);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_brightness_slider);
+	Menu_AddItem (&s_windowed_menu, (void *) &s_desat_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_vsync_box);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_defaults_action);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_cancel_action);
@@ -272,6 +292,7 @@ void VID_MenuInit (void)
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_mode_list);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_brightness_slider);
+	Menu_AddItem (&s_fullscreen_menu, (void *) &s_desat_slider);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_vsync_box);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_defaults_action);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_cancel_action);

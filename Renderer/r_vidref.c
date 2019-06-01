@@ -38,6 +38,7 @@ void R_Register (void)
 	r_novis = ri.Cvar_Get ("r_novis", "0", 0);
 
 	r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0);
+	r_desaturatelighting = ri.Cvar_Get ("r_desaturatelighting", "1", CVAR_ARCHIVE);
 
 	vid_mode = ri.Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE | CVAR_VIDEO);
 	gl_finish = ri.Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE);

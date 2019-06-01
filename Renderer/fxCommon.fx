@@ -33,6 +33,8 @@ cbuffer cbMainPerFrame : register(b1) {
 	float4 frustum1 : packoffset(c16);
 	float4 frustum2 : packoffset(c17);
 	float4 frustum3 : packoffset(c18);
+
+	float desaturation : packoffset(c19.x);	
 };
 
 cbuffer cbPerObject : register(b2) {
@@ -110,6 +112,53 @@ Texture2D<float4> warpTexture : register(t5);	// underwater warp noise texture
 Texture2DArray<float4> charTexture : register(t6);	// characters and numbers
 
 
+float3 HUEtoRGB (in float H)
+{
+	float R = abs (H * 6 - 3) - 1;
+	float G = 2 - abs (H * 6 - 2);
+	float B = 2 - abs (H * 6 - 4);
+	return saturate (float3 (R,G,B));
+}
+
+
+float3 HSLtoRGB (in float3 HSL)
+{
+	float3 RGB = HUEtoRGB (HSL.x);
+	float C = (1 - abs (2 * HSL.z - 1)) * HSL.y;
+	return (RGB - 0.5) * C + HSL.z;
+}
+
+
+float Epsilon = 1e-10;
+
+float3 RGBtoHCV(in float3 RGB)
+{
+	// Based on work by Sam Hocevar and Emil Persson
+	float4 P = (RGB.g < RGB.b) ? float4 (RGB.bg, -1.0, 2.0 / 3.0) : float4 (RGB.gb, 0.0, -1.0 / 3.0);
+	float4 Q = (RGB.r < P.x) ? float4 (P.xyw, RGB.r) : float4 (RGB.r, P.yzx);
+	float C = Q.x - min (Q.w, Q.y);
+	float H = abs ((Q.w - Q.y) / (6 * C + Epsilon) + Q.z);
+	return float3 (H, C, Q.x);
+}
+
+
+float3 RGBtoHSL(in float3 RGB)
+{
+	float3 HCV = RGBtoHCV (RGB);
+	float L = HCV.z - HCV.y * 0.5;
+	float S = HCV.y / (1 - abs (L * 2 - 1) + Epsilon);
+	return float3 (HCV.x, S, L);
+}
+
+
+float3 Desaturate (float3 RGB)
+{
+	// hack hack hack - because light can overbright we scale it down, then apply the desaturation, then bring it back up again
+	// otherwise we get clamping issues in the conversion funcs if any of the channels are above 1
+	return HSLtoRGB (RGBtoHSL (RGB * 0.1f) * float3 (1.0f, desaturation, 1.0f)) * 10.0f;
+}
+
+
 // faster than a full-screen gamma pass over the scene as a post-process, and more flexible than texture gamma
 float4 GetGamma (float4 colorin)
 {
@@ -137,7 +186,7 @@ float4 GenericDynamicPS (PS_DYNAMICLIGHT ps_in) : SV_TARGET0
 	// using our own custom attenuation, again it's not correct per-theory but matches the Quake tools
 	float Add = max ((LightRadius - length (ps_in.LightVector)) * Angle, 0.0f);
 
-	return float4 (diff.rgb * LightColour * Add, 0.0f);
+	return float4 (diff.rgb * Desaturate (LightColour) * Add, 0.0f);
 }
 #endif
 
