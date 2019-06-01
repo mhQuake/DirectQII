@@ -41,3 +41,4 @@ reduces number of texture array slots...
 
 .dm2 is a valid auto-extension for the map command
 
+frustum culling for rotation bmodels is broken
