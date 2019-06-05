@@ -48,23 +48,20 @@ Mod_PointInLeaf
 mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 {
 	mnode_t		*node;
-	float		d;
-	cplane_t	*plane;
 
 	if (!model || !model->nodes)
 		ri.Sys_Error (ERR_DROP, "Mod_PointInLeaf: bad model");
 
 	node = model->nodes;
+
 	while (1)
 	{
 		if (node->contents != -1)
 			return (mleaf_t *) node;
-		plane = node->plane;
-		d = Vector3Dot (p, plane->normal) - plane->dist;
-		if (d > 0)
+
+		if (Mod_PlaneDist (node->plane, p) > 0)
 			node = node->children[0];
-		else
-			node = node->children[1];
+		else node = node->children[1];
 	}
 
 	return NULL;	// never reached
@@ -126,8 +123,36 @@ byte *Mod_ClusterPVS (int cluster, model_t *model)
 {
 	if (cluster == -1 || !model->vis)
 		return mod_novis;
-	return Mod_DecompressVis ((byte *) model->vis + model->vis->bitofs[cluster][DVIS_PVS],
-		model);
+	else return Mod_DecompressVis ((byte *) model->vis + model->vis->bitofs[cluster][DVIS_PVS], model);
+}
+
+
+void Mod_AddLeafsToPVS (model_t *mod, byte *vis)
+{
+	int i;
+	mleaf_t *leaf;
+
+	for (i = 0, leaf = mod->leafs; i < mod->numleafs; i++, leaf++)
+	{
+		int cluster = leaf->cluster;
+
+		if (cluster == -1)
+			continue;
+
+		if (vis[cluster >> 3] & (1 << (cluster & 7)))
+		{
+			mnode_t *node = (mnode_t *) leaf;
+
+			do
+			{
+				if (node->visframe == r_visframecount)
+					break;
+
+				node->visframe = r_visframecount;
+				node = node->parent;
+			} while (node);
+		}
+	}
 }
 
 
@@ -294,7 +319,6 @@ void R_BeginRegistration (char *model)
 	cvar_t	*flushmap;
 
 	r_registration_sequence++;
-	r_oldviewcluster = -1;		// force markleafs
 
 	Com_sprintf (fullname, sizeof (fullname), "maps/%s.bsp", model);
 
@@ -306,7 +330,9 @@ void R_BeginRegistration (char *model)
 		Mod_Free (&mod_known[0]);
 
 	r_worldmodel = Mod_ForName (fullname, true);
-	r_viewcluster = -1;
+
+	// force markleafs
+	r_viewleaf = r_oldviewleaf = NULL;
 }
 
 
@@ -419,6 +445,18 @@ void Mod_FreeAll (void)
 		Mod_Free (&mod_known[i]);
 
 	memset (mod_known, 0, sizeof (mod_known));
+}
+
+
+float Mod_PlaneDist (cplane_t *plane, float *pt)
+{
+	switch (plane->type)
+	{
+	case PLANE_X: return pt[0] - plane->dist;
+	case PLANE_Y: return pt[1] - plane->dist;
+	case PLANE_Z: return pt[2] - plane->dist;
+	default: return Vector3Dot (pt, plane->normal) - plane->dist;
+	}
 }
 
 

@@ -249,4 +249,8 @@ int Mod_SignbitsForPlane (cplane_t *out);
 
 void Mod_FreeAll (void);
 void Mod_Free (model_t *mod);
+float Mod_PlaneDist (cplane_t *plane, float *pt);
+void Mod_AddLeafsToPVS (model_t *mod, byte *vis);
+
+extern	mleaf_t	*r_viewleaf, *r_oldviewleaf;
 

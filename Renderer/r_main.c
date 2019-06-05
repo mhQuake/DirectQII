@@ -107,6 +107,8 @@ image_t		*r_whitetexture;	// use for bad textures
 
 cplane_t	frustum[4];
 
+mleaf_t	*r_viewleaf, *r_oldviewleaf;
+
 int			r_visframecount;	// bumped when going to a new PVS
 int			r_framecount;		// used for dlight push checking
 
@@ -128,8 +130,6 @@ vec3_t	vright;
 
 // screen size info
 refdef_t	r_newrefdef;
-
-int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
 cvar_t	*scr_viewsize;
 cvar_t	*r_testnullmodels;
@@ -216,10 +216,10 @@ Returns true if the box is completely outside the frustom
 */
 qboolean R_CullSphere (float *center, float radius)
 {
-	if (Vector3Dot (center, frustum[0].normal) - frustum[0].dist <= -radius) return true;
-	if (Vector3Dot (center, frustum[1].normal) - frustum[1].dist <= -radius) return true;
-	if (Vector3Dot (center, frustum[2].normal) - frustum[2].dist <= -radius) return true;
-	if (Vector3Dot (center, frustum[3].normal) - frustum[3].dist <= -radius) return true;
+	if (Mod_PlaneDist (&frustum[0], center) <= -radius) return true;
+	if (Mod_PlaneDist (&frustum[1], center) <= -radius) return true;
+	if (Mod_PlaneDist (&frustum[2], center) <= -radius) return true;
+	if (Mod_PlaneDist (&frustum[3], center) <= -radius) return true;
 
 	return false;
 }
@@ -371,42 +371,11 @@ R_SetupFrame
 */
 void R_SetupFrame (void)
 {
-	mleaf_t	*leaf;
-
 	r_framecount++;
 
 	// current viewcluster
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
-	{
-		r_oldviewcluster = r_viewcluster;
-		r_oldviewcluster2 = r_viewcluster2;
-		leaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
-		r_viewcluster = r_viewcluster2 = leaf->cluster;
-
-		// check above and below so crossing solid water doesn't draw wrong
-		if (!leaf->contents)
-		{
-			// look down a bit
-			vec3_t	temp;
-
-			Vector3Copy (temp, r_newrefdef.vieworg);
-			temp[2] -= 16;
-			leaf = Mod_PointInLeaf (temp, r_worldmodel);
-			if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != r_viewcluster2))
-				r_viewcluster2 = leaf->cluster;
-		}
-		else
-		{
-			// look up a bit
-			vec3_t	temp;
-
-			Vector3Copy (temp, r_newrefdef.vieworg);
-			temp[2] += 16;
-			leaf = Mod_PointInLeaf (temp, r_worldmodel);
-			if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != r_viewcluster2))
-				r_viewcluster2 = leaf->cluster;
-		}
-	}
+		r_viewleaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
 
 	// scale for value of gl_polyblend
 	Vector4Copy (v_blend, r_newrefdef.blend);

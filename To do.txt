@@ -1,3 +1,5 @@
+PVS is missing surfaces in some maps - detect surfaces which are never in a PVS and always draw them...
+
 Timer catch up from debug break
 
 dropped frames in cinematics (it's 2018, this shouldn't happen)

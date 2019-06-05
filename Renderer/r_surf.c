@@ -390,26 +390,27 @@ void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix)
 {
 	int			i;
 	int			numsurfaces = 0;
+	float		mins[3], maxs[3];
 	model_t		*mod = e->model;
 	msurface_t	*psurf = &mod->surfaces[mod->firstmodelsurface];
 
-	// the culling is incorrect for rotated bmodels so revert to the original cull
-	// this is probably only the case if angles[0] or angles[2] are non-zero
-	if (e->angles[0] || /*e->angles[1] ||*/ e->angles[2])
+	// R_CullForEntity is incorrect for rotated bmodels so revert to the original cull
+	if (e->angles[0] || e->angles[1] || e->angles[2])
 	{
-		float mins[3], maxs[3];
-
 		for (i = 0; i < 3; i++)
 		{
 			mins[i] = e->currorigin[i] - mod->radius;
 			maxs[i] = e->currorigin[i] + mod->radius;
 		}
-
-		// and do the cull
-		if (R_CullBox (mins, maxs)) return;
 	}
-	else if (R_CullForEntity (mod->mins, mod->maxs, localmatrix))
-		return;
+	else
+	{
+		Vector3Add (mins, e->currorigin, mod->mins);
+		Vector3Add (maxs, e->currorigin, mod->maxs);
+	}
+
+	// and do the cull
+	if (R_CullBox (mins, maxs)) return;
 
 	R_VectorInverseTransform (localmatrix, modelorg, r_newrefdef.vieworg);
 
@@ -417,8 +418,7 @@ void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix)
 	for (i = 0; i < mod->nummodelsurfaces; i++, psurf++)
 	{
 		// find which side of the node we are on
-		cplane_t *pplane = psurf->plane;
-		float dot = Vector3Dot (modelorg, pplane->normal) - pplane->dist;
+		float dot = Mod_PlaneDist (psurf->plane, modelorg);
 
 		// draw the polygon
 		if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) || (!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
@@ -462,10 +462,7 @@ R_RecursiveWorldNode
 void R_RecursiveWorldNode (mnode_t *node, int clipflags)
 {
 	int			c, side, sidebit;
-	cplane_t	*plane;
 	msurface_t	*surf, **mark;
-	mleaf_t		*pleaf;
-	float		dot;
 
 	if (node->contents == CONTENTS_SOLID)
 		return;		// solid
@@ -473,7 +470,6 @@ void R_RecursiveWorldNode (mnode_t *node, int clipflags)
 	if (node->visframe != r_visframecount)
 		return;
 
-#if 1
 	if (clipflags)
 	{
 		for (c = 0; c < 4; c++)
@@ -488,15 +484,11 @@ void R_RecursiveWorldNode (mnode_t *node, int clipflags)
 			if (side == 2) return;	// node is entirely off screen
 		}
 	}
-#else
-	if (R_CullBox (node->mins, node->maxs))
-		return;
-#endif
 
 	// if a leaf node, draw stuff
 	if (node->contents != -1)
 	{
-		pleaf = (mleaf_t *) node;
+		mleaf_t *pleaf = (mleaf_t *) node;
 
 		// check for door connected areas
 		if (r_newrefdef.areabits)
@@ -522,25 +514,7 @@ void R_RecursiveWorldNode (mnode_t *node, int clipflags)
 
 	// node is just a decision point, so go down the apropriate sides
 	// find which side of the node we are on
-	plane = node->plane;
-
-	switch (plane->type)
-	{
-	case PLANE_X:
-		dot = modelorg[0] - plane->dist;
-		break;
-	case PLANE_Y:
-		dot = modelorg[1] - plane->dist;
-		break;
-	case PLANE_Z:
-		dot = modelorg[2] - plane->dist;
-		break;
-	default:
-		dot = Vector3Dot (modelorg, plane->normal) - plane->dist;
-		break;
-	}
-
-	if (dot >= 0)
+	if (Mod_PlaneDist (node->plane, modelorg) >= 0)
 	{
 		side = 0;
 		sidebit = 0;
@@ -615,24 +589,17 @@ cluster
 void R_MarkLeaves (void)
 {
 	byte	*vis;
-	byte	fatvis[MAX_MAP_LEAFS / 8];
-	mnode_t	*node;
-	int		i, c;
-	mleaf_t	*leaf;
-	int		cluster;
+	int		i;
 
-	if (r_oldviewcluster == r_viewcluster && r_oldviewcluster2 == r_viewcluster2 && !r_novis->value && r_viewcluster != -1)
-		return;
+	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL) return;
+	if (r_oldviewleaf == r_viewleaf && !r_novis->value) return;
 
 	// development aid to let you run around and see exactly where the pvs ends
-	if (gl_lockpvs->value)
-		return;
+	if (gl_lockpvs->value) return;
 
 	r_visframecount++;
-	r_oldviewcluster = r_viewcluster;
-	r_oldviewcluster2 = r_viewcluster2;
 
-	if (r_novis->value || r_viewcluster == -1 || !r_worldmodel->vis)
+	if (r_novis->value || !r_viewleaf || !r_worldmodel->vis)
 	{
 		// mark everything
 		for (i = 0; i < r_worldmodel->numleafs; i++)
@@ -642,41 +609,20 @@ void R_MarkLeaves (void)
 		return;
 	}
 
-	vis = Mod_ClusterPVS (r_viewcluster, r_worldmodel);
-
-	// may have to combine two clusters because of solid water boundaries
-	if (r_viewcluster2 != r_viewcluster)
+	if (r_viewleaf)
 	{
-		memcpy (fatvis, vis, (r_worldmodel->numleafs + 7) / 8);
-		vis = Mod_ClusterPVS (r_viewcluster2, r_worldmodel);
-		c = (r_worldmodel->numleafs + 31) / 32;
+		vis = Mod_ClusterPVS (r_viewleaf->cluster, r_worldmodel);
+		Mod_AddLeafsToPVS (r_worldmodel, vis);
 
-		for (i = 0; i < c; i++)
-			((int *) fatvis)[i] |= ((int *) vis)[i];
-
-		vis = fatvis;
-	}
-
-	for (i = 0, leaf = r_worldmodel->leafs; i < r_worldmodel->numleafs; i++, leaf++)
-	{
-		cluster = leaf->cluster;
-
-		if (cluster == -1)
-			continue;
-
-		if (vis[cluster >> 3] & (1 << (cluster & 7)))
+		// may have to combine two clusters because of solid water boundaries
+		if (r_oldviewleaf && r_viewleaf->contents != r_oldviewleaf->contents)
 		{
-			node = (mnode_t *) leaf;
-
-			do
-			{
-				if (node->visframe == r_visframecount)
-					break;
-				node->visframe = r_visframecount;
-				node = node->parent;
-			} while (node);
+			vis = Mod_ClusterPVS (r_oldviewleaf->cluster, r_worldmodel);
+			Mod_AddLeafsToPVS (r_worldmodel, vis);
 		}
 	}
+
+	r_oldviewleaf = r_viewleaf;
 }
 
 

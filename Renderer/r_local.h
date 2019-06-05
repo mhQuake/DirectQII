@@ -202,7 +202,6 @@ extern	vec3_t	vright;
 // screen size info
 //
 extern	refdef_t	r_newrefdef;
-extern	int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
 extern	cvar_t	*scr_viewsize;
 extern	cvar_t	*r_testnullmodels;
