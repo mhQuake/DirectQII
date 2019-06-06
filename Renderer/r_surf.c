@@ -586,30 +586,33 @@ Mark the leaves and nodes that are in the PVS for the current
 cluster
 ===============
 */
+void R_RegeneratePVS (void)
+{
+	// this is sufficient to force the PVS to regenerate
+	r_oldviewleaf = NULL;
+}
+
+
 void R_MarkLeaves (void)
 {
 	byte	*vis;
-	int		i;
 
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL) return;
-	if (r_oldviewleaf == r_viewleaf && !r_novis->value) return;
+	if (r_oldviewleaf == r_viewleaf) return; // to do - can the clusters be the same???
 
 	// development aid to let you run around and see exactly where the pvs ends
 	if (gl_lockpvs->value) return;
 
+	// go to a new visframe
 	r_visframecount++;
 
-	if (r_novis->value || !r_viewleaf || !r_worldmodel->vis)
+	if (r_novis->value || !r_worldmodel->vis || !r_viewleaf)
 	{
 		// mark everything
-		for (i = 0; i < r_worldmodel->numleafs; i++)
-			r_worldmodel->leafs[i].visframe = r_visframecount;
-		for (i = 0; i < r_worldmodel->numnodes; i++)
-			r_worldmodel->nodes[i].visframe = r_visframecount;
-		return;
+		vis = Mod_ClusterPVS (-1, r_worldmodel);
+		Mod_AddLeafsToPVS (r_worldmodel, vis);
 	}
-
-	if (r_viewleaf)
+	else
 	{
 		vis = Mod_ClusterPVS (r_viewleaf->cluster, r_worldmodel);
 		Mod_AddLeafsToPVS (r_worldmodel, vis);
@@ -708,6 +711,7 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 {
 	int i;
 
+	// create the vertex buffer sized as appropriate for all surface vertexes that will be needed
 	D3D11_BUFFER_DESC vbDesc = {
 		sizeof (brushpolyvert_t) * r_numsurfaceverts,
 		D3D11_USAGE_IMMUTABLE,

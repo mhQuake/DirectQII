@@ -25,34 +25,34 @@ extern vidmenu_t vid_modedata;
 
 void R_Register (void)
 {
-	scr_viewsize = ri.Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
-	r_testnullmodels = ri.Cvar_Get ("r_testnullmodels", "0", CVAR_CHEAT);
-	r_lightmap = ri.Cvar_Get ("gl_lightmap", "0", CVAR_CHEAT);
-	r_testnotexture = ri.Cvar_Get ("r_testnotexture", "0", CVAR_CHEAT);
-	r_lightmodel = ri.Cvar_Get ("r_lightmodel", "1", 0);
-	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_CHEAT);
-	r_beamdetail = ri.Cvar_Get ("r_beamdetail", "24", CVAR_ARCHIVE);
-	r_lefthand = ri.Cvar_Get ("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
-	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);
-	r_drawworld = ri.Cvar_Get ("r_drawworld", "1", CVAR_CHEAT);
-	r_novis = ri.Cvar_Get ("r_novis", "0", 0);
+	scr_viewsize = ri.Cvar_Get ("viewsize", "100", CVAR_ARCHIVE, NULL);
+	r_testnullmodels = ri.Cvar_Get ("r_testnullmodels", "0", CVAR_CHEAT, NULL);
+	r_lightmap = ri.Cvar_Get ("gl_lightmap", "0", CVAR_CHEAT, NULL);
+	r_testnotexture = ri.Cvar_Get ("r_testnotexture", "0", CVAR_CHEAT, NULL);
+	r_lightmodel = ri.Cvar_Get ("r_lightmodel", "1", 0, NULL);
+	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_CHEAT, NULL);
+	r_beamdetail = ri.Cvar_Get ("r_beamdetail", "24", CVAR_ARCHIVE, NULL);
+	r_lefthand = ri.Cvar_Get ("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0, NULL);
+	r_drawworld = ri.Cvar_Get ("r_drawworld", "1", CVAR_CHEAT, NULL);
+	r_novis = ri.Cvar_Get ("r_novis", "0", 0, R_RegeneratePVS);
 
-	r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0);
-	r_desaturatelighting = ri.Cvar_Get ("r_desaturatelighting", "1", CVAR_ARCHIVE);
+	r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0, NULL);
+	r_desaturatelighting = ri.Cvar_Get ("r_desaturatelighting", "1", CVAR_ARCHIVE, NULL);
 
-	vid_mode = ri.Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE | CVAR_VIDEO);
-	gl_finish = ri.Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE);
-	gl_clear = ri.Cvar_Get ("gl_clear", "0", 0);
-	gl_polyblend = ri.Cvar_Get ("gl_polyblend", "1", 0);
-	gl_lockpvs = ri.Cvar_Get ("gl_lockpvs", "0", 0);
+	vid_mode = ri.Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE | CVAR_VIDEO, NULL);
+	gl_finish = ri.Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE, NULL);
+	gl_clear = ri.Cvar_Get ("gl_clear", "0", 0, NULL);
+	gl_polyblend = ri.Cvar_Get ("gl_polyblend", "1", 0, NULL);
+	gl_lockpvs = ri.Cvar_Get ("gl_lockpvs", "0", 0, R_RegeneratePVS);
 
-	vid_fullscreen = ri.Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE | CVAR_VIDEO);
-	vid_gamma = ri.Cvar_Get ("vid_gamma", "1.0", CVAR_ARCHIVE);
-	vid_brightness = ri.Cvar_Get ("vid_brightness", "1.0", CVAR_ARCHIVE);
+	vid_fullscreen = ri.Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE | CVAR_VIDEO, NULL);
+	vid_gamma = ri.Cvar_Get ("vid_gamma", "1.0", CVAR_ARCHIVE, NULL);
+	vid_brightness = ri.Cvar_Get ("vid_brightness", "1.0", CVAR_ARCHIVE, NULL);
 
-	vid_width = ri.Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO);
-	vid_height = ri.Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO);
-	vid_vsync = ri.Cvar_Get ("vid_vsync", "0", CVAR_ARCHIVE);
+	vid_width = ri.Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO, NULL);
+	vid_height = ri.Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO, NULL);
+	vid_vsync = ri.Cvar_Get ("vid_vsync", "0", CVAR_ARCHIVE, NULL);
 }
 
 

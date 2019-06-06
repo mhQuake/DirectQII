@@ -394,9 +394,9 @@ int CDAudio_Init (void)
 {
 	int n;
 
-	cd_loopcount = Cvar_Get ("cd_loopcount", "4", 0);
-	cd_looptrack = Cvar_Get ("cd_looptrack", "11", 0);
-	bgmvolume = Cvar_Get ("bgmvolume", "0.7", CVAR_ARCHIVE);
+	cd_loopcount = Cvar_Get ("cd_loopcount", "4", 0, NULL);
+	cd_looptrack = Cvar_Get ("cd_looptrack", "11", 0, NULL);
+	bgmvolume = Cvar_Get ("bgmvolume", "0.7", CVAR_ARCHIVE, NULL);
 
 	for (n = 0; n < 100; n++)
 		remap[n] = n;

@@ -49,7 +49,7 @@ void AddressBook_MenuInit (void)
 
 		Com_sprintf (buffer, sizeof (buffer), "adr%d", i);
 
-		adr = Cvar_Get (buffer, "", CVAR_ARCHIVE);
+		adr = Cvar_Get (buffer, "", CVAR_ARCHIVE, NULL);
 
 		s_addressbook_fields[i].generic.type = MTYPE_FIELD;
 		s_addressbook_fields[i].generic.name = 0;

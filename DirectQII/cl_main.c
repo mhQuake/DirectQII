@@ -783,7 +783,7 @@ void CL_PingServers_f (void)
 	// send a broadcast packet
 	Com_Printf ("pinging broadcast...\n");
 
-	noudp = Cvar_Get ("noudp", "0", CVAR_NOSET);
+	noudp = Cvar_Get ("noudp", "0", CVAR_NOSET, NULL);
 	if (!noudp->value)
 	{
 		adr.type = NA_BROADCAST;
@@ -791,7 +791,7 @@ void CL_PingServers_f (void)
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, va ("info %i", PROTOCOL_VERSION));
 	}
 
-	noipx = Cvar_Get ("noipx", "0", CVAR_NOSET);
+	noipx = Cvar_Get ("noipx", "0", CVAR_NOSET, NULL);
 	if (!noipx->value)
 	{
 		adr.type = NA_BROADCAST_IPX;
@@ -1418,78 +1418,78 @@ void CL_InitLocal (void)
 
 	CL_InitInput ();
 
-	adr0 = Cvar_Get ("adr0", "", CVAR_ARCHIVE);
-	adr1 = Cvar_Get ("adr1", "", CVAR_ARCHIVE);
-	adr2 = Cvar_Get ("adr2", "", CVAR_ARCHIVE);
-	adr3 = Cvar_Get ("adr3", "", CVAR_ARCHIVE);
-	adr4 = Cvar_Get ("adr4", "", CVAR_ARCHIVE);
-	adr5 = Cvar_Get ("adr5", "", CVAR_ARCHIVE);
-	adr6 = Cvar_Get ("adr6", "", CVAR_ARCHIVE);
-	adr7 = Cvar_Get ("adr7", "", CVAR_ARCHIVE);
-	adr8 = Cvar_Get ("adr8", "", CVAR_ARCHIVE);
+	adr0 = Cvar_Get ("adr0", "", CVAR_ARCHIVE, NULL);
+	adr1 = Cvar_Get ("adr1", "", CVAR_ARCHIVE, NULL);
+	adr2 = Cvar_Get ("adr2", "", CVAR_ARCHIVE, NULL);
+	adr3 = Cvar_Get ("adr3", "", CVAR_ARCHIVE, NULL);
+	adr4 = Cvar_Get ("adr4", "", CVAR_ARCHIVE, NULL);
+	adr5 = Cvar_Get ("adr5", "", CVAR_ARCHIVE, NULL);
+	adr6 = Cvar_Get ("adr6", "", CVAR_ARCHIVE, NULL);
+	adr7 = Cvar_Get ("adr7", "", CVAR_ARCHIVE, NULL);
+	adr8 = Cvar_Get ("adr8", "", CVAR_ARCHIVE, NULL);
 
 	// register our variables
-	cl_add_blend = Cvar_Get ("cl_blend", "1", 0);
-	cl_add_lights = Cvar_Get ("cl_lights", "1", 0);
-	cl_add_particles = Cvar_Get ("cl_particles", "1", 0);
-	cl_add_entities = Cvar_Get ("cl_entities", "1", 0);
-	cl_gun = Cvar_Get ("cl_gun", "1", 0);
-	cl_footsteps = Cvar_Get ("cl_footsteps", "1", 0);
-	cl_noskins = Cvar_Get ("cl_noskins", "0", 0);
-	cl_autoskins = Cvar_Get ("cl_autoskins", "0", 0);
-	cl_predict = Cvar_Get ("cl_predict", "1", 0);
-	//	cl_minfps = Cvar_Get ("cl_minfps", "5", 0);
-	cl_maxfps = Cvar_Get ("cl_maxfps", "90", 0);
+	cl_add_blend = Cvar_Get ("cl_blend", "1", 0, NULL);
+	cl_add_lights = Cvar_Get ("cl_lights", "1", 0, NULL);
+	cl_add_particles = Cvar_Get ("cl_particles", "1", 0, NULL);
+	cl_add_entities = Cvar_Get ("cl_entities", "1", 0, NULL);
+	cl_gun = Cvar_Get ("cl_gun", "1", 0, NULL);
+	cl_footsteps = Cvar_Get ("cl_footsteps", "1", 0, NULL);
+	cl_noskins = Cvar_Get ("cl_noskins", "0", 0, NULL);
+	cl_autoskins = Cvar_Get ("cl_autoskins", "0", 0, NULL);
+	cl_predict = Cvar_Get ("cl_predict", "1", 0, NULL);
+	//	cl_minfps = Cvar_Get ("cl_minfps", "5", 0, NULL);
+	cl_maxfps = Cvar_Get ("cl_maxfps", "90", 0, NULL);
 
-	cl_upspeed = Cvar_Get ("cl_upspeed", "200", 0);
-	cl_forwardspeed = Cvar_Get ("cl_forwardspeed", "200", 0);
-	cl_sidespeed = Cvar_Get ("cl_sidespeed", "200", 0);
-	cl_yawspeed = Cvar_Get ("cl_yawspeed", "140", 0);
-	cl_pitchspeed = Cvar_Get ("cl_pitchspeed", "150", 0);
-	cl_anglespeedkey = Cvar_Get ("cl_anglespeedkey", "1.5", 0);
+	cl_upspeed = Cvar_Get ("cl_upspeed", "200", 0, NULL);
+	cl_forwardspeed = Cvar_Get ("cl_forwardspeed", "200", 0, NULL);
+	cl_sidespeed = Cvar_Get ("cl_sidespeed", "200", 0, NULL);
+	cl_yawspeed = Cvar_Get ("cl_yawspeed", "140", 0, NULL);
+	cl_pitchspeed = Cvar_Get ("cl_pitchspeed", "150", 0, NULL);
+	cl_anglespeedkey = Cvar_Get ("cl_anglespeedkey", "1.5", 0, NULL);
 
-	cl_run = Cvar_Get ("cl_run", "0", CVAR_ARCHIVE);
-	freelook = Cvar_Get ("freelook", "0", CVAR_ARCHIVE);
-	lookspring = Cvar_Get ("lookspring", "0", CVAR_ARCHIVE);
-	lookstrafe = Cvar_Get ("lookstrafe", "0", CVAR_ARCHIVE);
-	sensitivity = Cvar_Get ("sensitivity", "3", CVAR_ARCHIVE);
+	cl_run = Cvar_Get ("cl_run", "0", CVAR_ARCHIVE, NULL);
+	freelook = Cvar_Get ("freelook", "0", CVAR_ARCHIVE, NULL);
+	lookspring = Cvar_Get ("lookspring", "0", CVAR_ARCHIVE, NULL);
+	lookstrafe = Cvar_Get ("lookstrafe", "0", CVAR_ARCHIVE, NULL);
+	sensitivity = Cvar_Get ("sensitivity", "3", CVAR_ARCHIVE, NULL);
 
-	m_pitch = Cvar_Get ("m_pitch", "0.022", CVAR_ARCHIVE);
-	m_yaw = Cvar_Get ("m_yaw", "0.022", 0);
-	m_forward = Cvar_Get ("m_forward", "1", 0);
-	m_side = Cvar_Get ("m_side", "1", 0);
+	m_pitch = Cvar_Get ("m_pitch", "0.022", CVAR_ARCHIVE, NULL);
+	m_yaw = Cvar_Get ("m_yaw", "0.022", 0, NULL);
+	m_forward = Cvar_Get ("m_forward", "1", 0, NULL);
+	m_side = Cvar_Get ("m_side", "1", 0, NULL);
 
-	cl_shownet = Cvar_Get ("cl_shownet", "0", 0);
-	cl_showmiss = Cvar_Get ("cl_showmiss", "0", 0);
-	cl_showclamp = Cvar_Get ("showclamp", "0", 0);
-	cl_timeout = Cvar_Get ("cl_timeout", "120", 0);
-	cl_paused = Cvar_Get ("paused", "0", CVAR_CHEAT);
-	cl_timedemo = Cvar_Get ("timedemo", "0", CVAR_CHEAT);
+	cl_shownet = Cvar_Get ("cl_shownet", "0", 0, NULL);
+	cl_showmiss = Cvar_Get ("cl_showmiss", "0", 0, NULL);
+	cl_showclamp = Cvar_Get ("showclamp", "0", 0, NULL);
+	cl_timeout = Cvar_Get ("cl_timeout", "120", 0, NULL);
+	cl_paused = Cvar_Get ("paused", "0", CVAR_CHEAT, NULL);
+	cl_timedemo = Cvar_Get ("timedemo", "0", CVAR_CHEAT, NULL);
 
-	rcon_client_password = Cvar_Get ("rcon_password", "", 0);
-	rcon_address = Cvar_Get ("rcon_address", "", 0);
+	rcon_client_password = Cvar_Get ("rcon_password", "", 0, NULL);
+	rcon_address = Cvar_Get ("rcon_address", "", 0, NULL);
 
-	cl_lightlevel = Cvar_Get ("r_lightlevel", "0", 0);
+	cl_lightlevel = Cvar_Get ("r_lightlevel", "0", 0, NULL);
 
 	// userinfo
-	info_password = Cvar_Get ("password", "", CVAR_USERINFO);
-	info_spectator = Cvar_Get ("spectator", "0", CVAR_USERINFO);
-	name = Cvar_Get ("name", "unnamed", CVAR_USERINFO | CVAR_ARCHIVE);
-	skin = Cvar_Get ("skin", "male/grunt", CVAR_USERINFO | CVAR_ARCHIVE);
-	rate = Cvar_Get ("rate", "25000", CVAR_USERINFO | CVAR_ARCHIVE);	// FIXME
-	msg = Cvar_Get ("msg", "1", CVAR_USERINFO | CVAR_ARCHIVE);
-	hand = Cvar_Get ("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
-	fov = Cvar_Get ("fov", "90", CVAR_USERINFO | CVAR_ARCHIVE);
-	gender = Cvar_Get ("gender", "male", CVAR_USERINFO | CVAR_ARCHIVE);
-	gender_auto = Cvar_Get ("gender_auto", "1", CVAR_ARCHIVE);
+	info_password = Cvar_Get ("password", "", CVAR_USERINFO, NULL);
+	info_spectator = Cvar_Get ("spectator", "0", CVAR_USERINFO, NULL);
+	name = Cvar_Get ("name", "unnamed", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	skin = Cvar_Get ("skin", "male/grunt", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	rate = Cvar_Get ("rate", "25000", CVAR_USERINFO | CVAR_ARCHIVE, NULL);	// FIXME
+	msg = Cvar_Get ("msg", "1", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	hand = Cvar_Get ("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	fov = Cvar_Get ("fov", "90", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	gender = Cvar_Get ("gender", "male", CVAR_USERINFO | CVAR_ARCHIVE, NULL);
+	gender_auto = Cvar_Get ("gender_auto", "1", CVAR_ARCHIVE, NULL);
 	gender->modified = false; // clear this so we know when user sets it manually
 
-	cl_vwep = Cvar_Get ("cl_vwep", "1", CVAR_ARCHIVE);
+	cl_vwep = Cvar_Get ("cl_vwep", "1", CVAR_ARCHIVE, NULL);
 
 #ifdef _DEBUG
-	cl_showfps = Cvar_Get ("scr_showfps", "1", 0);
+	cl_showfps = Cvar_Get ("scr_showfps", "1", 0, NULL);
 #else
-	cl_showfps = Cvar_Get ("scr_showfps", "0", CVAR_ARCHIVE);
+	cl_showfps = Cvar_Get ("scr_showfps", "0", CVAR_ARCHIVE, NULL);
 #endif
 
 	// register our commands
@@ -1619,7 +1619,7 @@ void CL_FixCvarCheats (void)
 	{
 		// find the var if it doesn't exist yet; this is done "live" in case any new cvars are added at runtime
 		if (!cheatvar->var)
-			cheatvar->var = Cvar_Get (cheatvar->name, cheatvar->value, 0);
+			cheatvar->var = Cvar_Get (cheatvar->name, cheatvar->value, 0, NULL);
 
 		if (strcmp (cheatvar->var->string, cheatvar->value))
 		{

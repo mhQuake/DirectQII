@@ -263,6 +263,8 @@ CVARS (console variables)
 #define CVAR_CHEAT		32	// cheating cvar, disallow sets in MP games
 #define CVAR_VIDEO		64	// cvar needs a vid_restart to take effect
 
+typedef void (*cvarcallback_t) (void);
+
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s
 {
@@ -272,6 +274,7 @@ typedef struct cvar_s
 	int			flags;
 	qboolean	modified;	// set each time the cvar is changed
 	float		value;
+	cvarcallback_t Callback;
 	struct cvar_s *next;
 } cvar_t;
 

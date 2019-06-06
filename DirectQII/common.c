@@ -1303,18 +1303,18 @@ void Qcommon_Init (int argc, char **argv)
 	// init commands and vars
 	Cmd_AddCommand ("error", Com_Error_f);
 
-	developer = Cvar_Get ("developer", "0", 0);
-	timescale = Cvar_Get ("timescale", "1", CVAR_CHEAT);
-	fixedtime = Cvar_Get ("fixedtime", "0", CVAR_CHEAT);
-	logfile_active = Cvar_Get ("logfile", "0", 0);
+	developer = Cvar_Get ("developer", "0", 0, NULL);
+	timescale = Cvar_Get ("timescale", "1", CVAR_CHEAT, NULL);
+	fixedtime = Cvar_Get ("fixedtime", "0", CVAR_CHEAT, NULL);
+	logfile_active = Cvar_Get ("logfile", "0", 0, NULL);
 #ifdef DEDICATED_ONLY
-	dedicated = Cvar_Get ("dedicated", "1", CVAR_NOSET);
+	dedicated = Cvar_Get ("dedicated", "1", CVAR_NOSET, NULL);
 #else
-	dedicated = Cvar_Get ("dedicated", "0", CVAR_NOSET);
+	dedicated = Cvar_Get ("dedicated", "0", CVAR_NOSET, NULL);
 #endif
 
 	s = va ("%4.2f %s %s %s", VERSION, CPUSTRING, __DATE__, BUILDSTRING);
-	Cvar_Get ("version", s, CVAR_SERVERINFO | CVAR_NOSET);
+	Cvar_Get ("version", s, CVAR_SERVERINFO | CVAR_NOSET, NULL);
 
 
 	if (dedicated->value)

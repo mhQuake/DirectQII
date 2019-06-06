@@ -483,8 +483,8 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 	}
 	else
 	{
-		vid_xpos = ri.Cvar_Get ("vid_xpos", "0", 0);
-		vid_ypos = ri.Cvar_Get ("vid_ypos", "0", 0);
+		vid_xpos = ri.Cvar_Get ("vid_xpos", "0", 0, NULL);
+		vid_ypos = ri.Cvar_Get ("vid_ypos", "0", 0, NULL);
 		x = vid_xpos->value;
 		y = vid_ypos->value;
 	}

@@ -235,6 +235,8 @@ extern	cvar_t	*vid_vsync;
 extern	cvar_t	*intensity;
 
 
+void R_RegeneratePVS (void);
+
 void R_TranslatePlayerSkin (int playernum);
 void GL_TexEnv (int value);
 

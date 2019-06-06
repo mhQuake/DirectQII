@@ -371,7 +371,7 @@ void SV_InitGameProgs (void)
 	import.TagFree = Z_Free;
 	import.FreeTags = Z_FreeTags;
 
-	import.cvar = Cvar_Get;
+	import.cvar = Cvar_Get2; // version without callback
 	import.cvar_set = Cvar_Set;
 	import.cvar_forceset = Cvar_ForceSet;
 

@@ -75,7 +75,7 @@ Mod_DecompressVis
 */
 byte *Mod_DecompressVis (byte *in, model_t *model)
 {
-	static byte	decompressed[MAX_MAP_LEAFS / 8];
+	static byte	decompressed[(MAX_MAP_LEAFS + 7) / 8];
 	int		c;
 	byte	*out;
 	int		row;
@@ -324,7 +324,7 @@ void R_BeginRegistration (char *model)
 
 	// explicitly free the old map if different
 	// this guarantees that mod_known[0] is the world map
-	flushmap = ri.Cvar_Get ("flushmap", "0", 0);
+	flushmap = ri.Cvar_Get ("flushmap", "0", 0, NULL);
 
 	if (strcmp (mod_known[0].name, fullname) || flushmap->value)
 		Mod_Free (&mod_known[0]);

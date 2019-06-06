@@ -839,12 +839,12 @@ void FS_InitFilesystem (void)
 
 	// basedir <path>
 	// allows the game to run from outside the data tree
-	fs_basedir = Cvar_Get ("basedir", ".", CVAR_NOSET);
+	fs_basedir = Cvar_Get ("basedir", ".", CVAR_NOSET, NULL);
 
 	// cddir <path>
 	// Logically concatenates the cddir after the basedir for 
 	// allows the game to run from outside the data tree
-	fs_cddir = Cvar_Get ("cddir", "", CVAR_NOSET);
+	fs_cddir = Cvar_Get ("cddir", "", CVAR_NOSET, NULL);
 
 	if (fs_cddir->string[0])
 		FS_AddGameDirectory (va ("%s/"BASEDIRNAME, fs_cddir->string));
@@ -856,7 +856,7 @@ void FS_InitFilesystem (void)
 	fs_base_searchpaths = fs_searchpaths;
 
 	// check for game override
-	fs_gamedirvar = Cvar_Get ("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+	fs_gamedirvar = Cvar_Get ("game", "", CVAR_LATCH | CVAR_SERVERINFO, NULL);
 	if (fs_gamedirvar->string[0])
 		FS_SetGamedir (fs_gamedirvar->string);
 }

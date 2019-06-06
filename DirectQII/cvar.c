@@ -136,7 +136,7 @@ The flags will be or'ed in if the variable exists.
 */
 void Cvar_RegisterCheatVar (char *var_name, char *var_value);
 
-cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
+cvar_t *Cvar_Get (char *var_name, char *var_value, int flags, cvarcallback_t callback)
 {
 	cvar_t	*var;
 
@@ -157,7 +157,7 @@ cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 		if ((flags & CVAR_CHEAT) && !(var->flags & CVAR_CHEAT))
 			Cvar_RegisterCheatVar (var_name, var_value);
 
-		var->flags |= flags;
+		var->flags |= flags; // don't modify the callback
 		return var;
 	}
 
@@ -183,6 +183,9 @@ cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 	var->modified = true;
 	var->value = atof (var->string);
 
+	// register the callback
+	var->Callback = callback;
+
 	// link the variable in
 	var->next = cvar_vars;
 	cvar_vars = var;
@@ -191,6 +194,13 @@ cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 
 	return var;
 }
+
+cvar_t *Cvar_Get2 (char *var_name, char *var_value, int flags)
+{
+	// no callback specified
+	return Cvar_Get (var_name, var_value, flags, NULL);
+}
+
 
 /*
 ============
@@ -204,7 +214,7 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 	if (!var)
 	{
 		// create it
-		return Cvar_Get (var_name, value, 0);
+		return Cvar_Get (var_name, value, 0, NULL);
 	}
 
 	if (var->flags & (CVAR_USERINFO | CVAR_SERVERINFO))
@@ -280,6 +290,10 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 	var->string = CopyString (value);
 	var->value = atof (var->string);
 
+	// issue the callback with the new value set 
+	if (var->Callback)
+		var->Callback ();
+
 	return var;
 }
 
@@ -315,7 +329,7 @@ cvar_t *Cvar_FullSet (char *var_name, char *value, int flags)
 	if (!var)
 	{
 		// create it
-		return Cvar_Get (var_name, value, flags);
+		return Cvar_Get (var_name, value, flags, NULL);
 	}
 
 	Cvar_ModifyVariable (var);

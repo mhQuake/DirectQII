@@ -175,7 +175,7 @@ IN_StartupMouse
 */
 void IN_StartupMouse (void)
 {
-	cvar_t *cv = Cvar_Get ("in_initmouse", "1", CVAR_NOSET);
+	cvar_t *cv = Cvar_Get ("in_initmouse", "1", CVAR_NOSET, NULL);
 
 	if (!cv->value)
 		return;
@@ -323,11 +323,11 @@ IN_Init
 void IN_Init (void)
 {
 	// mouse variables
-	in_mouse = Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
+	in_mouse = Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE, NULL);
 
 	// centering
-	v_centermove = Cvar_Get ("v_centermove", "0.15", 0);
-	v_centerspeed = Cvar_Get ("v_centerspeed", "500", 0);
+	v_centermove = Cvar_Get ("v_centermove", "0.15", 0, NULL);
+	v_centerspeed = Cvar_Get ("v_centerspeed", "500", 0, NULL);
 
 	Cmd_AddCommand ("+mlook", IN_MLookDown);
 	Cmd_AddCommand ("-mlook", IN_MLookUp);

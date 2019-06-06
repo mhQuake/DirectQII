@@ -637,14 +637,14 @@ void V_Init (void)
 
 	Cmd_AddCommand ("viewpos", V_Viewpos_f);
 
-	crosshair = Cvar_Get ("crosshair", "0", CVAR_ARCHIVE);
+	crosshair = Cvar_Get ("crosshair", "0", CVAR_ARCHIVE, NULL);
 
-	cl_testblend = Cvar_Get ("cl_testblend", "0", 0);
-	cl_testparticles = Cvar_Get ("cl_testparticles", "0", 0);
-	cl_testentities = Cvar_Get ("cl_testentities", "0", 0);
-	cl_testlights = Cvar_Get ("cl_testlights", "0", CVAR_CHEAT);
+	cl_testblend = Cvar_Get ("cl_testblend", "0", 0, NULL);
+	cl_testparticles = Cvar_Get ("cl_testparticles", "0", 0, NULL);
+	cl_testentities = Cvar_Get ("cl_testentities", "0", 0, NULL);
+	cl_testlights = Cvar_Get ("cl_testlights", "0", CVAR_CHEAT, NULL);
 
-	cl_stats = Cvar_Get ("cl_stats", "0", 0);
+	cl_stats = Cvar_Get ("cl_stats", "0", 0, NULL);
 
-	intensity = Cvar_Get ("intensity", "2", 0);
+	intensity = Cvar_Get ("intensity", "2", 0, NULL);
 }

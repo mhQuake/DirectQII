@@ -931,36 +931,36 @@ void SV_Init (void)
 {
 	SV_InitOperatorCommands ();
 
-	rcon_password = Cvar_Get ("rcon_password", "", 0);
-	Cvar_Get ("skill", "1", 0);
-	Cvar_Get ("deathmatch", "0", CVAR_LATCH);
-	Cvar_Get ("coop", "0", CVAR_LATCH);
-	Cvar_Get ("dmflags", va ("%i", DF_INSTANT_ITEMS), CVAR_SERVERINFO);
-	Cvar_Get ("fraglimit", "0", CVAR_SERVERINFO);
-	Cvar_Get ("timelimit", "0", CVAR_SERVERINFO);
-	Cvar_Get ("cheats", "0", CVAR_SERVERINFO | CVAR_LATCH);
-	Cvar_Get ("protocol", va ("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_NOSET);;
-	maxclients = Cvar_Get ("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
-	hostname = Cvar_Get ("hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE);
-	timeout = Cvar_Get ("timeout", "125", 0);
-	zombietime = Cvar_Get ("zombietime", "2", 0);
-	sv_showclamp = Cvar_Get ("showclamp", "0", 0);
-	sv_paused = Cvar_Get ("paused", "0", CVAR_CHEAT);
-	sv_timedemo = Cvar_Get ("timedemo", "0", CVAR_CHEAT);
-	sv_enforcetime = Cvar_Get ("sv_enforcetime", "0", 0);
-	allow_download = Cvar_Get ("allow_download", "0", CVAR_ARCHIVE);
-	allow_download_players = Cvar_Get ("allow_download_players", "0", CVAR_ARCHIVE);
-	allow_download_models = Cvar_Get ("allow_download_models", "1", CVAR_ARCHIVE);
-	allow_download_sounds = Cvar_Get ("allow_download_sounds", "1", CVAR_ARCHIVE);
-	allow_download_maps = Cvar_Get ("allow_download_maps", "1", CVAR_ARCHIVE);
+	rcon_password = Cvar_Get ("rcon_password", "", 0, NULL);
+	Cvar_Get ("skill", "1", 0, NULL);
+	Cvar_Get ("deathmatch", "0", CVAR_LATCH, NULL);
+	Cvar_Get ("coop", "0", CVAR_LATCH, NULL);
+	Cvar_Get ("dmflags", va ("%i", DF_INSTANT_ITEMS), CVAR_SERVERINFO, NULL);
+	Cvar_Get ("fraglimit", "0", CVAR_SERVERINFO, NULL);
+	Cvar_Get ("timelimit", "0", CVAR_SERVERINFO, NULL);
+	Cvar_Get ("cheats", "0", CVAR_SERVERINFO | CVAR_LATCH, NULL);
+	Cvar_Get ("protocol", va ("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_NOSET, NULL);;
+	maxclients = Cvar_Get ("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH, NULL);
+	hostname = Cvar_Get ("hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE, NULL);
+	timeout = Cvar_Get ("timeout", "125", 0, NULL);
+	zombietime = Cvar_Get ("zombietime", "2", 0, NULL);
+	sv_showclamp = Cvar_Get ("showclamp", "0", 0, NULL);
+	sv_paused = Cvar_Get ("paused", "0", CVAR_CHEAT, NULL);
+	sv_timedemo = Cvar_Get ("timedemo", "0", CVAR_CHEAT, NULL);
+	sv_enforcetime = Cvar_Get ("sv_enforcetime", "0", 0, NULL);
+	allow_download = Cvar_Get ("allow_download", "0", CVAR_ARCHIVE, NULL);
+	allow_download_players = Cvar_Get ("allow_download_players", "0", CVAR_ARCHIVE, NULL);
+	allow_download_models = Cvar_Get ("allow_download_models", "1", CVAR_ARCHIVE, NULL);
+	allow_download_sounds = Cvar_Get ("allow_download_sounds", "1", CVAR_ARCHIVE, NULL);
+	allow_download_maps = Cvar_Get ("allow_download_maps", "1", CVAR_ARCHIVE, NULL);
 
-	sv_noreload = Cvar_Get ("sv_noreload", "0", 0);
+	sv_noreload = Cvar_Get ("sv_noreload", "0", 0, NULL);
 
-	sv_airaccelerate = Cvar_Get ("sv_airaccelerate", "0", CVAR_LATCH);
+	sv_airaccelerate = Cvar_Get ("sv_airaccelerate", "0", CVAR_LATCH, NULL);
 
-	public_server = Cvar_Get ("public", "0", 0);
+	public_server = Cvar_Get ("public", "0", 0, NULL);
 
-	sv_reconnect_limit = Cvar_Get ("sv_reconnect_limit", "3", CVAR_ARCHIVE);
+	sv_reconnect_limit = Cvar_Get ("sv_reconnect_limit", "3", CVAR_ARCHIVE, NULL);
 
 	SZ_Init (&net_message, net_message_buffer, sizeof (net_message_buffer));
 }

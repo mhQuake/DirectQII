@@ -314,7 +314,7 @@ void Con_Init (void)
 	Com_Printf ("Console initialized.\n");
 
 	// register our commands
-	con_notifytime = Cvar_Get ("con_notifytime", "3", 0);
+	con_notifytime = Cvar_Get ("con_notifytime", "3", 0, NULL);
 
 	Cmd_AddCommand ("toggleconsole", Con_ToggleConsole_f);
 	Cmd_AddCommand ("togglechat", Con_ToggleChat_f);

@@ -112,7 +112,7 @@ S_Init
 */
 void S_Init (void)
 {
-	cvar_t	*cv = Cvar_Get ("s_initsound", "1", 0);
+	cvar_t	*cv = Cvar_Get ("s_initsound", "1", 0, NULL);
 
 	Com_Printf ("\n------- sound initialization -------\n");
 
@@ -120,10 +120,10 @@ void S_Init (void)
 		Com_Printf ("not initializing.\n");
 	else
 	{
-		s_volume = Cvar_Get ("s_volume", "0.7", CVAR_ARCHIVE);
-		s_mixahead = Cvar_Get ("s_mixahead", "0.2", CVAR_ARCHIVE);
-		s_show = Cvar_Get ("s_show", "0", 0);
-		s_testsound = Cvar_Get ("s_testsound", "0", 0);
+		s_volume = Cvar_Get ("s_volume", "0.7", CVAR_ARCHIVE, NULL);
+		s_mixahead = Cvar_Get ("s_mixahead", "0.2", CVAR_ARCHIVE, NULL);
+		s_show = Cvar_Get ("s_show", "0", 0, NULL);
+		s_testsound = Cvar_Get ("s_testsound", "0", 0, NULL);
 
 		Cmd_AddCommand ("play", S_Play);
 		Cmd_AddCommand ("stopsound", S_StopAllSounds);
