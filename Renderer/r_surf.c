@@ -597,8 +597,12 @@ void R_MarkLeaves (void)
 {
 	byte	*vis;
 
+	// don't bother if there is no world
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL) return;
-	if (r_oldviewleaf == r_viewleaf) return; // to do - can the clusters be the same???
+	if (r_oldviewleaf == r_viewleaf) return;
+
+	// if the same cluster then the PVS doesn't need to be regenned
+	if (r_oldviewleaf && r_viewleaf && r_oldviewleaf->cluster == r_viewleaf->cluster) return;
 
 	// development aid to let you run around and see exactly where the pvs ends
 	if (gl_lockpvs->value) return;
