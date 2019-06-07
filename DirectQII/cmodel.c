@@ -1564,7 +1564,7 @@ void CM_DecompressVis (byte *in, byte *out)
 byte	pvsrow[MAX_MAP_LEAFS / 8];
 byte	phsrow[MAX_MAP_LEAFS / 8];
 
-byte	*CM_ClusterPVS (int cluster)
+byte *CM_ClusterPVS (int cluster)
 {
 	if (cluster == -1)
 		memset (pvsrow, 0, (numclusters + 7) >> 3);
@@ -1573,7 +1573,7 @@ byte	*CM_ClusterPVS (int cluster)
 	return pvsrow;
 }
 
-byte	*CM_ClusterPHS (int cluster)
+byte *CM_ClusterPHS (int cluster)
 {
 	if (cluster == -1)
 		memset (phsrow, 0, (numclusters + 7) >> 3);

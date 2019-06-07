@@ -121,9 +121,11 @@ Mod_ClusterPVS
 */
 byte *Mod_ClusterPVS (int cluster, model_t *model)
 {
+	// use the PHS to bring in more leafs and nodes so that surfaces which incorrectly drop out of the PVS do get included
+	// this fixes the visual glitch e.g. when looking up from the laser trigger area in jail1, as well as others
 	if (cluster == -1 || !model->vis)
 		return mod_novis;
-	else return Mod_DecompressVis ((byte *) model->vis + model->vis->bitofs[cluster][DVIS_PVS], model);
+	else return Mod_DecompressVis ((byte *) model->vis + model->vis->bitofs[cluster][DVIS_PHS], model);
 }
 
 
