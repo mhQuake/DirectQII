@@ -91,7 +91,7 @@ typedef struct msurface_s {
 	// lighting info
 	int			dlightframe;
 
-	int			lightmaptexturenum;
+	unsigned short		lightmaptexturenum;
 	byte		styles[MAXLIGHTMAPS];
 	byte		*samples;		// [numstyles * surfsize]
 } msurface_t;

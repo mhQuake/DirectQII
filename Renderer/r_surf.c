@@ -32,7 +32,7 @@ msurface_t	*r_alpha_surfaces;
 static int r_numsurfaceverts = 0;
 
 void R_DrawSkyChain (msurface_t *surf);
-void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, float *lm);
+void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, unsigned short *lm);
 
 
 int d3d_FirstSurfIndex = 0;
@@ -46,24 +46,26 @@ static int d3d_SurfLightmapShader;
 static int d3d_SurfDynamicShader;
 static int d3d_SurfDrawTurbShader;
 
+//#pragma pack(push, 1)
 typedef struct brushpolyvert_s {
 	float xyz[3];
 	float st[2];
-	float lm[2];
-	float mapnum;
+	unsigned short lm[2];
 	byte styles[4];
-	float scroll;
+	unsigned short mapnum;
+	unsigned short scroll;
 } brushpolyvert_t;
+//#pragma pack(pop)
 
 void R_InitSurfaces (void)
 {
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0),
 		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0),
-		VDECL ("LIGHTMAP", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0),
-		VDECL ("MAPNUM", 0, DXGI_FORMAT_R32_FLOAT, 0, 0),
+		VDECL ("LIGHTMAP", 0, DXGI_FORMAT_R16G16_UNORM, 0, 0),
 		VDECL ("STYLES", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, 0),
-		VDECL ("SCROLL", 0, DXGI_FORMAT_R32_FLOAT, 0, 0)
+		VDECL ("MAPNUM", 0, DXGI_FORMAT_R16_UINT, 0, 0),
+		VDECL ("SCROLL", 0, DXGI_FORMAT_R16_UNORM, 0, 0)
 	};
 
 	D3D11_BUFFER_DESC ibDesc = {
@@ -599,17 +601,26 @@ void R_MarkLeaves (void)
 
 	// don't bother if there is no world
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL) return;
-	if (r_oldviewleaf == r_viewleaf) return;
 
-	// if the same cluster then the PVS doesn't need to be regenned
-	if (r_oldviewleaf && r_viewleaf && r_oldviewleaf->cluster == r_viewleaf->cluster) return;
+	// these tests are only valid if both leafs are non-NULL
+	if (r_oldviewleaf && r_viewleaf)
+	{
+		// if the leafs are the same the PVS doesn't need to be regenned
+		if (r_oldviewleaf == r_viewleaf) return;
+
+		// if the same cluster then the PVS doesn't need to be regenned
+		if (r_oldviewleaf->cluster == r_viewleaf->cluster) return;
+	}
 
 	// development aid to let you run around and see exactly where the pvs ends
 	if (gl_lockpvs->value) return;
 
+	//ri.Con_Printf (PRINT_ALL, "Regenning PVS on frame %i\n", r_framecount);
+
 	// go to a new visframe
 	r_visframecount++;
 
+	// r_viewleaf is allowed be NULL coming in here
 	if (r_novis->value || !r_worldmodel->vis || !r_viewleaf)
 	{
 		// mark everything
@@ -629,6 +640,7 @@ void R_MarkLeaves (void)
 		}
 	}
 
+	// store back
 	r_oldviewleaf = r_viewleaf;
 }
 
@@ -654,15 +666,8 @@ void R_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t 
 		int lindex = bsp->surfedges[surf->firstedge + i];
 
 		if (lindex > 0)
-		{
-			dedge_t *r_pedge = &bsp->edges[lindex];
-			Vector3Copy (verts->xyz, bsp->vertexes[r_pedge->v[0]].point);
-		}
-		else
-		{
-			dedge_t *r_pedge = &bsp->edges[-lindex];
-			Vector3Copy (verts->xyz, bsp->vertexes[r_pedge->v[1]].point);
-		}
+			Vector3Copy (verts->xyz, bsp->vertexes[bsp->edges[lindex].v[0]].point);
+		else Vector3Copy (verts->xyz, bsp->vertexes[bsp->edges[-lindex].v[1]].point);
 
 		if (surf->texinfo->flags & SURF_WARP)
 		{
@@ -681,17 +686,18 @@ void R_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t 
 			// lightmap texture coordinates
 			R_SetupLightmapTexCoords (surf, verts->xyz, verts->lm);
 
-			// lightmap texture num is texture array slice to use
-			verts->mapnum = surf->lightmaptexturenum;
-
 			// copy over styles
 			*((unsigned *) verts->styles) = *((unsigned *) styles);
+
+			// lightmap texture num is texture array slice to use
+			verts->mapnum = surf->lightmaptexturenum;
 		}
 
 		// copy over scroll factor
+		// this is DXGI_FORMAT_R16_UNORM so 65535 is equivalent to a scroll factor of 1.0f
 		if (surf->texinfo->flags & SURF_FLOWING)
-			verts->scroll = 1.0f;
-		else verts->scroll = 0.0f;
+			verts->scroll = 65535;
+		else verts->scroll = 0;
 	}
 }
 

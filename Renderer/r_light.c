@@ -484,19 +484,21 @@ void R_EndBuildingLightmaps (void)
 }
 
 
-void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, float *lm)
+void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, unsigned short *lm)
 {
-	lm[0] = Vector3Dot (vec, surf->texinfo->vecs[0]) + surf->texinfo->vecs[0][3];
-	lm[0] -= surf->texturemins[0];
-	lm[0] += surf->light_s * 16;
-	lm[0] += 8;
-	lm[0] /= LIGHTMAP_SIZE * 16;
+	// lightmap coords are always in the 0..1 range; this allows us to store them as DXGI_FORMAT_R16G16_UNORM
+	// which in turn allows for further compression of the brushpolyvert_t struct down to a nice cache-friendly 32 bytes.
+	int s = (int) ((Vector3Dot (vec, surf->texinfo->vecs[0]) + surf->texinfo->vecs[0][3]) + 0.5f);
+	int t = (int) ((Vector3Dot (vec, surf->texinfo->vecs[1]) + surf->texinfo->vecs[1][3]) + 0.5f);
 
-	lm[1] = Vector3Dot (vec, surf->texinfo->vecs[1]) + surf->texinfo->vecs[1][3];
-	lm[1] -= surf->texturemins[1];
-	lm[1] += surf->light_t * 16;
-	lm[1] += 8;
-	lm[1] /= LIGHTMAP_SIZE * 16;
+	s -= surf->texturemins[0];
+	s += surf->light_s * 16;
+
+	t -= surf->texturemins[1];
+	t += surf->light_t * 16;
+
+	lm[0] = (s + 8) * (4096 / LIGHTMAP_SIZE);
+	lm[1] = (t + 8) * (4096 / LIGHTMAP_SIZE);
 }
 
 

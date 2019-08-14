@@ -75,7 +75,7 @@ Mod_DecompressVis
 */
 byte *Mod_DecompressVis (byte *in, model_t *model)
 {
-	static byte	decompressed[(MAX_MAP_LEAFS + 7) / 8];
+	static byte	decompressed[(MAX_MAP_LEAFS + 7) >> 3];
 	int		c;
 	byte	*out;
 	int		row;
