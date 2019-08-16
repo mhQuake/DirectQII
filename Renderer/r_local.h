@@ -379,7 +379,7 @@ extern ID3D11BlendState *d3d_BSAlphaBlend;
 extern ID3D11BlendState *d3d_BSAlphaReverse;
 extern ID3D11BlendState *d3d_BSAlphaPreMult;
 extern ID3D11BlendState *d3d_BSAdditive;
-extern ID3D11BlendState *d3d_BSSubtractive;
+extern ID3D11BlendState *d3d_BSRevSubtract;
 
 extern ID3D11DepthStencilState *d3d_DSFullDepth;
 extern ID3D11DepthStencilState *d3d_DSDepthNoWrite;
@@ -392,7 +392,7 @@ extern ID3D11RasterizerState *d3d_RSNoCull;
 
 void D_SetRenderStates (ID3D11BlendState *bs, ID3D11DepthStencilState *ds, ID3D11RasterizerState *rs);
 void D_BindSamplers (void);
-ID3D11RasterizerState *R_GetRasterizerState (int rflags);
+ID3D11RasterizerState *R_SelectRasterizerState (int rflags);
 
 void D_BindVertexBuffer (UINT Slot, ID3D11Buffer *Buffer, UINT Stride, UINT Offset);
 void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
@@ -484,7 +484,7 @@ extern int	r_dlightframecount;
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // surfaces
-void R_AddSurfaceToBatch (msurface_t *surf);
+void R_AddSurfaceToBatch (const msurface_t *surf);
 void R_EndSurfaceBatch (void);
 
 

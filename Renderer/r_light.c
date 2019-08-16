@@ -541,7 +541,7 @@ void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags)
 		consts.color[1] = -dl->color[1];
 		consts.color[2] = -dl->color[2];
 
-		D_SetRenderStates (d3d_BSSubtractive, d3d_DSEqualDepthNoWrite, R_GetRasterizerState (rflags));
+		D_SetRenderStates (d3d_BSRevSubtract, d3d_DSEqualDepthNoWrite, R_SelectRasterizerState (rflags));
 	}
 	else
 	{
@@ -550,7 +550,7 @@ void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags)
 		consts.color[1] = dl->color[1];
 		consts.color[2] = dl->color[2];
 
-		D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, R_GetRasterizerState (rflags));
+		D_SetRenderStates (d3d_BSAdditive, d3d_DSEqualDepthNoWrite, R_SelectRasterizerState (rflags));
 	}
 
 	// and update it

@@ -155,7 +155,7 @@ ID3D11BlendState *d3d_BSAlphaBlend = NULL;
 ID3D11BlendState *d3d_BSAlphaReverse = NULL;
 ID3D11BlendState *d3d_BSAlphaPreMult = NULL;
 ID3D11BlendState *d3d_BSAdditive = NULL;
-ID3D11BlendState *d3d_BSSubtractive = NULL;
+ID3D11BlendState *d3d_BSRevSubtract = NULL;
 
 ID3D11DepthStencilState *d3d_DSFullDepth = NULL;
 ID3D11DepthStencilState *d3d_DSDepthNoWrite = NULL;
@@ -180,7 +180,7 @@ void R_SetDefaultState (void)
 	d3d_BSAlphaReverse = D_CreateBlendState (TRUE, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_OP_ADD);
 	d3d_BSAlphaPreMult = D_CreateBlendState (TRUE, D3D11_BLEND_ONE, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_OP_ADD);
 	d3d_BSAdditive = D_CreateBlendState (TRUE, D3D11_BLEND_ONE, D3D11_BLEND_ONE, D3D11_BLEND_OP_ADD);
-	d3d_BSSubtractive = D_CreateBlendState (TRUE, D3D11_BLEND_ONE, D3D11_BLEND_ONE, D3D11_BLEND_OP_REV_SUBTRACT);
+	d3d_BSRevSubtract = D_CreateBlendState (TRUE, D3D11_BLEND_ONE, D3D11_BLEND_ONE, D3D11_BLEND_OP_REV_SUBTRACT);
 
 	d3d_DSFullDepth = D_CreateDepthState (TRUE, TRUE, D3D11_COMPARISON_LESS_EQUAL);
 	d3d_DSDepthNoWrite = D_CreateDepthState (TRUE, FALSE, D3D11_COMPARISON_LESS_EQUAL);
@@ -199,7 +199,7 @@ void R_SetDefaultState (void)
 }
 
 
-ID3D11RasterizerState *R_GetRasterizerState (int rflags)
+ID3D11RasterizerState *R_SelectRasterizerState (int rflags)
 {
 	if ((rflags & RF_WEAPONMODEL) && r_lefthand->value)
 		return d3d_RSReverseCull;

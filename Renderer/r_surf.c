@@ -29,13 +29,9 @@ static vec3_t	modelorg;		// relative to viewpoint
 msurface_t	*r_sky_surfaces;
 msurface_t	*r_alpha_surfaces;
 
-static int r_numsurfaceverts = 0;
-
 void R_DrawSkyChain (msurface_t *surf);
 void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, unsigned short *lm);
 
-
-int d3d_FirstSurfIndex = 0;
 
 ID3D11Buffer *d3d_SurfVertexes = NULL;
 ID3D11Buffer *d3d_SurfIndexes = NULL;
@@ -131,64 +127,66 @@ image_t *R_TextureAnimation (mtexinfo_t *tex, int frame)
 DrawTextureChains
 ================
 */
-static unsigned int *r_dipindexes = NULL;
-static int r_numdipindexes = 0;
+static unsigned int *r_SurfIndexes = NULL;
+static int r_NumSurfIndexes = 0;
+static int r_FirstSurfIndex = 0;
+static int r_NumSurfVertexes = 0;
 
 
-void R_WriteSurfaceIndexes (const msurface_t *surf, unsigned int *ndx)
+void R_AddSurfaceToBatch (const msurface_t *surf)
 {
-	int v;
-
-	// write in the indexes
-	for (v = 2; v < surf->numedges; v++, ndx += 3)
-	{
-		ndx[0] = surf->firstvertex;
-		ndx[1] = surf->firstvertex + (v - 1);
-		ndx[2] = surf->firstvertex + v;
-	}
-
-	// accumulate indexes count
-	r_numdipindexes += surf->numindexes;
-}
-
-
-void R_AddSurfaceToBatch (msurface_t *surf)
-{
-	if (d3d_FirstSurfIndex + r_numdipindexes + surf->numindexes >= MAX_SURF_INDEXES)
+	if (r_FirstSurfIndex + r_NumSurfIndexes + surf->numindexes >= MAX_SURF_INDEXES)
 	{
 		R_EndSurfaceBatch ();
-		d3d_FirstSurfIndex = 0;
+		r_FirstSurfIndex = 0; // buffer wrapped
 	}
 
-	if (!r_dipindexes)
+	if (!r_SurfIndexes)
 	{
 		// first index is only reset to 0 if the buffer must wrap so this is valid to do
-		D3D11_MAP mode = (d3d_FirstSurfIndex > 0) ? D3D11_MAP_WRITE_NO_OVERWRITE : D3D11_MAP_WRITE_DISCARD;
+		D3D11_MAP mode = (r_FirstSurfIndex > 0) ? D3D11_MAP_WRITE_NO_OVERWRITE : D3D11_MAP_WRITE_DISCARD;
 		D3D11_MAPPED_SUBRESOURCE msr;
 
 		if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_SurfIndexes, 0, mode, 0, &msr)))
 			return;
-		else r_dipindexes = (unsigned int *) msr.pData + d3d_FirstSurfIndex;
+		else r_SurfIndexes = (unsigned int *) msr.pData + r_FirstSurfIndex;
 	}
 
-	R_WriteSurfaceIndexes (surf, &r_dipindexes[r_numdipindexes]);
+	// these should always be valid coming in here....
+	if (r_SurfIndexes && surf->numedges && surf->numindexes)
+	{
+		// write out indexes
+		int v;
+		unsigned int *ndx = &r_SurfIndexes[r_NumSurfIndexes];
+
+		// write in the indexes
+		for (v = 2; v < surf->numedges; v++, ndx += 3)
+		{
+			ndx[0] = surf->firstvertex;
+			ndx[1] = surf->firstvertex + (v - 1);
+			ndx[2] = surf->firstvertex + v;
+		}
+
+		// accumulate indexes count
+		r_NumSurfIndexes += surf->numindexes;
+	}
 }
 
 
 void R_EndSurfaceBatch (void)
 {
-	if (r_dipindexes)
+	if (r_SurfIndexes)
 	{
 		d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_SurfIndexes, 0);
-		r_dipindexes = NULL;
+		r_SurfIndexes = NULL;
 	}
 
-	if (r_numdipindexes)
+	if (r_NumSurfIndexes)
 	{
-		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numdipindexes, d3d_FirstSurfIndex, 0);
+		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_NumSurfIndexes, r_FirstSurfIndex, 0);
 
-		d3d_FirstSurfIndex += r_numdipindexes;
-		r_numdipindexes = 0;
+		r_FirstSurfIndex += r_NumSurfIndexes;
+		r_NumSurfIndexes = 0;
 	}
 }
 
@@ -212,6 +210,21 @@ image_t *R_SelectSurfaceTexture (mtexinfo_t *ti, int frame)
 }
 
 
+void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
+{
+	if (ti->flags & SURF_WARP)
+		D_BindShaderBundle (d3d_SurfDrawTurbShader);
+	else if (alpha)
+		D_BindShaderBundle (d3d_SurfAlphaShader);
+	else
+	{
+		if (!r_worldmodel->lightdata || r_fullbright->value)
+			D_BindShaderBundle (d3d_SurfBasicShader);
+		else D_BindShaderBundle (d3d_SurfLightmapShader);
+	}
+}
+
+
 void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float alphaval)
 {
 	int	i;
@@ -226,36 +239,18 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 	for (i = 0; i < mod->numtexinfo; i++)
 	{
 		mtexinfo_t *ti = &mod->texinfo[i];
-		msurface_t *reversechain = NULL;
 
 		// no surfaces
 		if ((surf = ti->image->texturechain) == NULL) continue;
 
 		// select the correct shader
-		if (ti->flags & SURF_WARP)
-			D_BindShaderBundle (d3d_SurfDrawTurbShader);
-		else if (e->flags & RF_TRANSLUCENT)
-			D_BindShaderBundle (d3d_SurfAlphaShader);
-		else
-		{
-			if (!r_worldmodel->lightdata || r_fullbright->value)
-				D_BindShaderBundle (d3d_SurfBasicShader);
-			else D_BindShaderBundle (d3d_SurfLightmapShader);
-		}
+		R_SelectSurfaceShader (ti, e->flags & RF_TRANSLUCENT);
 
 		// select the correct texture
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
 
-		// reverse the texture chain to provide f2b ordering
-		// this only needs to be done for the world (to lay down a baseline) and helps reduce overdraw for a few percent speedup
+		// and draw the texture chain
 		for (; surf; surf = surf->texturechain)
-		{
-			surf->reversechain = reversechain;
-			reversechain = surf;
-		}
-
-		// now, using the reversed chain, draw it
-		for (surf = reversechain; surf; surf = surf->reversechain)
 		{
 			R_AddSurfaceToBatch (surf);
 			surf->dlightframe = r_dlightframecount;
@@ -324,7 +319,7 @@ void R_DrawAlphaSurfaces (void)
 {
 	msurface_t	*s;
 	QMATRIX	localMatrix;
-	image_t *lasttexture = NULL;
+	mtexinfo_t *lasttexinfo = NULL;
 
 	if (!r_alpha_surfaces) return;
 
@@ -339,17 +334,17 @@ void R_DrawAlphaSurfaces (void)
 	// (which is back to front) and snoop for texture changes manually
 	for (s = r_alpha_surfaces; s; s = s->texturechain)
 	{
-		if (s->texinfo->image != lasttexture)
+		if (s->texinfo != lasttexinfo)
 		{
+			// end the previous batch
 			R_EndSurfaceBatch ();
 
-			R_BindTexture (s->texinfo->image->SRV);
+			// switch texture and shader
+			R_BindTexture (R_SelectSurfaceTexture (s->texinfo, 0)->SRV);
+			R_SelectSurfaceShader (s->texinfo, true);
 
-			if (s->texinfo->flags & SURF_WARP)
-				D_BindShaderBundle (d3d_SurfDrawTurbShader);
-			else D_BindShaderBundle (d3d_SurfAlphaShader);
-
-			lasttexture = s->texinfo->image;
+			// cache back
+			lasttexinfo = s->texinfo;
 		}
 
 		R_AddSurfaceToBatch (s);
@@ -705,15 +700,15 @@ void R_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t 
 void R_BeginBuildingSurfaces (model_t *mod)
 {
 	SAFE_RELEASE (d3d_SurfVertexes);
-	r_numsurfaceverts = 0;
+	r_NumSurfVertexes = 0;
 }
 
 
 void R_RegisterSurface (msurface_t *surf)
 {
-	surf->firstvertex = r_numsurfaceverts;
+	surf->firstvertex = r_NumSurfVertexes;
 	surf->numindexes = (surf->numedges - 2) * 3;
-	r_numsurfaceverts += surf->numedges;
+	r_NumSurfVertexes += surf->numedges;
 }
 
 
@@ -723,7 +718,7 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 
 	// create the vertex buffer sized as appropriate for all surface vertexes that will be needed
 	D3D11_BUFFER_DESC vbDesc = {
-		sizeof (brushpolyvert_t) * r_numsurfaceverts,
+		sizeof (brushpolyvert_t) * r_NumSurfVertexes,
 		D3D11_USAGE_IMMUTABLE,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
@@ -731,7 +726,7 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 		0
 	};
 
-	brushpolyvert_t *verts = (brushpolyvert_t *) ri.Load_AllocMemory (sizeof (brushpolyvert_t) * r_numsurfaceverts);
+	brushpolyvert_t *verts = (brushpolyvert_t *) ri.Load_AllocMemory (sizeof (brushpolyvert_t) * r_NumSurfVertexes);
 
 	// alloc a buffer to write the verts to and create the VB from
 	D3D11_SUBRESOURCE_DATA srd = {verts, 0, 0};
@@ -748,7 +743,9 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 
 	// for the next map
 	ri.Load_FreeMemory ();
-	r_numsurfaceverts = 0;
+
+	r_NumSurfVertexes = 0;
+	r_FirstSurfIndex = 0; // force a buffer discard on the first draw call to flush all indexes from the previous map
 }
 
 

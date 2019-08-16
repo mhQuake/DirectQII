@@ -27,7 +27,7 @@ void R_Register (void)
 {
 	scr_viewsize = ri.Cvar_Get ("viewsize", "100", CVAR_ARCHIVE, NULL);
 	r_testnullmodels = ri.Cvar_Get ("r_testnullmodels", "0", CVAR_CHEAT, NULL);
-	r_lightmap = ri.Cvar_Get ("gl_lightmap", "0", CVAR_CHEAT, NULL);
+	r_lightmap = ri.Cvar_Get ("r_lightmap", "0", CVAR_CHEAT, NULL);
 	r_testnotexture = ri.Cvar_Get ("r_testnotexture", "0", CVAR_CHEAT, NULL);
 	r_lightmodel = ri.Cvar_Get ("r_lightmodel", "1", 0, NULL);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_CHEAT, NULL);

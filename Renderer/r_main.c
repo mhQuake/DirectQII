@@ -202,8 +202,8 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 
 	// and set the correct states
 	if (rflags & RF_TRANSLUCENT)
-		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, R_GetRasterizerState (rflags));
-	else D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, R_GetRasterizerState (rflags));
+		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, R_SelectRasterizerState (rflags));
+	else D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, R_SelectRasterizerState (rflags));
 }
 
 
