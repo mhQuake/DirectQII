@@ -391,7 +391,7 @@ void D_MakeAliasBuffers (model_t *mod, dmdl_t *src)
 }
 
 
-image_t *R_GetAliasSkin (entity_t *e, model_t *mod)
+image_t *R_SelectAliasTexture (entity_t *e, model_t *mod)
 {
 	// nasty shit
 	image_t	*skin = NULL;
@@ -421,6 +421,19 @@ image_t *R_GetAliasSkin (entity_t *e, model_t *mod)
 }
 
 
+void R_SelectAliasShader (int eflags)
+{
+	// figure the correct shaders to use
+	if (eflags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
+		D_BindShaderBundle (d3d_MeshPowersuitShader);
+	else if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+		D_BindShaderBundle (d3d_MeshFullbrightShader);
+	else if (!r_worldmodel->lightdata || r_fullbright->value)
+		D_BindShaderBundle (d3d_MeshFullbrightShader);
+	else D_BindShaderBundle (d3d_MeshLightmapShader);
+}
+
+
 void R_DrawAliasPolySet (model_t *mod)
 {
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
@@ -432,18 +445,10 @@ void R_DrawAliasPolySet (model_t *mod)
 
 void R_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
+	// sets up stuff that's going to be valid for both the main pass and the dynamic lighting pass(es)
 	mmdl_t *hdr = mod->md2header;
 
-	R_BindTexture (R_GetAliasSkin (e, mod)->SRV);
-
-	// figure the correct shaders to use
-	if (e->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
-		D_BindShaderBundle (d3d_MeshPowersuitShader);
-	else if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
-		D_BindShaderBundle (d3d_MeshFullbrightShader);
-	else if (!r_worldmodel->lightdata || r_fullbright->value)
-		D_BindShaderBundle (d3d_MeshFullbrightShader);
-	else D_BindShaderBundle (d3d_MeshLightmapShader);
+	R_BindTexture (R_SelectAliasTexture (e, mod)->SRV);
 
 	D_BindVertexBuffer (0, set->PolyVerts, sizeof (dtrivertx_t), e->prevframe * sizeof (dtrivertx_t) * hdr->num_verts);
 	D_BindVertexBuffer (1, set->PolyVerts, sizeof (dtrivertx_t), e->currframe * sizeof (dtrivertx_t) * hdr->num_verts);
@@ -751,6 +756,9 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 
 	// set up the frame interpolation
 	R_SetupAliasFrameLerp (e, mod, &d3d_AliasBuffers[mod->bufferset]);
+
+	// select the correct shader to use for the main pass
+	R_SelectAliasShader (e->flags);
 
 	// and draw it
 	R_DrawAliasPolySet (mod);

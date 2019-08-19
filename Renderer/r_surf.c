@@ -42,7 +42,8 @@ static int d3d_SurfLightmapShader;
 static int d3d_SurfDynamicShader;
 static int d3d_SurfDrawTurbShader;
 
-//#pragma pack(push, 1)
+#pragma pack(push, 1)
+// compressing the vertex struct down to 32 bytes
 typedef struct brushpolyvert_s {
 	float xyz[3];
 	float st[2];
@@ -51,10 +52,11 @@ typedef struct brushpolyvert_s {
 	unsigned short mapnum;
 	unsigned short scroll;
 } brushpolyvert_t;
-//#pragma pack(pop)
+#pragma pack(pop)
 
 void R_InitSurfaces (void)
 {
+	// compressing the vertex struct down to 32 bytes
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0),
 		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0),
@@ -726,9 +728,8 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 		0
 	};
 
-	brushpolyvert_t *verts = (brushpolyvert_t *) ri.Load_AllocMemory (sizeof (brushpolyvert_t) * r_NumSurfVertexes);
-
 	// alloc a buffer to write the verts to and create the VB from
+	brushpolyvert_t *verts = (brushpolyvert_t *) ri.Load_AllocMemory (sizeof (brushpolyvert_t) * r_NumSurfVertexes);
 	D3D11_SUBRESOURCE_DATA srd = {verts, 0, 0};
 
 	// fill in the verts
