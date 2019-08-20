@@ -594,7 +594,7 @@ void R_RegeneratePVS (void)
 
 void R_MarkLeaves (void)
 {
-	byte	*vis;
+	byte	*vis = NULL;
 
 	// don't bother if there is no world
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL) return;
@@ -668,12 +668,8 @@ void R_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t 
 
 		if (surf->texinfo->flags & SURF_WARP)
 		{
-			// precalc as much of this as possible so that we don't need a more complex FS
 			verts->st[0] = Vector3Dot (verts->xyz, surf->texinfo->vecs[0]) * 0.015625f;
 			verts->st[1] = Vector3Dot (verts->xyz, surf->texinfo->vecs[1]) * 0.015625f;
-
-			verts->lm[0] = Vector3Dot (verts->xyz, surf->texinfo->vecs[1]) * M_PI / 64.0f;
-			verts->lm[1] = Vector3Dot (verts->xyz, surf->texinfo->vecs[0]) * M_PI / 64.0f;
 		}
 		else if (!(surf->texinfo->flags & SURF_SKY))
 		{

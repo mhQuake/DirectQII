@@ -91,7 +91,7 @@ PS_DRAWTURB SurfDrawTurbVS (VS_SURFCOMMON vs_in)
 
 	vs_out.Position = mul (LocalMatrix, vs_in.Position);
 	vs_out.TexCoord0 = GetTextureScroll (vs_in);
-	vs_out.TexCoord1 = vs_in.Lightmap + turbTime;
+	vs_out.TexCoord1 = vs_in.TexCoord.yx * M_PI + turbTime;
 
 	return vs_out;
 }
