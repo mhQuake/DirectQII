@@ -58,12 +58,12 @@ void R_InitSurfaces (void)
 {
 	// compressing the vertex struct down to 32 bytes
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0),
-		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0),
-		VDECL ("LIGHTMAP", 0, DXGI_FORMAT_R16G16_UNORM, 0, 0),
-		VDECL ("STYLES", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, 0),
-		VDECL ("MAPNUM", 0, DXGI_FORMAT_R16_UINT, 0, 0),
-		VDECL ("SCROLL", 0, DXGI_FORMAT_R16_UNORM, 0, 0)
+		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0),
+		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 4, 0),
+		VDECL ("LIGHTMAP", 0, DXGI_FORMAT_R16G16_UNORM, 4, 0),
+		VDECL ("STYLES", 0, DXGI_FORMAT_R8G8B8A8_UINT, 4, 0),
+		VDECL ("MAPNUM", 0, DXGI_FORMAT_R16_UINT, 4, 0),
+		VDECL ("SCROLL", 0, DXGI_FORMAT_R16_UNORM, 4, 0)
 	};
 
 	D3D11_BUFFER_DESC ibDesc = {
@@ -227,16 +227,21 @@ void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
 }
 
 
+void R_SetupSurfaceState (QMATRIX *localmatrix, float alphaval, int flags)
+{
+	R_PrepareEntityForRendering (localmatrix, NULL, alphaval, flags);
+	D_BindVertexBuffer (4, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
+	D_BindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
+}
+
+
 void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float alphaval)
 {
 	int	i;
 	msurface_t	*surf;
 
 	// and now set it up
-	R_PrepareEntityForRendering (localmatrix, NULL, alphaval, e->flags);
-
-	D_BindVertexBuffer (0, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
-	D_BindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
+	R_SetupSurfaceState (localmatrix, alphaval, e->flags);
 
 	for (i = 0; i < mod->numtexinfo; i++)
 	{
@@ -328,9 +333,9 @@ void R_DrawAlphaSurfaces (void)
 	// go back to the world matrix
 	R_MatrixIdentity (&localMatrix);
 
-	D_BindVertexBuffer (0, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
-	D_BindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
-	R_PrepareEntityForRendering (&localMatrix, NULL, 1.0f, RF_TRANSLUCENT);
+	// and now set it up (translucency is written directly into the texture at Image_QuakePalFromPCXPal so that we don't change state if alpha changes
+	// this doesn't work so well with r_lightmap...
+	R_SetupSurfaceState (&localMatrix, 1.0f, RF_TRANSLUCENT);
 
 	// we can't sort these by texture because they need to be drawn in back-to-front order, so we go through them in BSP order
 	// (which is back to front) and snoop for texture changes manually

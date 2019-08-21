@@ -167,7 +167,7 @@ void R_InitSprites (void)
 	};
 
 	D3D11_SUBRESOURCE_DATA srd = {indexes, 0, 0};
-	D3D11_INPUT_ELEMENT_DESC layout[] = {VDECL ("XYOFFSET", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0)};
+	D3D11_INPUT_ELEMENT_DESC layout[] = {VDECL ("XYOFFSET", 0, DXGI_FORMAT_R32G32_FLOAT, 5, 0)};
 
 	d3d_SpriteShader = D_CreateShaderBundle (IDR_SPRITESHADER, "SpriteVS", NULL, "SpritePS", DEFINE_LAYOUT (layout));
 
@@ -219,7 +219,7 @@ void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
 	D_BindShaderBundle (d3d_SpriteShader);
 	R_BindTexture (mod->skins[framenum]->SRV);
 
-	D_BindVertexBuffer (0, d3d_SpriteBuffers[mod->bufferset].PolyVerts, sizeof (spritepolyvert_t), 0);
+	D_BindVertexBuffer (5, d3d_SpriteBuffers[mod->bufferset].PolyVerts, sizeof (spritepolyvert_t), 0);
 	D_BindIndexBuffer (d3d_SpriteIndexes, DXGI_FORMAT_R16_UINT);
 
 	d3d_Context->lpVtbl->DrawIndexed (d3d_Context, 6, 0, framenum * 4);

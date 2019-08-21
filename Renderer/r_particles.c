@@ -32,12 +32,12 @@ static int r_FirstParticle = 0;
 void R_InitParticles (void)
 {
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		VDECL ("ORIGIN", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0),
-		VDECL ("VELOCITY", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0),
-		VDECL ("ACCELERATION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0),
-		VDECL ("TIME", 0, DXGI_FORMAT_R32_FLOAT, 0, 0),
-		VDECL ("COLOR", 0, DXGI_FORMAT_R32_SINT, 0, 0),
-		VDECL ("ALPHA", 0, DXGI_FORMAT_R32_FLOAT, 0, 0)
+		VDECL ("ORIGIN", 0, DXGI_FORMAT_R32G32B32_FLOAT, 6, 0),
+		VDECL ("VELOCITY", 0, DXGI_FORMAT_R32G32B32_FLOAT, 6, 0),
+		VDECL ("ACCELERATION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 6, 0),
+		VDECL ("TIME", 0, DXGI_FORMAT_R32_FLOAT, 6, 0),
+		VDECL ("COLOR", 0, DXGI_FORMAT_R32_SINT, 6, 0),
+		VDECL ("ALPHA", 0, DXGI_FORMAT_R32_FLOAT, 6, 0)
 	};
 
 	D3D11_BUFFER_DESC vbDesc = {
@@ -67,12 +67,6 @@ void R_DrawParticles (void)
 	if (!r_newrefdef.num_particles)
 		return;
 
-	// square particles can potentially expose a faster path by not using alpha blending
-	// but we might wish to add particle fade at some time so we can't do it (note: all particles in Q2 have fade)
-	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSDepthNoWrite, d3d_RSFullCull);
-	D_BindShaderBundle (d3d_ParticleShader);
-	D_BindVertexBuffer (0, d3d_ParticleVertexes, sizeof (particle_t), 0);
-
 	if (r_FirstParticle + r_newrefdef.num_particles >= MAX_GPU_PARTICLES)
 	{
 		r_FirstParticle = 0;
@@ -88,6 +82,12 @@ void R_DrawParticles (void)
 		// go to points for the geometry shader
 		// (we could alternatively attach an index buffer with indices 0|0|0|1|1|1|2|2|2 etc, and do triangle-to-quad expansion, which would be hellishly cute)
 		d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+		// square particles can potentially expose a faster path by not using alpha blending
+		// but we might wish to add particle fade at some time so we can't do it (note: all particles in Q2 have fade)
+		D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSDepthNoWrite, d3d_RSFullCull);
+		D_BindShaderBundle (d3d_ParticleShader);
+		D_BindVertexBuffer (6, d3d_ParticleVertexes, sizeof (particle_t), 0);
 
 		// and draw it
 		d3d_Context->lpVtbl->Draw (d3d_Context, r_newrefdef.num_particles, r_FirstParticle);

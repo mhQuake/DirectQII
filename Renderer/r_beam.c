@@ -80,12 +80,8 @@ void R_CreateBeamIndexBuffer (void)
 void R_CreateBeamVertexes (int slices)
 {
 	int i;
-	beampolyvert_t srcverts[255];
 	beampolyvert_t *verts = NULL;
 	D3D11_SUBRESOURCE_DATA srd;
-
-		float mins[3] = {999999, 999999, 999999};
-		float maxs[3] = {-999999, -999999, -999999};
 
 	// clamp sensibly
 	if (slices < 3) slices = 3;
@@ -93,8 +89,7 @@ void R_CreateBeamVertexes (int slices)
 
 	r_numbeamverts = (slices + 1) * 2;
 	r_numbeamindexes = (r_numbeamverts - 2) * 3;
-	//verts = (beampolyvert_t *) ri.Load_AllocMemory (r_numbeamverts * sizeof (beampolyvert_t));
-	verts = srcverts;
+	verts = (beampolyvert_t *) ri.Load_AllocMemory (r_numbeamverts * sizeof (beampolyvert_t));
 
 	srd.pSysMem = verts;
 	srd.SysMemPitch = 0;
@@ -106,19 +101,6 @@ void R_CreateBeamVertexes (int slices)
 
 		Vector3Set (verts[0].position, sin (angle) * 0.5f, cos (angle) * 0.5f, 1);
 		Vector3Set (verts[1].position, sin (angle) * 0.5f, cos (angle) * 0.5f, 0);
-
-		if (verts[0].position[0] < mins[0]) mins[0] = verts[0].position[0];
-		if (verts[0].position[1] < mins[1]) mins[1] = verts[0].position[1];
-		if (verts[0].position[2] < mins[2]) mins[2] = verts[0].position[2];
-		if (verts[1].position[0] < mins[0]) mins[0] = verts[1].position[0];
-		if (verts[1].position[1] < mins[1]) mins[1] = verts[1].position[1];
-		if (verts[1].position[2] < mins[2]) mins[2] = verts[1].position[2];
-		if (verts[0].position[0] > maxs[0]) maxs[0] = verts[0].position[0];
-		if (verts[0].position[1] > maxs[1]) maxs[1] = verts[0].position[1];
-		if (verts[0].position[2] > maxs[2]) maxs[2] = verts[0].position[2];
-		if (verts[1].position[0] > maxs[0]) maxs[0] = verts[1].position[0];
-		if (verts[1].position[1] > maxs[1]) maxs[1] = verts[1].position[1];
-		if (verts[1].position[2] > maxs[2]) maxs[2] = verts[1].position[2];
 	}
 
 	// create the buffers from the generated data
@@ -135,7 +117,7 @@ static int d3d_BeamShader = 0;
 void R_InitBeam (void)
 {
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0)
+		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 7, 0)
 	};
 
 	d3d_BeamShader = D_CreateShaderBundle (IDR_BEAMSHADER, "BeamVS", NULL, "BeamPS", DEFINE_LAYOUT (layout));
@@ -184,7 +166,7 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 			r_beamdetail->modified = false;
 		}
 
-		D_BindVertexBuffer (0, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
+		D_BindVertexBuffer (7, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
 		D_BindIndexBuffer (d3d_BeamIndexes, DXGI_FORMAT_R16_UINT);
 
 		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numbeamindexes, 0, 0);

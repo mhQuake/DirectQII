@@ -501,7 +501,7 @@ void R_SetupGL (void)
 	consts.TexScroll = modf ((double) r_newrefdef.time / 40.0, &junk[0]) * -64.0f;
 
 	// cycle in increments of 2 * M_PI so that the sine warp will wrap correctly
-	consts.turbTime = modf ((double) r_newrefdef.time / (M_PI * 2.0), junk) * (M_PI * 2.0);
+	consts.turbTime = r_newrefdef.time - ((M_PI * 2) * (int) (r_newrefdef.time / (M_PI * 2)));
 
 	// copy over refdef size for stull like e.g. the water warp noise lookup
 	consts.RefdefX = r_newrefdef.x;

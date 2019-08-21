@@ -208,14 +208,14 @@ void Draw_Flush (void)
 		d_drawverts = NULL;
 	}
 
+	D_BindVertexBuffer (0, d3d_DrawVertexes, sizeof (drawpolyvert_t), 0);
+
 	if (d_numdrawverts == 3)
 	{
-		D_BindVertexBuffer (0, d3d_DrawVertexes, sizeof (drawpolyvert_t), 0);
 		d3d_Context->lpVtbl->Draw (d3d_Context, d_numdrawverts, d_firstdrawvert);
 	}
 	else if (d_numdrawverts > 3)
 	{
-		D_BindVertexBuffer (0, d3d_DrawVertexes, sizeof (drawpolyvert_t), 0);
 		D_BindIndexBuffer (d3d_DrawIndexes, DXGI_FORMAT_R16_UINT);
 		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
 	}

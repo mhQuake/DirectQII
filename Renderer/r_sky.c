@@ -35,7 +35,7 @@ static int d3d_SkyNoSkyShader;
 void R_InitSky (void)
 {
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0)
+		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0)
 	};
 
 	d3d_SurfDrawSkyShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawSkyVS", NULL, "SurfDrawSkyPS", DEFINE_LAYOUT (layout));
