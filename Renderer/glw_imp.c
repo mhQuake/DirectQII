@@ -787,6 +787,7 @@ qboolean GLimp_InitGL (int modenum)
 
 	// load all of our initial objects
 	// each subsystem creates it's objects then registers it's handlers, following which the reset handler runs to complete object creation
+	R_InitShaders (); // must be done first before any other shaders are created
 	R_InitMain ();
 	R_InitSurfaces ();
 	R_InitParticles ();

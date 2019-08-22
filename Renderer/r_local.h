@@ -69,6 +69,7 @@ void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix);
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // module registration and object lifecycle
 void R_InitMain (void);
+void R_InitShaders (void);
 void R_ShutdownShaders (void);
 void R_InitSurfaces (void);
 void R_ShutdownSurfaces (void);
@@ -360,11 +361,6 @@ void Draw_Flush (void);
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // shaders
 int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsentry, const char *psentry, D3D11_INPUT_ELEMENT_DESC *layout, int numlayout);
-
-void D_SetInputLayout (ID3D11InputLayout *il);
-void D_SetVertexShader (ID3D11VertexShader *vs);
-void D_SetGeometryShader (ID3D11GeometryShader *gs);
-void D_SetPixelShader (ID3D11PixelShader *ps);
 
 void D_BindShaderBundle (int sb);
 void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot);

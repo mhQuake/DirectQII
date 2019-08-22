@@ -248,54 +248,6 @@ void D_SetRenderStates (ID3D11BlendState *bs, ID3D11DepthStencilState *ds, ID3D1
 }
 
 
-void D_SetInputLayout (ID3D11InputLayout *il)
-{
-	static ID3D11InputLayout *oldil = NULL;
-
-	if (oldil != il)
-	{
-		d3d_Context->lpVtbl->IASetInputLayout (d3d_Context, il);
-		oldil = il;
-	}
-}
-
-
-void D_SetVertexShader (ID3D11VertexShader *vs)
-{
-	static ID3D11VertexShader *oldvs = NULL;
-
-	if (oldvs != vs)
-	{
-		d3d_Context->lpVtbl->VSSetShader (d3d_Context, vs, NULL, 0);
-		oldvs = vs;
-	}
-}
-
-
-void D_SetGeometryShader (ID3D11GeometryShader *gs)
-{
-	static ID3D11GeometryShader *oldgs = NULL;
-
-	if (oldgs != gs)
-	{
-		d3d_Context->lpVtbl->GSSetShader (d3d_Context, gs, NULL, 0);
-		oldgs = gs;
-	}
-}
-
-
-void D_SetPixelShader (ID3D11PixelShader *ps)
-{
-	static ID3D11PixelShader *oldps = NULL;
-
-	if (oldps != ps)
-	{
-		d3d_Context->lpVtbl->PSSetShader (d3d_Context, ps, NULL, 0);
-		oldps = ps;
-	}
-}
-
-
 void D_BindVertexBuffer (UINT Slot, ID3D11Buffer *Buffer, UINT Stride, UINT Offset)
 {
 	static streamdef_t d3d_VertexStreams[MAX_VERTEX_STREAMS];

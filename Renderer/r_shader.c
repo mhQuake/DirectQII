@@ -18,8 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // needed for the shader compiler
 // pD3DCompile is defined in D3Dcompiler.h so we don't need to typedef it ourselves
-HINSTANCE hInstCompiler = NULL;
-pD3DCompile QD3DCompile = NULL;
+static HINSTANCE hInstCompiler = NULL;
+static pD3DCompile QD3DCompile = NULL;
 
 typedef struct shaderbundle_s {
 	ID3D11InputLayout *InputLayout;
@@ -34,7 +34,46 @@ typedef struct shaderbundle_s {
 static shaderbundle_t d3d_Shaders[MAX_SHADERS];
 static int d3d_NumShaders = 0;
 
-ID3D11Buffer *d3d_ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+static ID3D11Buffer *d3d_ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+
+
+void R_InitShaders (void)
+{
+	// set up bundle 0 as the NULL shader which may be used to explicitly unbind all shaders from the pipeline
+	d3d_Shaders[0].InputLayout = NULL;
+	d3d_Shaders[0].VertexShader = NULL;
+	d3d_Shaders[0].GeometryShader = NULL;
+	d3d_Shaders[0].PixelShader = NULL;
+	d3d_NumShaders = 1;
+
+	// load the compiler (or ensure it's loaded
+	// statically linking to d3dcompiler.lib causes it to use d3dcompiler_47.dll which is not on Windows 7 so link dynamically instead
+	if (!hInstCompiler || !QD3DCompile) // these should always be NULL
+	{
+		int i;
+
+		for (i = 99; i > 32; i--)
+		{
+			char libname[256];
+			sprintf (libname, "d3dcompiler_%i.dll", i);
+
+			if ((hInstCompiler = LoadLibrary (libname)) != NULL)
+			{
+				if ((QD3DCompile = (pD3DCompile) GetProcAddress (hInstCompiler, "D3DCompile")) != NULL)
+					return;
+				else
+				{
+					FreeLibrary (hInstCompiler);
+					hInstCompiler = NULL;
+				}
+			}
+		}
+	}
+
+	// error conditions
+	if (!hInstCompiler) ri.Sys_Error (ERR_FATAL, "D_LoadShaderCompiler : LoadLibrary for d3dcompiler.dll failed");
+	if (!QD3DCompile) ri.Sys_Error (ERR_FATAL, "D_LoadShaderCompiler : GetProcAddress for D3DCompile failed");
+}
 
 
 void R_ShutdownShaders (void)
@@ -97,37 +136,6 @@ static int LoadResourceData (int resourceid, void **resbuf)
 }
 
 
-void D_LoadShaderCompiler (void)
-{
-	// statically linking to d3dcompiler.lib causes it to use d3dcompiler_47.dll which is not on Windows 7 so link dynamically instead
-	if (!hInstCompiler || !QD3DCompile)
-	{
-		int i;
-
-		for (i = 99; i > 32; i--)
-		{
-			char libname[256];
-			sprintf (libname, "d3dcompiler_%i.dll", i);
-
-			if ((hInstCompiler = LoadLibrary (libname)) != NULL)
-			{
-				if ((QD3DCompile = (pD3DCompile) GetProcAddress (hInstCompiler, "D3DCompile")) != NULL)
-					return;
-				else
-				{
-					FreeLibrary (hInstCompiler);
-					hInstCompiler = NULL;
-				}
-			}
-		}
-	}
-
-	// error conditions
-	if (!hInstCompiler) ri.Sys_Error (ERR_FATAL, "D_LoadShaderCompiler : LoadLibrary for d3dcompiler.dll failed");
-	if (!QD3DCompile) ri.Sys_Error (ERR_FATAL, "D_LoadShaderCompiler : GetProcAddress for D3DCompile failed");
-}
-
-
 static HRESULT D_CompileShader (LPCVOID pSrcData, SIZE_T SrcDataSize, CONST D3D_SHADER_MACRO *pDefines, LPCSTR pEntrypoint, LPCSTR pTarget, ID3DBlob **ppCode)
 {
 	// and compile it
@@ -184,9 +192,6 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 
 	// failed to load the resource
 	if (!shaderlength || !shadersource) return -1;
-
-	// load the compiler (or ensure it's loaded
-	D_LoadShaderCompiler ();
 
 	// make the vertex shader
 	if (vsentry)
@@ -276,10 +281,41 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 
 void D_BindShaderBundle (int sb)
 {
-	D_SetInputLayout (d3d_Shaders[sb].InputLayout);
-	D_SetVertexShader (d3d_Shaders[sb].VertexShader);
-	D_SetGeometryShader (d3d_Shaders[sb].GeometryShader);
-	D_SetPixelShader (d3d_Shaders[sb].PixelShader);
+	static ID3D11InputLayout *oldil = NULL;
+	static ID3D11VertexShader *oldvs = NULL;
+	static ID3D11GeometryShader *oldgs = NULL;
+	static ID3D11PixelShader *oldps = NULL;
+
+	if (sb < 0 || sb >= MAX_SHADERS)
+	{
+		// shader bundle 0 is the NULL shader bundle which may be explicitly used to clear down all bindings
+		D_BindShaderBundle (0);
+		return;
+	}
+
+	if (oldil != d3d_Shaders[sb].InputLayout)
+	{
+		d3d_Context->lpVtbl->IASetInputLayout (d3d_Context, d3d_Shaders[sb].InputLayout);
+		oldil = d3d_Shaders[sb].InputLayout;
+	}
+
+	if (oldvs != d3d_Shaders[sb].VertexShader)
+	{
+		d3d_Context->lpVtbl->VSSetShader (d3d_Context, d3d_Shaders[sb].VertexShader, NULL, 0);
+		oldvs = d3d_Shaders[sb].VertexShader;
+	}
+
+	if (oldgs != d3d_Shaders[sb].GeometryShader)
+	{
+		d3d_Context->lpVtbl->GSSetShader (d3d_Context, d3d_Shaders[sb].GeometryShader, NULL, 0);
+		oldgs = d3d_Shaders[sb].GeometryShader;
+	}
+
+	if (oldps != d3d_Shaders[sb].PixelShader)
+	{
+		d3d_Context->lpVtbl->PSSetShader (d3d_Context, d3d_Shaders[sb].PixelShader, NULL, 0);
+		oldps = d3d_Shaders[sb].PixelShader;
+	}
 }
 
 
