@@ -35,7 +35,7 @@ static shaderbundle_t d3d_Shaders[MAX_SHADERS];
 static int d3d_NumShaders = 0;
 
 static ID3D11Buffer *d3d_ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-
+static int d3d_MaxCBufferSlot = 0;
 
 void R_InitShaders (void)
 {
@@ -328,15 +328,21 @@ CBUFFER MANAGEMENT
 void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot)
 {
 	if (slot >= 0 && slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+	{
+		if (slot > d3d_MaxCBufferSlot)
+			d3d_MaxCBufferSlot = slot;
+
 		d3d_ConstantBuffers[slot] = cBuffer;
+	}
 	else ri.Sys_Error (ERR_FATAL, "D_RegisterConstantBuffer : slot out of range");
 }
 
 
 void D_BindConstantBuffers (void)
 {
-	d3d_Context->lpVtbl->VSSetConstantBuffers (d3d_Context, 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, d3d_ConstantBuffers);
-	d3d_Context->lpVtbl->GSSetConstantBuffers (d3d_Context, 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, d3d_ConstantBuffers);
-	d3d_Context->lpVtbl->PSSetConstantBuffers (d3d_Context, 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, d3d_ConstantBuffers);
+	// d3d_MaxCBufferSlot is 0-based so add 1 for the actual number
+	d3d_Context->lpVtbl->VSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
+	d3d_Context->lpVtbl->GSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
+	d3d_Context->lpVtbl->PSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
 }
 

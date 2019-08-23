@@ -139,7 +139,9 @@ static void CancelChanges (void *unused)
 
 
 /*
-** VID_MenuInit
+===============
+VID_MenuInit
+===============
 */
 void VID_MenuInit (void)
 {

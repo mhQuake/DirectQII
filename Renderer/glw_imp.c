@@ -17,18 +17,21 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
 /*
-** GLW_IMP.C
-**
-** This file contains ALL Win32 specific stuff having to do with the
-** OpenGL refresh.  When a port is being made the following functions
-** must be implemented by the port:
-**
-** GLimp_EndFrame
-** GLimp_Init
-** GLimp_Shutdown
-**
+=========================================================================================================
+GLW_IMP.C
+
+This file contains ALL Win32 specific stuff having to do with the
+OpenGL refresh.  When a port is being made the following functions
+must be implemented by the port:
+
+GLimp_EndFrame
+GLimp_Init
+GLimp_Shutdown
+=========================================================================================================
 */
+
 #include <assert.h>
 #include <windows.h>
 #include "r_local.h"
@@ -425,7 +428,9 @@ static qboolean VerifyDriver (void)
 
 
 /*
-** VID_CreateWindow
+===============
+VID_CreateWindow
+===============
 */
 #define	WINDOW_CLASS_NAME	"DirectQII"
 #define	WINDOW_STYLE	(WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE)
@@ -524,7 +529,9 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 
 
 /*
-** GLimp_SetMode
+===============
+GLimp_SetMode
+===============
 */
 rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 {
@@ -592,13 +599,14 @@ void GLimp_ClearToBlack (void)
 
 
 /*
-** GLimp_Shutdown
-**
-** This routine does all OS specific shutdown procedures for the OpenGL
-** subsystem.  Under OpenGL this means NULLing out the current DC and
-** HGLRC, deleting the rendering context, and releasing the DC acquired
-** for the window.  The state structure is also nulled out.
-**
+===============
+GLimp_Shutdown
+
+This routine does all OS specific shutdown procedures for the OpenGL
+subsystem.  Under OpenGL this means NULLing out the current DC and
+HGLRC, deleting the rendering context, and releasing the DC acquired
+for the window.  The state structure is also nulled out.
+===============
 */
 void GLimp_Shutdown (void)
 {
@@ -652,11 +660,13 @@ void GLimp_Shutdown (void)
 
 
 /*
-** GLimp_Init
-**
-** This routine is responsible for initializing the OS specific portions
-** of OpenGL.  Under Win32 this means dealing with the pixelformats and
-** doing the wgl interface stuff.
+===============
+GLimp_Init
+
+This routine is responsible for initializing the OS specific portions
+of OpenGL.  Under Win32 this means dealing with the pixelformats and
+doing the wgl interface stuff.
+===============
 */
 qboolean GLimp_Init (void *hinstance, void *wndproc)
 {
@@ -845,7 +855,9 @@ static void GLimp_GetGUIScale (void)
 
 
 /*
-** GLimp_BeginFrame
+===============
+GLimp_BeginFrame
+===============
 */
 void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 {
@@ -879,11 +891,13 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 
 
 /*
-** GLimp_EndFrame
-**
-** Responsible for doing a swapbuffers and possibly for other stuff
-** as yet to be determined.  Probably better not to make this a GLimp
-** function and instead do a call to GLimp_SwapBuffers.
+===============
+GLimp_EndFrame
+
+Responsible for doing a swapbuffers and possibly for other stuff
+as yet to be determined.  Probably better not to make this a GLimp
+function and instead do a call to GLimp_SwapBuffers.
+===============
 */
 void GLimp_EndFrame (int scrflags)
 {
@@ -905,7 +919,9 @@ void GLimp_EndFrame (int scrflags)
 
 
 /*
-** GLimp_AppActivate
+===============
+GLimp_AppActivate
+===============
 */
 void GLimp_AppActivate (qboolean active)
 {

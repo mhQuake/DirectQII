@@ -304,7 +304,9 @@ void R_FreeUnusedImages (void);
 
 
 /*
-** GL config stuff
+===============
+GL config stuff
+===============
 */
 
 typedef struct glconfig_s

@@ -276,11 +276,13 @@ void Menu_AddItem (menuframework_s *menu, void *item)
 }
 
 /*
-** Menu_AdjustCursor
-**
-** This function takes the given menu, the direction, and attempts
-** to adjust the menu's cursor so that it's at the next available
-** slot.
+===============
+Menu_AdjustCursor
+
+This function takes the given menu, the direction, and attempts
+to adjust the menu's cursor so that it's at the next available
+slot.
+===============
 */
 void Menu_AdjustCursor (menuframework_s *m, int dir)
 {

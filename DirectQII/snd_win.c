@@ -76,7 +76,9 @@ static const char *DSoundError (int error)
 }
 
 /*
-** DS_CreateBuffers
+===============
+DS_CreateBuffers
+===============
 */
 static qboolean DS_CreateBuffers (void)
 {
@@ -168,7 +170,9 @@ static qboolean DS_CreateBuffers (void)
 }
 
 /*
-** DS_DestroyBuffers
+===============
+DS_DestroyBuffers
+===============
 */
 static void DS_DestroyBuffers (void)
 {

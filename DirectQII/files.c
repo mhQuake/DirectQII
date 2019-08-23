@@ -672,7 +672,9 @@ void FS_Link_f (void)
 }
 
 /*
-** FS_ListFiles
+===============
+FS_ListFiles
+===============
 */
 char **FS_ListFiles (char *findname, int *numfiles, unsigned musthave, unsigned canthave)
 {
@@ -718,7 +720,9 @@ char **FS_ListFiles (char *findname, int *numfiles, unsigned musthave, unsigned 
 }
 
 /*
-** FS_Dir_f
+===============
+FS_Dir_f
+===============
 */
 void FS_Dir_f (void)
 {

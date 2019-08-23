@@ -186,7 +186,9 @@ void StartServer_MenuInit (void)
 	FILE *fp;
 
 	/*
-	** load the list of map names
+	===============
+	load the list of map names
+	===============
 	*/
 	Com_sprintf (mapsname, sizeof (mapsname), "%s/maps.lst", FS_Gamedir ());
 	if ((fp = fopen (mapsname, "rb")) == 0)
@@ -255,9 +257,7 @@ void StartServer_MenuInit (void)
 		FS_FreeFile (buffer);
 	}
 
-	/*
-	** initialize the menu stuff
-	*/
+	// initialize the menu stuff
 	s_startserver_menu.x = viddef.conwidth * 0.50;
 	s_startserver_menu.nitems = 0;
 
@@ -305,12 +305,10 @@ void StartServer_MenuInit (void)
 	s_fraglimit_field.visible_length = 3;
 	strcpy (s_fraglimit_field.buffer, Cvar_VariableString ("fraglimit"));
 
-	/*
-	** maxclients determines the maximum number of players that can join
-	** the game.  If maxclients is only "1" then we should default the menu
-	** option to 8 players, otherwise use whatever its current value is.
-	** Clamping will be done when the server is actually started.
-	*/
+	// maxclients determines the maximum number of players that can join
+	// the game.  If maxclients is only "1" then we should default the menu
+	// option to 8 players, otherwise use whatever its current value is.
+	// Clamping will be done when the server is actually started.
 	s_maxclients_field.generic.type = MTYPE_FIELD;
 	s_maxclients_field.generic.name = "max players";
 	s_maxclients_field.generic.flags = QMF_NUMBERSONLY;
