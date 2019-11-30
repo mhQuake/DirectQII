@@ -121,6 +121,7 @@ typedef struct particle_s
 	float	time;
 	int		color;
 	float	alpha;
+	int		size;
 } particle_t;
 
 typedef struct fov_s

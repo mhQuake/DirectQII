@@ -103,7 +103,7 @@ V_AddParticle
 
 =====================
 */
-void V_AddParticle (vec3_t org, vec3_t vel, vec3_t accel, float time, int color, float alpha)
+void V_AddParticle (vec3_t org, vec3_t vel, vec3_t accel, float time, int color, float alpha, int size)
 {
 	if (r_numparticles >= MAX_PARTICLES)
 		return;
@@ -118,6 +118,7 @@ void V_AddParticle (vec3_t org, vec3_t vel, vec3_t accel, float time, int color,
 		p->time = time;
 		p->color = color;
 		p->alpha = alpha;
+		p->size = size;
 
 		r_numparticles++;
 	}
@@ -202,7 +203,7 @@ void V_TestParticles (void)
 			cl.refdef.vieworg[2] + cl.v_forward[2] * d + cl.v_right[2] * r + cl.v_up[2] * u
 		};
 
-		V_AddParticle (org, vec3_origin, vec3_origin, 0, 8, cl_testparticles->value);
+		V_AddParticle (org, vec3_origin, vec3_origin, 0, 8, cl_testparticles->value, 8 + (i & 7));
 	}
 }
 

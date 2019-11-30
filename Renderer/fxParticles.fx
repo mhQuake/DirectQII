@@ -6,11 +6,13 @@ struct VS_PARTICLE {
 	float Time : TIME;
 	int Color : COLOR;
 	float Alpha : ALPHA;
+	int Size : SIZE;
 };
 
 struct GS_PARTICLE {
 	float3 Origin : ORIGIN;
 	float4 Color : COLOR;
+	float Size : SIZE;
 };
 
 struct PS_PARTICLE {
@@ -28,8 +30,9 @@ GS_PARTICLE ParticleVS (VS_PARTICLE vs_in)
 	// move the particle in a framerate-independent manner
 	vs_out.Origin = vs_in.Origin + (vs_in.Velocity + vs_in.Acceleration * vs_in.Time) * vs_in.Time;
 
-	// copy over colour
+	// copy over colour and size
 	vs_out.Color = float4 (QuakePalette.Load (vs_in.Color).rgb, vs_in.Alpha);
+	vs_out.Size = float (vs_in.Size) * 0.1f;
 
 	return vs_out;
 }
@@ -61,7 +64,7 @@ void ParticleCommonGS (point GS_PARTICLE gs_in, inout TriangleStream<PS_PARTICLE
 	if (dot (gs_in.Origin, frustum3.xyz) - frustum3.w <= -1) return;
 
 	// hack a scale up to keep particles from disapearing
-	float ScaleUp = (1.0f + dot (gs_in.Origin - viewOrigin, viewForward) * HackUp) * TypeScale;
+	float ScaleUp = (1.0f + dot (gs_in.Origin - viewOrigin, viewForward) * HackUp) * TypeScale * gs_in.Size;
 
 	// and write it out
 	gs_out.Append (GetParticleVert (gs_in, float2 (-1, -1), ScaleUp));

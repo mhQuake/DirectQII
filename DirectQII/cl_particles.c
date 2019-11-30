@@ -56,8 +56,6 @@ PARTICLE MANAGEMENT
 cparticle_t	*active_particles, *free_particles;
 cparticle_t	particles[MAX_PARTICLES];
 
-int			cl_numparticles = MAX_PARTICLES;
-
 
 /*
 ===============
@@ -71,9 +69,13 @@ void CL_ClearParticles (void)
 	free_particles = &particles[0];
 	active_particles = NULL;
 
-	for (i = 0; i < cl_numparticles; i++)
+	for (i = 0; i < MAX_PARTICLES; i++)
+	{
 		particles[i].next = &particles[i + 1];
-	particles[cl_numparticles - 1].next = NULL;
+		particles[i].size = 6 + (rand () & 7);
+	}
+
+	particles[MAX_PARTICLES - 1].next = NULL;
 }
 
 
@@ -2151,7 +2153,7 @@ void CL_AddParticles (void)
 		}
 
 		// particle movement is now done on the GPU
-		V_AddParticle (p->org, p->vel, p->accel, time, p->color, alpha);
+		V_AddParticle (p->org, p->vel, p->accel, time, p->color, alpha, p->size);
 
 		// PMM - INSTANT_PARTICLE only lasts for 1 frame and dies immediately after
 		if (p->alphavel == INSTANT_PARTICLE)
