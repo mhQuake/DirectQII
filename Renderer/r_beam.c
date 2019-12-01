@@ -180,6 +180,7 @@ void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix)
 
 	Vector3Subtract (dir, e->prevorigin, e->currorigin);
 	Vector3Cross (axis, upvec, dir);
+	Vector3Normalize (axis);
 
 	// catch 0 length beams
 	if (!((len = Vector3Length (dir)) > 0))

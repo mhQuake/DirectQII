@@ -105,6 +105,7 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 	strncpy (skyname, name, sizeof (skyname) - 1);
 	skyrotate = rotate;
 	Vector3Copy (skyaxis, axis);
+	Vector3Normalize (skyaxis);
 
 	for (i = 0; i < 6; i++)
 	{

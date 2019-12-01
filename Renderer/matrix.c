@@ -80,8 +80,7 @@ QMATRIX *R_MatrixMultiply (QMATRIX *out, QMATRIX *m1, QMATRIX *m2)
 
 QMATRIX *R_MatrixOrtho (QMATRIX *m, float left, float right, float bottom, float top, float zNear, float zFar)
 {
-	return R_MatrixMultiplyf (
-		m,
+	QMATRIX m1 = {
 		2 / (right - left),
 		0,
 		0,
@@ -98,7 +97,9 @@ QMATRIX *R_MatrixOrtho (QMATRIX *m, float left, float right, float bottom, float
 		-((top + bottom) / (top - bottom)),
 		-((zFar + zNear) / (zFar - zNear)),
 		1
-	);
+	};
+
+	return R_MatrixMultiply (m, &m1, m);
 }
 
 
@@ -132,33 +133,6 @@ QMATRIX *R_MatrixFrustum (QMATRIX *m, float fovx, float fovy, float zn, float zf
 	};
 
 	return R_MatrixMultiply (m, &m2, m);
-}
-
-
-QMATRIX *R_MatrixMultiplyf (QMATRIX *m, float _11, float _12, float _13, float _14, float _21, float _22, float _23, float _24, float _31, float _32, float _33, float _34, float _41, float _42, float _43, float _44)
-{
-	__m128 mrow;
-
-	__m128 m2c0 = _mm_load_ps (m->m4x4[0]);
-	__m128 m2c1 = _mm_load_ps (m->m4x4[1]);
-	__m128 m2c2 = _mm_load_ps (m->m4x4[2]);
-	__m128 m2c3 = _mm_load_ps (m->m4x4[3]);
-
-	_MM_TRANSPOSE4_PS (m2c0, m2c1, m2c2, m2c3);
-
-	mrow = _mm_set_ps (_14, _13, _12, _11);
-	_mm_store_ps (m->m4x4[0], _mm_hadd_ps (_mm_hadd_ps (_mm_mul_ps (mrow, m2c0), _mm_mul_ps (mrow, m2c1)), _mm_hadd_ps (_mm_mul_ps (mrow, m2c2), _mm_mul_ps (mrow, m2c3))));
-
-	mrow = _mm_set_ps (_24, _23, _22, _21);
-	_mm_store_ps (m->m4x4[1], _mm_hadd_ps (_mm_hadd_ps (_mm_mul_ps (mrow, m2c0), _mm_mul_ps (mrow, m2c1)), _mm_hadd_ps (_mm_mul_ps (mrow, m2c2), _mm_mul_ps (mrow, m2c3))));
-
-	mrow = _mm_set_ps (_34, _33, _32, _31);
-	_mm_store_ps (m->m4x4[2], _mm_hadd_ps (_mm_hadd_ps (_mm_mul_ps (mrow, m2c0), _mm_mul_ps (mrow, m2c1)), _mm_hadd_ps (_mm_mul_ps (mrow, m2c2), _mm_mul_ps (mrow, m2c3))));
-
-	mrow = _mm_set_ps (_44, _43, _42, _41);
-	_mm_store_ps (m->m4x4[3], _mm_hadd_ps (_mm_hadd_ps (_mm_mul_ps (mrow, m2c0), _mm_mul_ps (mrow, m2c1)), _mm_hadd_ps (_mm_mul_ps (mrow, m2c2), _mm_mul_ps (mrow, m2c3))));
-
-	return m;
 }
 
 
@@ -210,8 +184,7 @@ QMATRIX *R_MatrixRotate (QMATRIX *m, float p, float y, float r)
 	float cp = cos (DEG2RAD (p));
 	float cy = cos (DEG2RAD (y));
 
-	return R_MatrixMultiplyf (
-		m,
+	QMATRIX m1 = {
 		(cp * cy),
 		(cp * sy),
 		-sp,
@@ -228,7 +201,9 @@ QMATRIX *R_MatrixRotate (QMATRIX *m, float p, float y, float r)
 		0.0f,
 		0.0f,
 		1.0f
-	);
+	};
+
+	return R_MatrixMultiply (m, &m1, m);
 }
 
 
@@ -236,29 +211,27 @@ QMATRIX *R_MatrixRotateAxis (QMATRIX *m, float angle, float x, float y, float z)
 {
 	float sa = sin (DEG2RAD (angle));
 	float ca = cos (DEG2RAD (angle));
-	float xyz[3] = {x, y, z};
 
-	Vector3Normalize (xyz);
-
-	return R_MatrixMultiplyf (
-		m,
-		(1.0f - ca) * xyz[0] * xyz[0] + ca,
-		(1.0f - ca) * xyz[1] * xyz[0] + sa * xyz[2],
-		(1.0f - ca) * xyz[2] * xyz[0] - sa * xyz[1],
+	QMATRIX m1 = {
+		(1.0f - ca) * x * x + ca,
+		(1.0f - ca) * y * x + sa * z,
+		(1.0f - ca) * z * x - sa * y,
 		0.0f,
-		(1.0f - ca) * xyz[0] * xyz[1] - sa * xyz[2],
-		(1.0f - ca) * xyz[1] * xyz[1] + ca,
-		(1.0f - ca) * xyz[2] * xyz[1] + sa * xyz[0],
+		(1.0f - ca) * x * y - sa * z,
+		(1.0f - ca) * y * y + ca,
+		(1.0f - ca) * z * y + sa * x,
 		0.0f,
-		(1.0f - ca) * xyz[0] * xyz[2] + sa * xyz[1],
-		(1.0f - ca) * xyz[1] * xyz[2] - sa * xyz[0],
-		(1.0f - ca) * xyz[2] * xyz[2] + ca,
+		(1.0f - ca) * x * z + sa * y,
+		(1.0f - ca) * y * z - sa * x,
+		(1.0f - ca) * z * z + ca,
 		0.0f,
 		0.0f,
 		0.0f,
 		0.0f,
 		1.0f
-	);
+	};
+
+	return R_MatrixMultiply (m, &m1, m);
 }
 
 
@@ -283,7 +256,7 @@ QMATRIX *R_MatrixCamera (QMATRIX *m, const float *origin, const float *angles)
 	float _23 = -(cp * sy);
 	float _33 = sp;
 
-	QMATRIX m2 = {
+	QMATRIX m1 = {
 		_11, _12, _13, 0.0f,
 		_21, _22, _23, 0.0f,
 		_31, _32, _33, 0.0f,
@@ -293,7 +266,7 @@ QMATRIX *R_MatrixCamera (QMATRIX *m, const float *origin, const float *angles)
 		1.0f
 	};
 
-	return R_MatrixMultiply (m, &m2, m);
+	return R_MatrixMultiply (m, &m1, m);
 }
 
 
