@@ -45,27 +45,34 @@ QMATRIX *R_MatrixIdentity (QMATRIX *m)
 
 QMATRIX *R_MatrixMultiply (QMATRIX *out, QMATRIX *m1, QMATRIX *m2)
 {
-	// up to 4x the perf of raw C code
-	__m128 mrow;
+	// https://github.com/mhQuake/DirectQII/issues/1
+	int i;
 
-	__m128 m2c0 = _mm_load_ps (m2->m4x4[0]);
-	__m128 m2c1 = _mm_load_ps (m2->m4x4[1]);
-	__m128 m2c2 = _mm_load_ps (m2->m4x4[2]);
-	__m128 m2c3 = _mm_load_ps (m2->m4x4[3]);
+	__m128 row1 = _mm_load_ps (m2->m4x4[0]);
+	__m128 row2 = _mm_load_ps (m2->m4x4[1]);
+	__m128 row3 = _mm_load_ps (m2->m4x4[2]);
+	__m128 row4 = _mm_load_ps (m2->m4x4[3]);
 
-	_MM_TRANSPOSE4_PS (m2c0, m2c1, m2c2, m2c3);
+	for (i = 0; i < 4; i++)
+	{
+		__m128 brod1 = _mm_set1_ps (m1->m4x4[i][0]);
+		__m128 brod2 = _mm_set1_ps (m1->m4x4[i][1]);
+		__m128 brod3 = _mm_set1_ps (m1->m4x4[i][2]);
+		__m128 brod4 = _mm_set1_ps (m1->m4x4[i][3]);
 
-	mrow = _mm_load_ps (m1->m4x4[0]);
-	_mm_store_ps (out->m4x4[0], _mm_hadd_ps (_mm_hadd_ps (_mm_mul_ps (mrow, m2c0), _mm_mul_ps (mrow, m2c1)), _mm_hadd_ps (_mm_mul_ps (mrow, m2c2), _mm_mul_ps (mrow, m2c3))));
+		__m128 row = _mm_add_ps (
+			_mm_add_ps (
+				_mm_mul_ps (brod1, row1),
+				_mm_mul_ps (brod2, row2)
+			),
+			_mm_add_ps (
+				_mm_mul_ps (brod3, row3),
+				_mm_mul_ps (brod4, row4)
+			)
+		);
 
-	mrow = _mm_load_ps (m1->m4x4[1]);
-	_mm_store_ps (out->m4x4[1], _mm_hadd_ps (_mm_hadd_ps (_mm_mul_ps (mrow, m2c0), _mm_mul_ps (mrow, m2c1)), _mm_hadd_ps (_mm_mul_ps (mrow, m2c2), _mm_mul_ps (mrow, m2c3))));
-
-	mrow = _mm_load_ps (m1->m4x4[2]);
-	_mm_store_ps (out->m4x4[2], _mm_hadd_ps (_mm_hadd_ps (_mm_mul_ps (mrow, m2c0), _mm_mul_ps (mrow, m2c1)), _mm_hadd_ps (_mm_mul_ps (mrow, m2c2), _mm_mul_ps (mrow, m2c3))));
-
-	mrow = _mm_load_ps (m1->m4x4[3]);
-	_mm_store_ps (out->m4x4[3], _mm_hadd_ps (_mm_hadd_ps (_mm_mul_ps (mrow, m2c0), _mm_mul_ps (mrow, m2c1)), _mm_hadd_ps (_mm_mul_ps (mrow, m2c2), _mm_mul_ps (mrow, m2c3))));
+		_mm_store_ps (out->m4x4[i], row);
+	}
 
 	return out;
 }

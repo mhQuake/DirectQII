@@ -165,7 +165,6 @@ float4 SurfDrawTurbPS (PS_DRAWTURB ps_in) : SV_TARGET0
 {
 	// original GLQuakeII scaled down the warp by 0.5 but that was just a hack to prevent breakup from per-vertex warps; we treat software as the reference
 	float4 diff = GetGamma (mainTexture.SampleGrad (mainSampler, ps_in.TexCoord0 + sin (ps_in.TexCoord1) * 0.125f, ddx (ps_in.TexCoord0), ddy (ps_in.TexCoord0)));
-	//float4 diff = GetGamma (mainTexture.SampleGrad (mainSampler, ps_in.TexCoord0 + sin (ps_in.TexCoord1) * 0.0625f, ddx (ps_in.TexCoord0), ddy (ps_in.TexCoord0)));
 	return float4 (diff.rgb, diff.a * AlphaVal);
 }
 
