@@ -44,8 +44,7 @@ QUAKE FILESYSTEM
 // in memory
 //
 
-typedef struct pack_s
-{
+typedef struct pack_s {
 	char	filename[MAX_OSPATH];
 
 	// for constraining the binary search range
@@ -62,8 +61,7 @@ cvar_t	*fs_basedir;
 cvar_t	*fs_cddir;
 cvar_t	*fs_gamedirvar;
 
-typedef struct filelink_s
-{
+typedef struct filelink_s {
 	struct filelink_s	*next;
 	char	*from;
 	int		fromlength;
@@ -72,8 +70,7 @@ typedef struct filelink_s
 
 filelink_t	*fs_links;
 
-typedef struct searchpath_s
-{
+typedef struct searchpath_s {
 	char	filename[MAX_OSPATH];
 	pack_t	*pack;		// only one of filename / pack will be used
 	struct searchpath_s *next;

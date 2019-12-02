@@ -481,17 +481,17 @@ void R_SetupGL (void)
 	R_ExtractFrustum (frustum, &r_mvp_matrix);
 
 	// take these from the view matrix
-	Vector3Set (vpn,   -r_view_matrix.m4x4[0][2], -r_view_matrix.m4x4[1][2], -r_view_matrix.m4x4[2][2]);
-	Vector3Set (vup,    r_view_matrix.m4x4[0][1],  r_view_matrix.m4x4[1][1],  r_view_matrix.m4x4[2][1]);
-	Vector3Set (vright, r_view_matrix.m4x4[0][0],  r_view_matrix.m4x4[1][0],  r_view_matrix.m4x4[2][0]);
+	Vector3Set (vpn, -r_view_matrix.m4x4[0][2], -r_view_matrix.m4x4[1][2], -r_view_matrix.m4x4[2][2]);
+	Vector3Set (vup, r_view_matrix.m4x4[0][1], r_view_matrix.m4x4[1][1], r_view_matrix.m4x4[2][1]);
+	Vector3Set (vright, r_view_matrix.m4x4[0][0], r_view_matrix.m4x4[1][0], r_view_matrix.m4x4[2][0]);
 
 	// setup the shader constants that are going to remain unchanged for the frame; time-based animations, etc
 	R_MatrixLoad (&consts.mvpMatrix, &r_mvp_matrix);
 
-	Vector3Copy (consts.viewOrigin,	 r_newrefdef.vieworg);
+	Vector3Copy (consts.viewOrigin, r_newrefdef.vieworg);
 	Vector3Copy (consts.viewForward, vpn);
-	Vector3Copy (consts.viewRight,	 vright);
-	Vector3Copy (consts.viewUp,		 vup);
+	Vector3Copy (consts.viewRight, vright);
+	Vector3Copy (consts.viewUp, vup);
 
 	Vector4Copy (consts.vBlend, v_blend);
 

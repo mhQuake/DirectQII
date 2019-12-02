@@ -46,8 +46,7 @@ the full heap rather than using individual Z_Free calls which makes it safe)
 // it's possible for games to exceed this (neither baseq2 nor ctf do) which would cause an error meaning we need to increase it
 #define MAX_ZONETAGS	1024
 
-typedef struct zone_s
-{
+typedef struct zone_s {
 	HANDLE hZone;
 	int tag;
 	int count;
@@ -130,7 +129,7 @@ void Z_Init (void)
 ==============================================================================
 
 for use in the engine - these just wrap standard HeapAlloc/HeapFree for the
-convenience of modules that don't include windows.h 
+convenience of modules that don't include windows.h
 
 ==============================================================================
 */

@@ -21,20 +21,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "qcommon.h"
 
-typedef struct cnode_s
-{
+typedef struct cnode_s {
 	cplane_t	*plane;
 	int			children[2];		// negative numbers are leafs
 } cnode_t;
 
-typedef struct cbrushside_s
-{
+typedef struct cbrushside_s {
 	cplane_t	*plane;
 	mapsurface_t	*surface;
 } cbrushside_t;
 
-typedef struct cleaf_s
-{
+typedef struct cleaf_s {
 	int			contents;
 	int			cluster;
 	int			area;
@@ -42,16 +39,14 @@ typedef struct cleaf_s
 	unsigned short	numleafbrushes;
 } cleaf_t;
 
-typedef struct cbrush_s
-{
+typedef struct cbrush_s {
 	int			contents;
 	int			numsides;
 	int			firstbrushside;
 	int			checkcount;		// to avoid repeated testings
 } cbrush_t;
 
-typedef struct carea_s
-{
+typedef struct carea_s {
 	int		numareaportals;
 	int		firstareaportal;
 	int		floodnum;			// if two areas have equal floodnums, they are connected

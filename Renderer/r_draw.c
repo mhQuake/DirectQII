@@ -587,8 +587,8 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 
 		// drawn without projection, full-screen triangle coords
 		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], -1, -1, 0xffffffff, strans, ttrans);
-		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++],  3, -1, 0xffffffff, strans, ttrans);
-		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], -1,  3, 0xffffffff, strans, ttrans);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], 3, -1, 0xffffffff, strans, ttrans);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], -1, 3, 0xffffffff, strans, ttrans);
 
 		// always flush
 		Draw_Flush ();

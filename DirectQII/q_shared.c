@@ -688,8 +688,7 @@ int	LongNoSwap (int l)
 
 float FloatSwap (float f)
 {
-	union
-	{
+	union {
 		float	f;
 		byte	b[4];
 	} dat1, dat2;

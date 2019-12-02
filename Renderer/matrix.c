@@ -30,9 +30,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 /*
 ============================================================================================================
 
-		MATRIX OPS
+MATRIX OPS
 
-	These happen in-place on the matrix and update it's current values
+These happen in-place on the matrix and update it's current values
 
 ============================================================================================================
 */
@@ -62,14 +62,14 @@ QMATRIX *R_MatrixMultiply (QMATRIX *out, QMATRIX *m1, QMATRIX *m2)
 
 		__m128 row = _mm_add_ps (
 			_mm_add_ps (
-				_mm_mul_ps (brod1, row1),
-				_mm_mul_ps (brod2, row2)
+			_mm_mul_ps (brod1, row1),
+			_mm_mul_ps (brod2, row2)
 			),
 			_mm_add_ps (
-				_mm_mul_ps (brod3, row3),
-				_mm_mul_ps (brod4, row4)
+			_mm_mul_ps (brod3, row3),
+			_mm_mul_ps (brod4, row4)
 			)
-		);
+			);
 
 		_mm_store_ps (out->m4x4[i], row);
 	}

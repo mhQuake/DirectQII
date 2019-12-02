@@ -102,7 +102,7 @@ IDXGIOutput *D_GetOutput (IDXGIAdapter *d3d_Adapter)
 {
 	int i;
 
-	for (i = 0; ; i++)
+	for (i = 0;; i++)
 	{
 		IDXGIOutput *d3d_Output = NULL;
 		DXGI_OUTPUT_DESC Desc;
@@ -310,7 +310,7 @@ void D_EnumerateVideoModes (void)
 			M_VideoGetRefreshRate (&d3d_VideoModes[i]),
 			M_VideoGetScanlineOrdering (&d3d_VideoModes[i]),
 			M_VideoGetScaling (&d3d_VideoModes[i])
-		);
+			);
 
 		vid_modedata.fsmodes[i] = (char *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, strlen (modedesc) + 1);
 		strcpy (vid_modedata.fsmodes[i], modedesc);
@@ -408,8 +408,7 @@ STOCK CODE CONTINUES
 
 qboolean GLimp_InitGL (int modenum);
 
-typedef struct glwstate_s
-{
+typedef struct glwstate_s {
 	HINSTANCE	hInstance;
 	void *wndproc;
 

@@ -43,8 +43,7 @@ static menuaction_s		s_player_download_action;
 #define MAX_DISPLAYNAME 16
 #define MAX_PLAYERMODELS 1024
 
-typedef struct _playermodelinfo_s
-{
+typedef struct _playermodelinfo_s {
 	int		nskins;
 	char	**skindisplaynames;
 	char	displayname[MAX_DISPLAYNAME];
@@ -501,7 +500,7 @@ void PlayerConfig_MenuDraw (void)
 			(viddef.conwidth / 2) * (320.0f / viddef.conwidth) - 8,
 			(viddef.conheight / 2) * (240.0f / viddef.conheight) - 77,
 			RDWIDTH / 8, RDHEIGHT / 8
-		);
+			);
 
 		refdef.height += 4;
 

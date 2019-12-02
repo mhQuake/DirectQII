@@ -66,13 +66,13 @@ void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int a
 	// select if creating a cubemap (allow creation of cubemap arrays)
 	if (flags & TEX_CUBEMAP)
 	{
-	    Desc->ArraySize = 6 * arraysize;
-	    Desc->MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+		Desc->ArraySize = 6 * arraysize;
+		Desc->MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 	}
 	else
 	{
-	    Desc->ArraySize = arraysize;
-	    Desc->MiscFlags = 0;
+		Desc->ArraySize = arraysize;
+		Desc->MiscFlags = 0;
 	}
 }
 

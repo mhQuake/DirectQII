@@ -196,7 +196,7 @@ static void Keys_MenuInitMenu (menuframework_s *menu, keybind_t *bindings, menua
 	Menu_AddItem (menu, (void *) &s_key_mode_list);
 	y += 20;
 
-	for (i = 0; ; i++)
+	for (i = 0;; i++)
 	{
 		// no more
 		if (!bindings[i].command) break;

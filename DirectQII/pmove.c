@@ -28,8 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // pmove, just to make damn sure we don't have
 // any differences when running on client or server
 
-typedef struct pml_s
-{
+typedef struct pml_s {
 	vec3_t		origin;			// full float precision
 	vec3_t		velocity;		// full float precision
 

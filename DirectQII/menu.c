@@ -36,8 +36,7 @@ const char *(*m_keyfunc) (int key);
 #define	MAX_MENU_DEPTH	8
 
 
-typedef struct menulayer_s
-{
+typedef struct menulayer_s {
 	void (*draw) (void);
 	const char *(*key) (int k);
 } menulayer_t;

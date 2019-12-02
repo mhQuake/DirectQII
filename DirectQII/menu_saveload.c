@@ -39,7 +39,7 @@ void MakeGreen (char *str)
 {
 	int i;
 
-	for (i = 0; ; i++)
+	for (i = 0;; i++)
 	{
 		if (!str[i]) break;
 		str[i] |= 0x80;
@@ -95,14 +95,14 @@ void M_DisplaySave (char *savename)
 	time[5] = 0;
 
 	// pretty up for display
-	for (i = 0; ; i++)
+	for (i = 0;; i++)
 	{
 		if (!date[i]) break;
 		if (date[i] == ' ') date[i] = '0';
 	}
 
 	// pretty up for display
-	for (i = 0; ; i++)
+	for (i = 0;; i++)
 	{
 		if (!time[i]) break;
 		if (time[i] == ' ') time[i] = '0';

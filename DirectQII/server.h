@@ -29,8 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define	MAX_MASTERS	8				// max recipients for heartbeat packets
 
-typedef enum _server_state_t
-{
+typedef enum _server_state_t {
 	ss_dead,			// no map loaded
 	ss_loading,			// spawning level edicts
 	ss_game,			// actively running
@@ -42,8 +41,7 @@ typedef enum _server_state_t
 // some qc commands are only valid before the server has finished
 // initializing (precache commands, static sounds / objects, etc)
 
-typedef struct server_s
-{
+typedef struct server_s {
 	server_state_t	state;			// precache commands are only valid during load
 
 	qboolean	attractloop;		// running cinematics and demos for the local system only
@@ -72,16 +70,14 @@ typedef struct server_s
 #define NUM_FOR_EDICT(e) (((byte *) (e) - (byte *) ge->edicts) / ge->edict_size)
 
 
-typedef enum _client_state_t
-{
+typedef enum _client_state_t {
 	cs_free,		// can be reused for a new connection
 	cs_zombie,		// client has been disconnected, but don't reuse connection for a couple seconds
 	cs_connected,	// has been assigned to a client_t, but not in game yet
 	cs_spawned		// client is fully in game
 } client_state_t;
 
-typedef struct client_frame_s
-{
+typedef struct client_frame_s {
 	int					areabytes;
 	byte				areabits[MAX_MAP_AREAS / 8];		// portalarea visibility bits
 	player_state_t		ps;
@@ -93,8 +89,7 @@ typedef struct client_frame_s
 #define	LATENCY_COUNTS	16
 #define	RATE_MESSAGES	10
 
-typedef struct client_s
-{
+typedef struct client_s {
 	client_state_t	state;
 
 	char			userinfo[MAX_INFO_STRING];		// name, etc
@@ -148,16 +143,14 @@ typedef struct client_s
 // out before legitimate users connected
 #define	MAX_CHALLENGES	1024
 
-typedef struct challenge_s
-{
+typedef struct challenge_s {
 	netadr_t	adr;
 	int			challenge;
 	int			time;
 } challenge_t;
 
 
-typedef struct server_static_s
-{
+typedef struct server_static_s {
 	qboolean	initialized;				// sv_init has completed
 	int			realtime;					// always increasing, no clamping, etc
 

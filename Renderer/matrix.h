@@ -3,8 +3,7 @@
 #define MATRIX_H
 
 // define early so that it's available to everything
-__declspec (align (16)) typedef union _QMATRIX
-{
+__declspec (align (16)) typedef union _QMATRIX {
 	float m4x4[4][4];
 	float m16[16];
 } QMATRIX;

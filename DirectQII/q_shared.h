@@ -94,8 +94,7 @@ typedef enum { false, true }	qboolean;
 
 
 // destination class for gi.multicast()
-typedef enum _multicast_t
-{
+typedef enum _multicast_t {
 	MULTICAST_ALL,
 	MULTICAST_PHS,
 	MULTICAST_PVS,
@@ -266,8 +265,7 @@ CVARS (console variables)
 typedef void (*cvarcallback_t) (void);
 
 // nothing outside the Cvar_*() functions should modify these fields!
-typedef struct cvar_s
-{
+typedef struct cvar_s {
 	char		*name;
 	char		*string;
 	char		*latched_string;	// for CVAR_LATCH vars
@@ -357,8 +355,7 @@ COLLISION DETECTION
 
 // plane_t structure
 // !!! if this is changed, it must be changed in asm code too !!!
-typedef struct cplane_s
-{
+typedef struct cplane_s {
 	vec3_t	normal;
 	float	dist;
 	byte	type;			// for fast side tests
@@ -376,15 +373,13 @@ typedef struct cplane_s
 #define CPLANE_PAD0				18
 #define CPLANE_PAD1				19
 
-typedef struct cmodel_s
-{
+typedef struct cmodel_s {
 	vec3_t		mins, maxs;
 	vec3_t		origin;		// for sounds or lights
 	int			headnode;
 } cmodel_t;
 
-typedef struct csurface_s
-{
+typedef struct csurface_s {
 	char		name[16];
 	int			flags;
 	int			value;
@@ -397,8 +392,7 @@ typedef struct mapsurface_s  // used internally due to name len probs //ZOID
 } mapsurface_t;
 
 // a trace is returned when a box is swept through the world
-typedef struct trace_s
-{
+typedef struct trace_s {
 	qboolean	allsolid;	// if true, plane is not valid
 	qboolean	startsolid;	// if true, the initial point was in a solid area
 	float		fraction;	// time completed, 1.0 = didn't hit anything
@@ -413,8 +407,7 @@ typedef struct trace_s
 
 // pmove_state_t is the information necessary for client side movement
 // prediction
-typedef enum pmtype_s
-{
+typedef enum pmtype_s {
 	// can accelerate and turn
 	PM_NORMAL,
 	PM_SPECTATOR,
@@ -438,8 +431,7 @@ typedef enum pmtype_s
 // prediction stays in sync, so no floats are used.
 // if any part of the game code modifies this struct, it
 // will result in a prediction error of some degree.
-typedef struct pmove_state_s
-{
+typedef struct pmove_state_s {
 	pmtype_t	pm_type;
 
 	short		origin[3];		// 12.3
@@ -461,8 +453,7 @@ typedef struct pmove_state_s
 
 
 // usercmd_t is sent to the server each client frame
-typedef struct usercmd_s
-{
+typedef struct usercmd_s {
 	byte	msec;
 	byte	buttons;
 	short	angles[3];
@@ -474,8 +465,7 @@ typedef struct usercmd_s
 
 #define	MAXTOUCH	32
 
-typedef struct pmove_s
-{
+typedef struct pmove_s {
 	// state (in / out)
 	pmove_state_t	s;
 
@@ -857,8 +847,7 @@ extern	vec3_t monster_flash_offset[];
 // at a location seperate from any existing entity.
 // Temporary entity messages are explicitly constructed
 // and broadcast.
-typedef enum _temp_event_t
-{
+typedef enum _temp_event_t {
 	TE_GUNSHOT,
 	TE_BLOOD,
 	TE_BLASTER,
@@ -1077,8 +1066,7 @@ ELEMENTS COMMUNICATED ACROSS THE NET
 // ertity events are for effects that take place reletive
 // to an existing entities origin.  Very network efficient.
 // All muzzle flashes really should be converted to events...
-typedef enum _entity_event_t
-{
+typedef enum _entity_event_t {
 	EV_NONE,
 	EV_ITEM_RESPAWN,
 	EV_FOOTSTEP,
@@ -1093,8 +1081,7 @@ typedef enum _entity_event_t
 // entity_state_t is the information conveyed from the server
 // in an update message about entities that the client will
 // need to render in some way
-typedef struct entity_state_s
-{
+typedef struct entity_state_s {
 	int		number;			// edict index
 
 	vec3_t	origin;
@@ -1107,8 +1094,8 @@ typedef struct entity_state_s
 	unsigned int		effects;		// PGM - we're filling it, so it needs to be unsigned
 	int		renderfx;
 	int		solid;			// for client side prediction, 8 * (bits 0-4) is x/y radius
-							// 8 * (bits 5-9) is z down distance, 8 * (bits10-15) is z up
-							// gi.linkentity sets this properly
+	// 8 * (bits 5-9) is z down distance, 8 * (bits10-15) is z up
+	// gi.linkentity sets this properly
 	int		sound;			// for looping sounds, to guarantee shutoff
 	int		event;			// impulse events -- muzzle flashes, footsteps, etc
 	// events only go out for a single frame, they
@@ -1122,8 +1109,7 @@ typedef struct entity_state_s
 // to rendered a view.  There will only be 10 player_state_t sent each second,
 // but the number of pmove_state_t changes will be reletive to client
 // frame rates
-typedef struct player_state_s
-{
+typedef struct player_state_s {
 	pmove_state_t	pmove;		// for prediction
 
 	// these fields do not need to be communicated bit-precise

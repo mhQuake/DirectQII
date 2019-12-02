@@ -39,8 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //=============================================================================
 
-typedef struct frame_s
-{
+typedef struct frame_s {
 	qboolean		valid;			// cleared if delta parsing was invalid
 	int				serverframe;
 	int				servertime;		// server time the message is valid for (in msec)
@@ -51,8 +50,7 @@ typedef struct frame_s
 	int				parse_entities;	// non-masked index into cl_parse_entities array
 } frame_t;
 
-typedef struct centity_s
-{
+typedef struct centity_s {
 	entity_state_t	baseline;		// delta from this if not from a previous frame
 	entity_state_t	current;
 	entity_state_t	prev;			// will always be valid, but might just be a copy of current
@@ -67,8 +65,7 @@ typedef struct centity_s
 
 #define MAX_CLIENTWEAPONMODELS		20		// PGM -- upped from 16 to fit the chainfist vwep
 
-typedef struct clientinfo_s
-{
+typedef struct clientinfo_s {
 	char	name[MAX_QPATH];
 	char	cinfo[MAX_QPATH];
 	struct image_s	*skin;
@@ -85,8 +82,7 @@ extern int num_cl_weaponmodels;
 
 // the client_state_t structure is wiped completely at every
 // server map change
-typedef struct client_state_s
-{
+typedef struct client_state_s {
 	int			timeoutcount;
 
 	int			timedemo_frames;
@@ -174,8 +170,7 @@ of server connections
 ==================================================================
 */
 
-typedef enum _connstate_t
-{
+typedef enum _connstate_t {
 	ca_uninitialized,
 	ca_disconnected, 	// not talking to a server
 	ca_connecting,		// sending request packets to the server
@@ -183,8 +178,7 @@ typedef enum _connstate_t
 	ca_active			// game views should be displayed
 } connstate_t;
 
-typedef enum _dltype_t
-{
+typedef enum _dltype_t {
 	dl_none,
 	dl_model,
 	dl_sound,
@@ -194,8 +188,7 @@ typedef enum _dltype_t
 
 typedef enum _keydest_t { key_game, key_console, key_message, key_menu } keydest_t;
 
-typedef struct client_static_s
-{
+typedef struct client_static_s {
 	connstate_t	state;
 	keydest_t	key_dest;
 
@@ -286,8 +279,7 @@ extern	cvar_t	*cl_timedemo;
 
 extern	cvar_t	*cl_vwep;
 
-typedef struct cdlight_s
-{
+typedef struct cdlight_s {
 	int		key;				// so entities can reuse same entry
 	vec3_t	rgb;
 	vec3_t	origin;
@@ -319,8 +311,7 @@ qboolean	CL_CheckOrDownloadFile (char *filename);
 void CL_AddNetgraph (void);
 
 //ROGUE
-typedef struct cl_sustain
-{
+typedef struct cl_sustain {
 	int			id;
 	int			type;
 	int			endtime;
@@ -349,8 +340,7 @@ void CL_ParticleEffect3 (vec3_t org, vec3_t dir, int color, int count);
 
 // ========
 // PGM
-typedef struct cparticle_s
-{
+typedef struct cparticle_s {
 	struct cparticle_s	*next;
 
 	float		time;
@@ -460,8 +450,7 @@ void CL_RequestNextDownload (void);
 //
 // cl_input
 //
-typedef struct kbutton_s
-{
+typedef struct kbutton_s {
 	int			down[2];		// key nums holding it down
 	unsigned	downtime;		// msec timestamp
 	unsigned	msec;			// msec down this frame

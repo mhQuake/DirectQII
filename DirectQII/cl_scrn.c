@@ -113,8 +113,7 @@ void CL_AddNetgraph (void)
 }
 
 
-typedef struct graphsamp_s
-{
+typedef struct graphsamp_s {
 	float	value;
 	int		color;
 } graphsamp_t;
@@ -678,7 +677,7 @@ void SCR_TimeRefresh_f (void)
 	start = Sys_Milliseconds ();
 
 	// do a 360 in 1.8 seconds
-	for (i = 0; ; i++)
+	for (i = 0;; i++)
 	{
 		cl.refdef.viewangles[1] = startangle + (float) (Sys_Milliseconds () - start) * (360.0f / timeRefreshTime);
 

@@ -34,8 +34,7 @@ FIXME: this use of "area" is different from the bsp file use
 #define	STRUCT_FROM_LINK(l, t, m) ((t *) ((byte *) l - (int) &(((t *) 0)->m)))
 #define	EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l, edict_t, area)
 
-typedef struct areanode_s
-{
+typedef struct areanode_s {
 	int		axis;		// -1 = leaf node
 	float	dist;
 	struct areanode_s	*children[2];
@@ -459,8 +458,7 @@ int SV_PointContents (vec3_t p)
 
 
 
-typedef struct moveclip_s
-{
+typedef struct moveclip_s {
 	vec3_t		boxmins, boxmaxs;// enclose the test object along entire move
 	float		*mins, *maxs;	// size of the moving object
 	vec3_t		mins2, maxs2;	// size when clipping against mosnters

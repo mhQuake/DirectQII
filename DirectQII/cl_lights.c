@@ -31,8 +31,7 @@ LIGHT STYLE MANAGEMENT
 ==============================================================
 */
 
-typedef struct clightstyle_s
-{
+typedef struct clightstyle_s {
 	int		length;
 	float	intensity;
 	float	map[MAX_QPATH];

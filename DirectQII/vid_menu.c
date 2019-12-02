@@ -160,7 +160,7 @@ void VID_MenuInit (void)
 	// setup current values
 	if (vid_mode->value < 1)
 	{
-		for (i = 0; ; i++)
+		for (i = 0;; i++)
 		{
 			if (!modedata->fsmodes[i]) break;
 			s_mode_list.curvalue = i;

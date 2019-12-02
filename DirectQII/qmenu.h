@@ -47,8 +47,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define QMF_GRAYED			0x00000002
 #define QMF_NUMBERSONLY		0x00000004
 
-typedef struct _tag_menuframework
-{
+typedef struct _tag_menuframework {
 	int x, y;
 	int	cursor;
 
@@ -63,8 +62,7 @@ typedef struct _tag_menuframework
 
 } menuframework_s;
 
-typedef struct _menucommon_s
-{
+typedef struct _menucommon_s {
 	int type;
 	const char *name;
 	int x, y;
@@ -81,8 +79,7 @@ typedef struct _menucommon_s
 	void (*cursordraw) (void *self);
 } menucommon_s;
 
-typedef struct _menufield_s
-{
+typedef struct _menufield_s {
 	menucommon_s generic;
 
 	char		buffer[80];
@@ -92,8 +89,7 @@ typedef struct _menufield_s
 	int			visible_offset;
 } menufield_s;
 
-typedef struct _menuslider_s
-{
+typedef struct _menuslider_s {
 	menucommon_s generic;
 
 	float minvalue;
@@ -103,8 +99,7 @@ typedef struct _menuslider_s
 	float range;
 } menuslider_s;
 
-typedef struct _menulist_s
-{
+typedef struct _menulist_s {
 	menucommon_s generic;
 
 	int curvalue;
@@ -112,8 +107,7 @@ typedef struct _menulist_s
 	const char **itemnames;
 } menulist_s;
 
-typedef struct _menunumberlist_s
-{
+typedef struct _menunumberlist_s {
 	menucommon_s generic;
 
 	int curvalue;
@@ -122,13 +116,11 @@ typedef struct _menunumberlist_s
 	int numvalues;
 } menunumberlist_s;
 
-typedef struct _menuaction_s
-{
+typedef struct _menuaction_s {
 	menucommon_s generic;
 } menuaction_s;
 
-typedef struct _menuseparator_s
-{
+typedef struct _menuseparator_s {
 	menucommon_s generic;
 } menuseparator_s;
 

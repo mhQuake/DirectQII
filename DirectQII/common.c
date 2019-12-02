@@ -318,8 +318,7 @@ void MSG_WriteLong (sizebuf_t *sb, int c)
 
 void MSG_WriteFloat (sizebuf_t *sb, float f)
 {
-	union
-	{
+	union {
 		float	f;
 		int	l;
 	} dat;
@@ -721,8 +720,7 @@ int MSG_ReadLong (sizebuf_t *msg_read)
 
 float MSG_ReadFloat (sizebuf_t *msg_read)
 {
-	union
-	{
+	union {
 		byte	b[4];
 		float	f;
 		int	l;

@@ -159,8 +159,7 @@ typedef struct image_s {
 
 //===================================================================
 
-typedef enum _rserr_t
-{
+typedef enum _rserr_t {
 	rserr_ok,
 
 	rserr_invalid_fullscreen,
@@ -309,8 +308,7 @@ GL config stuff
 ===============
 */
 
-typedef struct glconfig_s
-{
+typedef struct glconfig_s {
 	const char *renderer_string;
 	const char *vendor_string;
 	const char *version_string;
@@ -319,8 +317,7 @@ typedef struct glconfig_s
 	qboolean	allow_cds;
 } glconfig_t;
 
-typedef struct glstate_s
-{
+typedef struct glstate_s {
 	int     prev_mode;
 } glstate_t;
 
@@ -431,8 +428,7 @@ image_t *R_LoadTexArray (char *base);
 // images
 
 #pragma pack(push, 1)
-typedef struct _TargaHeader
-{
+typedef struct _TargaHeader {
 	unsigned char 	id_length, colormap_type, image_type;
 	unsigned short	colormap_index, colormap_length;
 	unsigned char	colormap_size;

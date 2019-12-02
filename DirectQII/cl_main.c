@@ -1580,8 +1580,7 @@ void CL_WriteConfiguration (void)
 // client-side cvar cheat fixes are bogus in a GPL engine
 //============================================================================
 
-typedef struct cheatvar_s
-{
+typedef struct cheatvar_s {
 	char	*name;
 	char	*value;
 	cvar_t	*var;

@@ -25,14 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define	MAX_LOOPBACK	4
 
-typedef struct loopmsg_s
-{
+typedef struct loopmsg_s {
 	byte	data[MAX_MSGLEN];
 	int		datalen;
 } loopmsg_t;
 
-typedef struct loopback_s
-{
+typedef struct loopback_s {
 	loopmsg_t	msgs[MAX_LOOPBACK];
 	int			get, send;
 } loopback_t;

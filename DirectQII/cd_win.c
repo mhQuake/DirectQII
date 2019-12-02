@@ -61,7 +61,7 @@ static qboolean CDAudio_GetTracks (char *basedir, char *ext)
 	cd_ext[0] = 0;
 
 	// (track numbers begin at 2 in Quake)
-	for (i = 2; ; i++)
+	for (i = 2;; i++)
 	{
 		if ((f = fopen (va ("%s/music/track%02i.%s", basedir, i, ext), "rb")) != NULL)
 		{

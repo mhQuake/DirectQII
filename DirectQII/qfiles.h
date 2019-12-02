@@ -402,8 +402,7 @@ typedef struct dbrushside_s {
 } dbrushside_t;
 
 
-typedef struct dbrush_s
-{
+typedef struct dbrush_s {
 	int			firstside;
 	int			numsides;
 	int			contents;

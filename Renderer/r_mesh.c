@@ -482,19 +482,19 @@ void R_TransformAliasModel (entity_t *e, mmdl_t *hdr, meshconstants_t *consts, Q
 		e->backlerp * move[0] + frontlerp * currframe->translate[0],
 		e->backlerp * move[1] + frontlerp * currframe->translate[1],
 		e->backlerp * move[2] + frontlerp * currframe->translate[2]
-	);
+		);
 
 	Vector3Set (consts->frontv,
 		frontlerp * currframe->scale[0],
 		frontlerp * currframe->scale[1],
 		frontlerp * currframe->scale[2]
-	);
+		);
 
 	Vector3Set (consts->backv,
 		e->backlerp * prevframe->scale[0],
 		e->backlerp * prevframe->scale[1],
 		e->backlerp * prevframe->scale[2]
-	);
+		);
 
 	if (!(e->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
 		consts->suitscale = 0;

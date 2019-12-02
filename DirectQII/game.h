@@ -48,8 +48,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define	SVF_MONSTER				0x00000004	// treat as CONTENTS_MONSTER for collision
 
 // edict->solid values
-typedef enum _solid_t
-{
+typedef enum _solid_t {
 	SOLID_NOT,			// no interaction with other objects
 	SOLID_TRIGGER,		// only touch when inside, after moving
 	SOLID_BBOX,			// touch on edge
@@ -59,8 +58,7 @@ typedef enum _solid_t
 //===============================================================
 
 // link_t is only used for entity area links now
-typedef struct link_s
-{
+typedef struct link_s {
 	struct link_s	*prev, *next;
 } link_t;
 
@@ -73,8 +71,7 @@ typedef struct gclient_s gclient_t;
 
 #ifndef GAME_INCLUDE
 
-struct gclient_s
-{
+struct gclient_s {
 	player_state_t	ps;		// communicated by server to clients
 	int				ping;
 	// the game dll can add anything it wants after
@@ -82,8 +79,7 @@ struct gclient_s
 };
 
 
-struct edict_s
-{
+struct edict_s {
 	entity_state_t	s;
 	struct gclient_s	*client;
 	qboolean	inuse;
@@ -117,8 +113,7 @@ struct edict_s
 //
 // functions provided by the main engine
 //
-typedef struct game_import_s
-{
+typedef struct game_import_s {
 	// special messages
 	void (*bprintf) (int printlevel, char *fmt, ...);
 	void (*dprintf) (char *fmt, ...);
@@ -196,8 +191,7 @@ typedef struct game_import_s
 //
 // functions exported by the game subsystem
 //
-typedef struct game_export_s
-{
+typedef struct game_export_s {
 	int			apiversion;
 
 	// the init function will only be called when a game starts,

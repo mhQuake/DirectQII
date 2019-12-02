@@ -243,7 +243,7 @@ void VID_CenterWindow_f (void)
 		RectWidth (&windowrect),
 		RectHeight (&windowrect),
 		TRUE
-	);
+		);
 }
 
 

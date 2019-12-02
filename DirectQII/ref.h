@@ -28,8 +28,7 @@ typedef int (*sortfunc_t) (const void *, const void *);
 #include "qcommon.h"
 #endif
 
-typedef struct viddef_s
-{
+typedef struct viddef_s {
 	// main 3d view and cinematics
 	int		width;
 	int		height;
@@ -41,8 +40,7 @@ typedef struct viddef_s
 
 
 // for passing video mode stuff to the video menu
-typedef struct vidmenu_s
-{
+typedef struct vidmenu_s {
 	int *widths;
 	int numwidths;
 
@@ -78,8 +76,7 @@ typedef struct vidmenu_s
 
 #define SHELL_WHITE_COLOR	0xD7
 
-typedef struct entity_s
-{
+typedef struct entity_s {
 	struct model_s		*model;			// opaque type outside refresh
 	float				angles[3];
 
@@ -113,8 +110,7 @@ typedef struct dlight_s {
 	int		numsurfaces;	// cbuffer padding; count of surfaces with light
 } dlight_t;
 
-typedef struct particle_s
-{
+typedef struct particle_s {
 	vec3_t	origin;
 	vec3_t	velocity;
 	vec3_t	acceleration;
@@ -124,13 +120,11 @@ typedef struct particle_s
 	int		size;
 } particle_t;
 
-typedef struct fov_s
-{
+typedef struct fov_s {
 	float x, y;
 } fov_t;
 
-typedef struct refdef_s
-{
+typedef struct refdef_s {
 	int			x, y, width, height; // in virtual screen coordinates
 	fov_t		main_fov, gun_fov;
 	float		vieworg[3];
@@ -167,8 +161,7 @@ typedef struct refdef_s
 #define SCR_NO_2D_UI		(1 << 5)	// draw 3d view only (use for mapshots, custom screenshots, etc); doesn't override cinematics or the loading screen
 
 // these are the functions exported by the refresh module
-typedef struct refexport_s
-{
+typedef struct refexport_s {
 	// if api_version is different, the dll cannot be used
 	int api_version;
 
@@ -225,8 +218,7 @@ typedef struct refexport_s
 } refexport_t;
 
 // these are the functions imported by the refresh module
-typedef struct refimport_s
-{
+typedef struct refimport_s {
 	void (*Sys_Error) (int err_level, char *str, ...);
 	void (*SendKeyEvents) (void);
 	void (*Mkdir) (char *path);

@@ -78,8 +78,7 @@ typedef int (*sortfunc_t) (const void *, const void *);
 
 //============================================================================
 
-typedef struct sizebuf_s
-{
+typedef struct sizebuf_s {
 	qboolean allowoverflow;		// if false, do a Com_Error
 	qboolean overflowed;		// set to true if the buffer size failed
 	byte *data;
@@ -206,8 +205,7 @@ PROTOCOL
 //
 // server to client
 //
-enum svc_ops_e
-{
+enum svc_ops_e {
 	svc_bad,
 
 	// these ops are known to the game dll
@@ -240,8 +238,7 @@ enum svc_ops_e
 //
 // client to server
 //
-enum clc_ops_e
-{
+enum clc_ops_e {
 	clc_bad,
 	clc_nop,
 	clc_move,				// [[usercmd_t]
@@ -540,8 +537,7 @@ typedef enum { NA_LOOPBACK, NA_BROADCAST, NA_IP, NA_IPX, NA_BROADCAST_IPX } neta
 
 typedef enum { NS_CLIENT, NS_SERVER } netsrc_t;
 
-typedef struct netadr_s
-{
+typedef struct netadr_s {
 	netadrtype_t	type;
 
 	byte	ip[4];
@@ -571,8 +567,7 @@ void NET_Sleep (int msec);
 
 #define	MAX_LATENT	32
 
-typedef struct netchan_s
-{
+typedef struct netchan_s {
 	qboolean	fatal_error;
 
 	netsrc_t	sock;

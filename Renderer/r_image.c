@@ -417,8 +417,7 @@ Fill background pixels so mipmapping doesn't have haloes
 =================
 */
 
-typedef struct floodfill_s
-{
+typedef struct floodfill_s {
 	short		x, y;
 } floodfill_t;
 
@@ -429,12 +428,12 @@ typedef struct floodfill_s
 #define FLOODFILL_STEP( off, dx, dy ) \
 { \
 	if (pos[off] == fillcolor) \
-		{ \
+			{ \
 		pos[off] = 255; \
 		fifo[inpt].x = x + (dx), fifo[inpt].y = y + (dy); \
 		inpt = (inpt + 1) & FLOODFILL_FIFO_MASK; \
-		} \
-		else if (pos[off] != 255) fdc = pos[off]; \
+			} \
+				else if (pos[off] != 255) fdc = pos[off]; \
 }
 
 
@@ -537,7 +536,7 @@ unsigned *Image_ResampleToSize (unsigned *in, int inwidth, int inheight, int out
 				((byte *) &outrow[j])[0] = AverageMipGC (pix1[0], pix2[0], pix3[0], pix4[0]);
 				((byte *) &outrow[j])[1] = AverageMipGC (pix1[1], pix2[1], pix3[1], pix4[1]);
 				((byte *) &outrow[j])[2] = AverageMipGC (pix1[2], pix2[2], pix3[2], pix4[2]);
-				((byte *) &outrow[j])[3] = AverageMip   (pix1[3], pix2[3], pix3[3], pix4[3]);
+				((byte *) &outrow[j])[3] = AverageMip (pix1[3], pix2[3], pix3[3], pix4[3]);
 			}
 		}
 
@@ -577,7 +576,7 @@ unsigned *Image_MipReduceBoxFilter (unsigned *data, int width, int height)
 			out[0] = AverageMipGC (in[0], in[4], in[width + 0], in[width + 4]);
 			out[1] = AverageMipGC (in[1], in[5], in[width + 1], in[width + 5]);
 			out[2] = AverageMipGC (in[2], in[6], in[width + 2], in[width + 6]);
-			out[3] = AverageMip   (in[3], in[7], in[width + 3], in[width + 7]);
+			out[3] = AverageMip (in[3], in[7], in[width + 3], in[width + 7]);
 		}
 	}
 

@@ -29,8 +29,7 @@ RSA Data Security, Inc. makes no representations concerning either the merchanta
 These notices must be retained in any copies of any part of this documentation and/or software. */
 
 /* MD4 context. */
-typedef struct _MD4_CTX
-{
+typedef struct _MD4_CTX {
 	UINT4 state[4];				/* state (ABCD) */
 	UINT4 count[2];				/* number of bits, modulo 2^64 (lsb first) */
 	unsigned char buffer[64]; 			/* input buffer */

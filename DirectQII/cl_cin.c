@@ -19,14 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include "client.h"
 
-typedef struct cblock_s
-{
+typedef struct cblock_s {
 	byte	*data;
 	int		count;
 } cblock_t;
 
-typedef struct cinematics_s
-{
+typedef struct cinematics_s {
 	int		s_rate;
 	int		s_width;
 	int		s_channels;

@@ -25,8 +25,7 @@ void Cmd_ForwardToServer (void);
 
 #define	MAX_ALIAS_NAME	32
 
-typedef struct cmdalias_s
-{
+typedef struct cmdalias_s {
 	struct cmdalias_s	*next;
 	char	name[MAX_ALIAS_NAME];
 	char	*value;
@@ -484,8 +483,7 @@ COMMAND EXECUTION
 =============================================================================
 */
 
-typedef struct cmd_function_s
-{
+typedef struct cmd_function_s {
 	struct cmd_function_s	*next;
 	char					*name;
 	xcommand_t				function;

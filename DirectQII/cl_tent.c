@@ -21,13 +21,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "client.h"
 
-typedef enum _exptype_t
-{
+typedef enum _exptype_t {
 	ex_free, ex_explosion, ex_misc, ex_flash, ex_mflash, ex_poly, ex_poly2
 } exptype_t;
 
-typedef struct explosion_s
-{
+typedef struct explosion_s {
 	exptype_t	type;
 	entity_t	ent;
 
@@ -46,8 +44,7 @@ explosion_t	cl_explosions[MAX_EXPLOSIONS];
 
 #define	MAX_BEAMS	32
 
-typedef struct beam_s
-{
+typedef struct beam_s {
 	int		entity;
 	int		dest_entity;
 	struct model_s	*model;
@@ -63,8 +60,7 @@ beam_t		cl_playerbeams[MAX_BEAMS];
 
 #define	MAX_LASERS	32
 
-typedef struct laser_s
-{
+typedef struct laser_s {
 	entity_t	ent;
 	int			endtime;
 } laser_t;
