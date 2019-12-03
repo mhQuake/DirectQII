@@ -259,30 +259,11 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	if (type == it_skin && bits == 8)
 		R_FloodFillSkin (pic, width, height);
 
-	// problem - if we use linear filtering, we lose all of the fine pixel art detail in the original 8-bit textures.
-	// if we use nearest filtering we can't do anisotropic and we get noise at minification levels.
-	// so what we do is upscale the texture by a simple 2x nearest-neighbour upscale, which gives us magnification-nearest
-	// quality but not with the same degree of discontinuous noise, but let's us minify and anisotropically filter them properly.
-	if ((type == it_wall || type == it_skin) && bits == 8)
-	{
-		pic = Image_Upscale8 (pic, image->width, image->height);
-		image->width <<= 1;
-		image->height <<= 1;
-		image->flags |= TEX_UPSCALE;
-	}
-
 	// it's 2018 and we have non-power-of-two textures nowadays so don't bother with scraps
 	if (bits == 8)
 		R_CreateTexture8 (image, pic, palette);
 	else
 		R_CreateTexture32 (image, (unsigned *) pic);
-
-	// if the image was upscaled, bring it back down again so that texcoord calculation will work as expected
-	if (image->flags & TEX_UPSCALE)
-	{
-		image->width >>= 1;
-		image->height >>= 1;
-	}
 
 	// free memory used for loading the image
 	ri.Load_FreeMemory ();

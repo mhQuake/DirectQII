@@ -407,7 +407,6 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 #define TEX_R32F			(1 << 9) // single-channel 32-bit floating-point texture
 #define TEX_R16G16			(1 << 10) // 2-channel 16-bit per channel signed-normalized format for use with noise
 #define TEX_PLAYERTEXTURE	(1 << 11) // used for player colour translations
-#define TEX_UPSCALE			(1 << 12) // texture was upscaled
 #define TEX_CHARSET			(1 << 13) // charset uses a 16x16 texture array
 #define TEX_MUTABLE			(1 << 14) // textures are immutable unless this flag is specified
 #define TEX_TRANS33			(1 << 15) // 0.333 alpha encoded into the texture
@@ -448,9 +447,6 @@ void R_FloodFillSkin (byte *skin, int skinwidth, int skinheight);
 unsigned *GL_Image8To32 (byte *data, int width, int height, unsigned *palette);
 
 void Image_QuakePalFromPCXPal (unsigned *qpal, const byte *pcxpal, int flags);
-
-byte *Image_Upscale8 (byte *in, int inwidth, int inheight);
-unsigned *Image_Upscale32 (unsigned *in, int inwidth, int inheight);
 
 // helpers/etc
 void Image_CollapseRowPitch (unsigned *data, int width, int height, int pitch);

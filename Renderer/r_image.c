@@ -673,48 +673,6 @@ unsigned *GL_Image8To32 (byte *data, int width, int height, unsigned *palette)
 }
 
 
-byte *Image_Upscale8 (byte *in, int inwidth, int inheight)
-{
-	byte *out = (byte *) ri.Load_AllocMemory (inwidth * inheight * 4);
-	int outwidth = inwidth << 1;
-	int outheight = inheight << 1;
-	int outx, outy, inx, iny;
-
-	for (outy = 0; outy < outheight; outy++)
-	{
-		for (outx = 0; outx < outwidth; outx++)
-		{
-			iny = outy >> 1;
-			inx = outx >> 1;
-			out[outy * outwidth + outx] = in[iny * inwidth + inx];
-		}
-	}
-
-	return out;
-}
-
-
-unsigned *Image_Upscale32 (unsigned *in, int inwidth, int inheight)
-{
-	unsigned *out = (unsigned *) ri.Load_AllocMemory (inwidth * inheight * 4 * sizeof (unsigned));
-	int outwidth = inwidth << 1;
-	int outheight = inheight << 1;
-	int outx, outy, inx, iny;
-
-	for (outy = 0; outy < outheight; outy++)
-	{
-		for (outx = 0; outx < outwidth; outx++)
-		{
-			iny = outy >> 1;
-			inx = outx >> 1;
-			out[outy * outwidth + outx] = in[iny * inwidth + inx];
-		}
-	}
-
-	return out;
-}
-
-
 void Image_CollapseRowPitch (unsigned *data, int width, int height, int pitch)
 {
 	if (width != pitch)
