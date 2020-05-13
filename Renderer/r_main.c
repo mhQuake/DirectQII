@@ -503,7 +503,7 @@ void R_SetupGL (void)
 	// cycle in increments of 2 * M_PI so that the sine warp will wrap correctly
 	consts.turbTime = r_newrefdef.time - ((M_PI * 2) * (int) (r_newrefdef.time / (M_PI * 2)));
 
-	// copy over refdef size for stull like e.g. the water warp noise lookup
+	// copy over refdef size for stuff like e.g. the water warp noise lookup
 	consts.RefdefX = r_newrefdef.x;
 	consts.RefdefY = r_newrefdef.y;
 	consts.RefdefW = r_newrefdef.width;
