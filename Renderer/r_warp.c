@@ -23,22 +23,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static int d3d_WaterWarpShader;
 texture_t r_WarpNoise;
-rendertarget_t r_WaterWarpRT;
+texture_t r_WaterWarpRT;
 
 
 void D_CreateNoiseTexture (void)
 {
 #define NOISESIZE	16
-	int x, y;
 	unsigned *data = ri.Load_AllocMemory (NOISESIZE * NOISESIZE * 4);
 	unsigned *dst = data; // preserve the original pointer so that we can use it for an SRD
 	D3D11_SUBRESOURCE_DATA srd;
 
-	for (y = 0; y < NOISESIZE; y++)
+	for (int y = 0; y < NOISESIZE; y++)
 	{
 		short *vu = (short *) dst;
 
-		for (x = 0; x < NOISESIZE; x++)
+		for (int x = 0; x < NOISESIZE; x++)
 		{
 			*vu++ = (rand () & 65535) - 32768;
 			*vu++ = (rand () & 65535) - 32768;
@@ -111,7 +110,7 @@ void R_InitWarp (void)
 void R_ShutdownWarp (void)
 {
 	R_ReleaseTexture (&r_WarpNoise);
-	R_ReleaseRenderTarget (&r_WaterWarpRT);
+	R_ReleaseTexture (&r_WaterWarpRT);
 }
 
 

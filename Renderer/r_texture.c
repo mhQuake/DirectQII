@@ -145,6 +145,9 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
 
 	// failure is not an option...
 	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) image->Texture, NULL, &image->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
+
+	// no RTV on this one
+	image->RTV = NULL;
 }
 
 
@@ -493,6 +496,7 @@ void R_FreeUnusedImages (void)
 		{
 			SAFE_RELEASE (image->Texture);
 			SAFE_RELEASE (image->SRV);
+			SAFE_RELEASE (image->RTV);
 
 			memset (image, 0, sizeof (*image));
 		}
@@ -526,6 +530,7 @@ void R_ShutdownImages (void)
 	{
 		SAFE_RELEASE (image->Texture);
 		SAFE_RELEASE (image->SRV);
+		SAFE_RELEASE (image->RTV);
 
 		memset (image, 0, sizeof (*image));
 	}
@@ -571,6 +576,9 @@ image_t *R_LoadTexArray (char *base)
 	if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
 	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) image->Texture, NULL, &image->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
 
+	// no RTV on this one
+	image->RTV = NULL;
+
 	// free memory used for loading the image
 	ri.Load_FreeMemory ();
 
@@ -578,7 +586,7 @@ image_t *R_LoadTexArray (char *base)
 }
 
 
-void R_CreateRenderTarget (rendertarget_t *rt)
+void R_CreateRenderTarget (texture_t *rt)
 {
 	ID3D11Texture2D *pBackBuffer = NULL;
 
@@ -603,15 +611,6 @@ void R_CreateRenderTarget (rendertarget_t *rt)
 }
 
 
-void R_ReleaseRenderTarget (rendertarget_t *rt)
-{
-	SAFE_RELEASE (rt->Texture);
-	SAFE_RELEASE (rt->SRV);
-	SAFE_RELEASE (rt->RTV);
-	memset (rt, 0, sizeof (rendertarget_t));
-}
-
-
 void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags)
 {
 	// if an srd is *not* specified we must make the texture mutable because we must be able to update it later
@@ -624,6 +623,9 @@ void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int 
 	// failure is not an option...
 	if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &t->Desc, srd, &t->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
 	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) t->Texture, NULL, &t->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
+
+	// no RTV on this one
+	t->RTV = NULL;
 }
 
 
@@ -631,6 +633,7 @@ void R_ReleaseTexture (texture_t *t)
 {
 	SAFE_RELEASE (t->Texture);
 	SAFE_RELEASE (t->SRV);
+	SAFE_RELEASE (t->RTV);
 	memset (t, 0, sizeof (texture_t));
 }
 
@@ -677,7 +680,7 @@ void R_ReleaseTBuffer (tbuffer_t *tb)
 }
 
 
-void R_CopyScreen (rendertarget_t *dst)
+void R_CopyScreen (texture_t *dst)
 {
 	ID3D11Texture2D *pBackBuffer = NULL;
 

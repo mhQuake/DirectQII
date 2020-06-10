@@ -35,13 +35,11 @@ ALIAS MODELS
 
 void Mod_LoadAliasSTVerts (dmdl_t *pinmodel)
 {
-	int i;
-
 	// load base s and t vertices
 	// these are discarded after buffers are built so they just need to byte-swap in-place
 	dstvert_t *stverts = (dstvert_t *) ((byte *) pinmodel + pinmodel->ofs_st);
 
-	for (i = 0; i < pinmodel->num_st; i++)
+	for (int i = 0; i < pinmodel->num_st; i++)
 	{
 		stverts[i].s = LittleShort (stverts[i].s);
 		stverts[i].t = LittleShort (stverts[i].t);
@@ -51,15 +49,13 @@ void Mod_LoadAliasSTVerts (dmdl_t *pinmodel)
 
 void Mod_LoadAliasTriangles (dmdl_t *pinmodel)
 {
-	int i, j;
-
 	// load triangle lists
 	// these are discarded after buffers are built so they just need to byte-swap in-place
 	dtriangle_t *triangles = (dtriangle_t *) ((byte *) pinmodel + pinmodel->ofs_tris);
 
-	for (i = 0; i < pinmodel->num_tris; i++)
+	for (int i = 0; i < pinmodel->num_tris; i++)
 	{
-		for (j = 0; j < 3; j++)
+		for (int j = 0; j < 3; j++)
 		{
 			triangles[i].index_xyz[j] = LittleShort (triangles[i].index_xyz[j]);
 			triangles[i].index_st[j] = LittleShort (triangles[i].index_st[j]);
@@ -70,18 +66,16 @@ void Mod_LoadAliasTriangles (dmdl_t *pinmodel)
 
 void Mod_LoadAliasFrames (dmdl_t *pinmodel, mmdl_t *pheader)
 {
-	int i, j;
-
 	// alloc the frames
 	pheader->frames = (maliasframe_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, pheader->num_frames * sizeof (maliasframe_t));
 
 	// load the frames
-	for (i = 0; i < pheader->num_frames; i++)
+	for (int i = 0; i < pheader->num_frames; i++)
 	{
 		daliasframe_t *pinframe = (daliasframe_t *) ((byte *) pinmodel + pinmodel->ofs_frames + i * pinmodel->framesize);
 		maliasframe_t *poutframe = &pheader->frames[i];
 
-		for (j = 0; j < 3; j++)
+		for (int j = 0; j < 3; j++)
 		{
 			poutframe->scale[j] = LittleFloat (pinframe->scale[j]);
 			poutframe->translate[j] = LittleFloat (pinframe->translate[j]);
@@ -94,10 +88,8 @@ void Mod_LoadAliasFrames (dmdl_t *pinmodel, mmdl_t *pheader)
 
 void Mod_LoadAliasSkins (dmdl_t *pinmodel, mmdl_t *pheader, model_t *mod)
 {
-	int i;
-
 	// register all skins
-	for (i = 0; i < pheader->num_skins; i++)
+	for (int i = 0; i < pheader->num_skins; i++)
 	{
 		char *srcskin = (char *) pinmodel + pinmodel->ofs_skins + i * MAX_SKINNAME;
 
@@ -111,10 +103,8 @@ void Mod_LoadAliasSkins (dmdl_t *pinmodel, mmdl_t *pheader, model_t *mod)
 
 void Mod_LoadAliasHeader (dmdl_t *pinmodel, mmdl_t *pheader, model_t *mod)
 {
-	int i;
-
 	// byte swap the header fields and sanity check
-	for (i = 0; i < sizeof (dmdl_t) / 4; i++)
+	for (int i = 0; i < sizeof (dmdl_t) / 4; i++)
 		((int *) pinmodel)[i] = LittleLong (((int *) pinmodel)[i]);
 
 	// validate

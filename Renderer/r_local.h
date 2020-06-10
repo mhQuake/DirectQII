@@ -149,6 +149,7 @@ typedef struct image_s {
 	// D3D texture object
 	ID3D11Texture2D *Texture;
 	ID3D11ShaderResourceView *SRV;
+	ID3D11RenderTargetView *RTV;
 } image_t;
 
 #define	TEXNUM_LIGHTMAPS	1024
@@ -511,21 +512,14 @@ void R_PrepareNullModel (entity_t *e, QMATRIX *localmatrix);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // more texture stuff
-typedef struct rendertarget_s {
+typedef struct texture_s {
 	ID3D11Texture2D *Texture;
 	ID3D11ShaderResourceView *SRV;
 	ID3D11RenderTargetView *RTV;
 	D3D11_TEXTURE2D_DESC Desc;
-} rendertarget_t;
-
-void R_CreateRenderTarget (rendertarget_t *rt);
-void R_ReleaseRenderTarget (rendertarget_t *rt);
-
-typedef struct texture_s {
-	ID3D11Texture2D *Texture;
-	ID3D11ShaderResourceView *SRV;
-	D3D11_TEXTURE2D_DESC Desc;
 } texture_t;
+
+void R_CreateRenderTarget (texture_t *rt);
 
 void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags);
 void R_ReleaseTexture (texture_t *t);
@@ -539,5 +533,5 @@ typedef struct tbuffer_s {
 void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format, D3D11_USAGE Usage);
 void R_ReleaseTBuffer (tbuffer_t *t);
 
-void R_CopyScreen (rendertarget_t *dst);
+void R_CopyScreen (texture_t *dst);
 

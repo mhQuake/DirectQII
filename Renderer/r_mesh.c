@@ -93,9 +93,7 @@ void R_InitMesh (void)
 
 void R_ShutdownMesh (void)
 {
-	int i;
-
-	for (i = 0; i < MAX_MOD_KNOWN; i++)
+	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
 		aliasbuffers_t *set = &d3d_AliasBuffers[i];
 
@@ -110,9 +108,7 @@ void R_ShutdownMesh (void)
 
 void R_FreeUnusedAliasBuffers (void)
 {
-	int i;
-
-	for (i = 0; i < MAX_MOD_KNOWN; i++)
+	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
 		aliasbuffers_t *set = &d3d_AliasBuffers[i];
 
@@ -131,7 +127,6 @@ void R_FreeUnusedAliasBuffers (void)
 void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
 	dtrivertx_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (dtrivertx_t));
-	int framenum, i;
 
 	D3D11_BUFFER_DESC vbDesc = {
 		hdr->num_verts * hdr->num_frames * sizeof (dtrivertx_t),
@@ -145,11 +140,11 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	// alloc a buffer to write the verts to and create the VB from
 	D3D11_SUBRESOURCE_DATA srd = {polyverts, 0, 0};
 
-	for (framenum = 0; framenum < hdr->num_frames; framenum++)
+	for (int framenum = 0; framenum < hdr->num_frames; framenum++)
 	{
 		daliasframe_t *inframe = (daliasframe_t *) ((byte *) src + src->ofs_frames + framenum * src->framesize);
 
-		for (i = 0; i < hdr->num_verts; i++, polyverts++)
+		for (int i = 0; i < hdr->num_verts; i++, polyverts++)
 		{
 			dtrivertx_t *tv = &inframe->verts[dedupe[i].index_xyz];
 
@@ -168,7 +163,6 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
 	float *texcoords = ri.Load_AllocMemory (hdr->num_verts * sizeof (float) * 2);
-	int i;
 
 	D3D11_BUFFER_DESC vbDesc = {
 		hdr->num_verts * sizeof (float) * 2,
@@ -185,7 +179,7 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	// access source stverts
 	dstvert_t *stverts = (dstvert_t *) ((byte *) src + src->ofs_st);
 
-	for (i = 0; i < hdr->num_verts; i++, texcoords += 2)
+	for (int i = 0; i < hdr->num_verts; i++, texcoords += 2)
 	{
 		dstvert_t *stvert = &stverts[dedupe[i].index_st];
 
@@ -221,8 +215,6 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 {
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
 
-	int i, j;
-
 	aliasmesh_t *dedupe = (aliasmesh_t *) ri.Load_AllocMemory (hdr->num_verts * sizeof (aliasmesh_t));
 	unsigned short *indexes = (unsigned short *) ri.Load_AllocMemory (hdr->num_indexes * sizeof (unsigned short));
 	unsigned short *optimized = (unsigned short *) ri.Load_AllocMemory (hdr->num_indexes * sizeof (unsigned short));
@@ -233,9 +225,9 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 	// set up source data
 	dtriangle_t *triangles = (dtriangle_t *) ((byte *) src + src->ofs_tris);
 
-	for (i = 0; i < hdr->num_tris; i++)
+	for (int i = 0; i < hdr->num_tris; i++)
 	{
-		for (j = 0; j < 3; j++)
+		for (int j = 0; j < 3; j++)
 		{
 			int v;
 
@@ -285,11 +277,11 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 		int vertnum = 0;
 
 		// because 0 is a valid index we must use -1 to indicate a vertex that's not yet in it's final, optimized, buffer position
-		for (i = 0; i < hdr->num_verts; i++)
+		for (int i = 0; i < hdr->num_verts; i++)
 			inBuffer[i] = -1;
 
 		// build the remap table
-		for (i = 0; i < hdr->num_indexes; i++)
+		for (int i = 0; i < hdr->num_indexes; i++)
 		{
 			// is the referenced vertex in the buffer yet???
 			if (inBuffer[optimized[i]] == -1)
@@ -324,10 +316,8 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 
 int D_FindAliasBuffers (model_t *mod)
 {
-	int i;
-
 	// see do we already have it
-	for (i = 0; i < MAX_MOD_KNOWN; i++)
+	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
 		aliasbuffers_t *set = &d3d_AliasBuffers[i];
 
@@ -344,7 +334,7 @@ int D_FindAliasBuffers (model_t *mod)
 		return mod->bufferset;
 	}
 
-	return -1;
+	return -1; // not found
 }
 
 
@@ -358,13 +348,11 @@ void D_RegisterAliasBuffers (model_t *mod)
 
 void D_MakeAliasBuffers (model_t *mod, dmdl_t *src)
 {
-	int i;
-
 	// see do we already have it
 	if ((mod->bufferset = D_FindAliasBuffers (mod)) != -1) return;
 
 	// find the first free buffer
-	for (i = 0; i < MAX_MOD_KNOWN; i++)
+	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
 		aliasbuffers_t *set = &d3d_AliasBuffers[i];
 
@@ -482,19 +470,19 @@ void R_TransformAliasModel (entity_t *e, mmdl_t *hdr, meshconstants_t *consts, Q
 		e->backlerp * move[0] + frontlerp * currframe->translate[0],
 		e->backlerp * move[1] + frontlerp * currframe->translate[1],
 		e->backlerp * move[2] + frontlerp * currframe->translate[2]
-		);
+	);
 
 	Vector3Set (consts->frontv,
 		frontlerp * currframe->scale[0],
 		frontlerp * currframe->scale[1],
 		frontlerp * currframe->scale[2]
-		);
+	);
 
 	Vector3Set (consts->backv,
 		e->backlerp * prevframe->scale[0],
 		e->backlerp * prevframe->scale[1],
 		e->backlerp * prevframe->scale[2]
-		);
+	);
 
 	if (!(e->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
 		consts->suitscale = 0;
@@ -627,10 +615,9 @@ void R_LightAliasModel (entity_t *e, meshconstants_t *consts, QMATRIX *localmatr
 	if (e->flags & RF_GLOW)
 	{
 		// bonus items will pulse with time
-		float scale = 0.1 * sin (r_newrefdef.time * 7);
-		int i;
+		float scale = 0.1f * sinf (r_newrefdef.time * 7.0f);
 
-		for (i = 0; i < 3; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			float min = consts->shadelight[i] * 0.8;
 
@@ -645,7 +632,6 @@ void R_LightAliasModel (entity_t *e, meshconstants_t *consts, QMATRIX *localmatr
 
 static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 {
-	int i;
 	model_t *mod = e->model;
 	mmdl_t *hdr = mod->md2header;
 
@@ -656,7 +642,7 @@ static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 	// compute axially aligned mins and maxs
 	if (currframe == prevframe)
 	{
-		for (i = 0; i < 3; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			mod->mins[i] = currframe->translate[i];
 			mod->maxs[i] = mod->mins[i] + currframe->scale[i] * 255;
@@ -664,7 +650,7 @@ static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 	}
 	else
 	{
-		for (i = 0; i < 3; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			float currmins = currframe->translate[i];
 			float currmaxs = currmins + currframe->scale[i] * 255;
@@ -694,9 +680,7 @@ qboolean R_AliasLightInteraction (entity_t *e, model_t *mod, dlight_t *dl)
 
 void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatrix)
 {
-	int	i;
-
-	for (i = 0; i < r_newrefdef.num_dlights; i++)
+	for (int i = 0; i < r_newrefdef.num_dlights; i++)
 	{
 		dlight_t *dl = &r_newrefdef.dlights[i];
 
