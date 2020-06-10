@@ -218,6 +218,9 @@ extern	cvar_t	*r_novis;
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 extern	cvar_t	*r_desaturatelighting;
 
+extern	cvar_t	*r_crunchypixels;
+extern	cvar_t	*gl_texturemode;
+
 extern	cvar_t	*vid_mode;
 extern	cvar_t	*gl_finish;
 extern	cvar_t	*gl_clear;

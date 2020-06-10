@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static int d3d_ParticleCircleShader;
 static int d3d_ParticleSquareShader;
-static int d3d_ParticleShader = 0;
 
 static ID3D11Buffer *d3d_ParticleVertexes = NULL;
 
@@ -56,7 +55,6 @@ void R_InitParticles (void)
 	// creating a square shader even though we don't currently use it
 	d3d_ParticleCircleShader = D_CreateShaderBundle (IDR_PARTSHADER, "ParticleVS", "ParticleCircleGS", "ParticleCirclePS", DEFINE_LAYOUT (layout));
 	d3d_ParticleSquareShader = D_CreateShaderBundle (IDR_PARTSHADER, "ParticleVS", "ParticleSquareGS", "ParticleSquarePS", DEFINE_LAYOUT (layout));
-	d3d_ParticleShader = d3d_ParticleCircleShader;
 }
 
 
@@ -87,7 +85,11 @@ void R_DrawParticles (void)
 		// square particles can potentially expose a faster path by not using alpha blending
 		// but we might wish to add particle fade at some time so we can't do it (note: all particles in Q2 have fade)
 		D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSDepthNoWrite, d3d_RSFullCull);
-		D_BindShaderBundle (d3d_ParticleShader);
+
+		if (r_crunchypixels->value)
+			D_BindShaderBundle (d3d_ParticleSquareShader);
+		else D_BindShaderBundle (d3d_ParticleCircleShader);
+
 		D_BindVertexBuffer (6, d3d_ParticleVertexes, sizeof (particle_t), 0);
 
 		// and draw it

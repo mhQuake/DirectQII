@@ -166,11 +166,14 @@ ID3D11RasterizerState *d3d_RSFullCull = NULL;
 ID3D11RasterizerState *d3d_RSReverseCull = NULL;
 ID3D11RasterizerState *d3d_RSNoCull = NULL;
 
-ID3D11SamplerState *d3d_MainSampler = NULL;
-ID3D11SamplerState *d3d_LMapSampler = NULL;
-ID3D11SamplerState *d3d_WarpSampler = NULL;
-ID3D11SamplerState *d3d_DrawSampler = NULL;
-ID3D11SamplerState *d3d_CineSampler = NULL;
+ID3D11SamplerState *d3d_MainSampler[2] = { NULL, NULL };
+ID3D11SamplerState *d3d_LMapSampler[2] = { NULL, NULL };
+ID3D11SamplerState *d3d_WarpSampler[2] = { NULL, NULL };
+ID3D11SamplerState *d3d_DrawSampler[2] = { NULL, NULL };
+ID3D11SamplerState *d3d_CineSampler[2] = { NULL, NULL };
+
+
+cvar_t *r_crunchypixels = NULL;
 
 
 void R_SetDefaultState (void)
@@ -191,11 +194,19 @@ void R_SetDefaultState (void)
 	d3d_RSReverseCull = D_CreateRasterizerState (D3D11_FILL_SOLID, D3D11_CULL_BACK, TRUE, FALSE);
 	d3d_RSNoCull = D_CreateRasterizerState (D3D11_FILL_SOLID, D3D11_CULL_NONE, TRUE, FALSE);
 
-	d3d_MainSampler = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_FLOAT32_MAX, 1);
-	d3d_LMapSampler = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
-	d3d_WarpSampler = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, 0, 1);
-	d3d_DrawSampler = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
-	d3d_CineSampler = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_BORDER, 0, 1);
+	// crunchy pixels
+	d3d_MainSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_FLOAT32_MAX, 1);
+	d3d_LMapSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
+	d3d_WarpSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, 0, 1);
+	d3d_DrawSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
+	d3d_CineSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_BORDER, 0, 1);
+
+	// smooth pixels
+	d3d_MainSampler[1] = D_CreateSamplerState (D3D11_FILTER_ANISOTROPIC, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_FLOAT32_MAX, 16);
+	d3d_LMapSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
+	d3d_WarpSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, 0, 1);
+	d3d_DrawSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
+	d3d_CineSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, 0, 1);
 }
 
 
@@ -210,15 +221,30 @@ ID3D11RasterizerState *R_SelectRasterizerState (int rflags)
 void D_BindSamplers (void)
 {
 	// rebind in case state gets chucked
-	ID3D11SamplerState *Samplers[] = {
-		d3d_MainSampler,
-		d3d_LMapSampler,
-		d3d_WarpSampler,
-		d3d_DrawSampler,
-		d3d_CineSampler
-	};
+	if (r_crunchypixels->value)
+	{
+		ID3D11SamplerState *Samplers[] = {
+			d3d_MainSampler[0],
+			d3d_LMapSampler[0],
+			d3d_WarpSampler[0],
+			d3d_DrawSampler[0],
+			d3d_CineSampler[0]
+		};
 
-	d3d_Context->lpVtbl->PSSetSamplers (d3d_Context, 0, 5, Samplers);
+		d3d_Context->lpVtbl->PSSetSamplers (d3d_Context, 0, 5, Samplers);
+	}
+	else
+	{
+		ID3D11SamplerState *Samplers[] = {
+			d3d_MainSampler[1],
+			d3d_LMapSampler[1],
+			d3d_WarpSampler[1],
+			d3d_DrawSampler[1],
+			d3d_CineSampler[1]
+		};
+
+		d3d_Context->lpVtbl->PSSetSamplers (d3d_Context, 0, 5, Samplers);
+	}
 }
 
 

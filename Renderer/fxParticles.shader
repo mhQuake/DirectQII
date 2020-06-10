@@ -55,7 +55,7 @@ PS_PARTICLE GetParticleVert (point GS_PARTICLE gs_in, float2 Offsets, float Scal
 	return gs_out;
 }
 
-void ParticleCommonGS (point GS_PARTICLE gs_in, inout TriangleStream<PS_PARTICLE> gs_out, float TypeScale, float HackUp)
+void ParticleCommonGS (point GS_PARTICLE gs_in, inout TriangleStream<PS_PARTICLE> gs_out, float TypeScale)
 {
 	// frustum cull the particle
 	if (dot (gs_in.Origin, frustum0.xyz) - frustum0.w <= -1) return;
@@ -64,7 +64,7 @@ void ParticleCommonGS (point GS_PARTICLE gs_in, inout TriangleStream<PS_PARTICLE
 	if (dot (gs_in.Origin, frustum3.xyz) - frustum3.w <= -1) return;
 
 	// hack a scale up to keep particles from disapearing
-	float ScaleUp = (1.0f + dot (gs_in.Origin - viewOrigin, viewForward) * HackUp) * TypeScale * gs_in.Size;
+	float ScaleUp = (1.0f + dot (gs_in.Origin - viewOrigin, viewForward) * 0.002f) * TypeScale * gs_in.Size;
 
 	// and write it out
 	gs_out.Append (GetParticleVert (gs_in, float2 (-1, -1), ScaleUp));
@@ -76,13 +76,13 @@ void ParticleCommonGS (point GS_PARTICLE gs_in, inout TriangleStream<PS_PARTICLE
 [maxvertexcount (4)]
 void ParticleCircleGS (point GS_PARTICLE gs_in[1], inout TriangleStream<PS_PARTICLE> gs_out)
 {
-	ParticleCommonGS (gs_in[0], gs_out, 0.666f, 0.002f);
+	ParticleCommonGS (gs_in[0], gs_out, 0.666f);
 }
 
 [maxvertexcount (4)]
 void ParticleSquareGS (point GS_PARTICLE gs_in[1], inout TriangleStream<PS_PARTICLE> gs_out)
 {
-	ParticleCommonGS (gs_in[0], gs_out, 0.5f, 0.002f);
+	ParticleCommonGS (gs_in[0], gs_out, 0.4f);
 }
 #endif
 
@@ -99,7 +99,9 @@ float4 ParticleCirclePS (PS_PARTICLE ps_in) : SV_TARGET0
 float4 ParticleSquarePS (PS_PARTICLE ps_in) : SV_TARGET0
 {
 	// procedurally generate the particle dot for good speed and per-pixel accuracy at any scale
-	return GetGamma (ps_in.Color);
+	float pAlpha = ps_in.Color.a;// *(1.0f - dot (ps_in.Offsets, ps_in.Offsets));
+	clip (pAlpha); // reject any particles contributing less than zero
+	return GetGamma (float4 (ps_in.Color.rgb * pAlpha, pAlpha));
 }
 #endif
 

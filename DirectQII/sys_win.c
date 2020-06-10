@@ -505,19 +505,20 @@ WinMain
 
 char *Sys_GetUserHomeDir (void)
 {
-	static char szHomeDirBuf[MAX_PATH] = {0};
+	static char szHomeDirBuf[MAX_PATH + 1] = {0};
 
 	// We need a process with query permission set
 	HANDLE hToken = 0;
 	DWORD BufSize = MAX_PATH;
 
-	OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &hToken);
+	if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &hToken))
+	{
+		// Returns a path like C:/Documents and Settings/nibu if my user name is nibu
+		GetUserProfileDirectory (hToken, szHomeDirBuf, &BufSize);
 
-	// Returns a path like C:/Documents and Settings/nibu if my user name is nibu
-	GetUserProfileDirectory (hToken, szHomeDirBuf, &BufSize);
-
-	// Close handle opened via OpenProcessToken
-	CloseHandle (hToken);
+		// Close handle opened via OpenProcessToken
+		CloseHandle (hToken);
+	}
 
 	return szHomeDirBuf;
 }

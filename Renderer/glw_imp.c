@@ -375,15 +375,18 @@ void D_CacheObject (ID3D11DeviceChild *Object, const char *name)
 {
 	if (!Object)
 		return;
-	else if (NumObjectCache < MAX_OBJECT_CACHE)
+	else
 	{
-		ObjectCache[NumObjectCache].Object = Object;
-		ObjectCache[NumObjectCache].name = (char *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, strlen (name) + 1);
-		strcpy (ObjectCache[NumObjectCache].name, name);
+		if (NumObjectCache < MAX_OBJECT_CACHE)
+		{
+			ObjectCache[NumObjectCache].Object = Object;
+			ObjectCache[NumObjectCache].name = (char *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, strlen (name) + 1);
+			strcpy (ObjectCache[NumObjectCache].name, name);
 
-		NumObjectCache++;
+			NumObjectCache++;
+		}
+		else Sys_Error ("R_CacheObject : object cache overflow!");
 	}
-	else Sys_Error ("R_CacheObject : object cache overflow!");
 }
 
 
