@@ -173,7 +173,12 @@ ID3D11SamplerState *d3d_DrawSampler[2] = { NULL, NULL };
 ID3D11SamplerState *d3d_CineSampler[2] = { NULL, NULL };
 
 
-cvar_t *r_crunchypixels = NULL;
+void R_UpdateTextureMode (void)
+{
+	// adjust the crunchy pixels mode based on the texture mode
+	if (!Q_strncasecmp (gl_texturemode->string, "GL_LINEAR", 9)) ri.Cvar_SetValue ("r_crunchypixels", 0);
+	if (!Q_strncasecmp (gl_texturemode->string, "GL_NEAREST", 10)) ri.Cvar_SetValue ("r_crunchypixels", 1);
+}
 
 
 void R_SetDefaultState (void)

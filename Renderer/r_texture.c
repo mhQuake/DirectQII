@@ -170,10 +170,6 @@ void R_TexSubImage8 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h
 }
 
 
-void GL_TexEnv (int mode)
-{
-}
-
 void R_BindTexture (ID3D11ShaderResourceView *SRV)
 {
 	// only PS slot 0 is filtered; everything else is bound once-only at the start of each frame

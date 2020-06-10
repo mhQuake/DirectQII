@@ -237,11 +237,9 @@ extern	cvar_t	*vid_vsync;
 
 extern	cvar_t	*intensity;
 
+void R_UpdateTextureMode (void);
 
 void R_RegeneratePVS (void);
-
-void R_TranslatePlayerSkin (int playernum);
-void GL_TexEnv (int value);
 
 void R_LightPoint (vec3_t p, vec3_t color);
 void R_DynamicLightPoint (vec3_t p, vec3_t color);
