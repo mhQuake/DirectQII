@@ -30,7 +30,7 @@ typedef struct streamdef_s {
 } streamdef_t;
 
 
-ID3D11SamplerState *D_CreateSamplerState (D3D11_FILTER Filter, D3D11_TEXTURE_ADDRESS_MODE AddressMode, float MaxLOD, UINT MaxAnisotropy)
+ID3D11SamplerState *D_CreateSamplerState (D3D11_FILTER Filter, D3D11_TEXTURE_ADDRESS_MODE AddressMode, float MinLOD, float MaxLOD, UINT MaxAnisotropy)
 {
 	ID3D11SamplerState *ss = NULL;
 	D3D11_SAMPLER_DESC desc;
@@ -57,7 +57,7 @@ ID3D11SamplerState *D_CreateSamplerState (D3D11_FILTER Filter, D3D11_TEXTURE_ADD
 	}
 
 	desc.MaxLOD = MaxLOD;
-	desc.MinLOD = 0;
+	desc.MinLOD = MinLOD;
 	desc.MipLODBias = 0;
 
 	d3d_Device->lpVtbl->CreateSamplerState (d3d_Device, &desc, &ss);
@@ -200,18 +200,18 @@ void R_SetDefaultState (void)
 	d3d_RSNoCull = D_CreateRasterizerState (D3D11_FILL_SOLID, D3D11_CULL_NONE, TRUE, FALSE);
 
 	// crunchy pixels
-	d3d_MainSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_FLOAT32_MAX, 1);
-	d3d_LMapSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
-	d3d_WarpSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, 0, 1);
-	d3d_DrawSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
-	d3d_CineSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_BORDER, 0, 1);
+	d3d_MainSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, 1, 4, 1);
+	d3d_LMapSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 0, 1);
+	d3d_WarpSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, 0, 0, 1);
+	d3d_DrawSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 0, 1);
+	d3d_CineSampler[0] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_BORDER, 0, 0, 1);
 
 	// smooth pixels
-	d3d_MainSampler[1] = D_CreateSamplerState (D3D11_FILTER_ANISOTROPIC, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_FLOAT32_MAX, 16);
-	d3d_LMapSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
-	d3d_WarpSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, 0, 1);
-	d3d_DrawSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 1);
-	d3d_CineSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, 0, 1);
+	d3d_MainSampler[1] = D_CreateSamplerState (D3D11_FILTER_ANISOTROPIC, D3D11_TEXTURE_ADDRESS_WRAP, 0, D3D11_FLOAT32_MAX, 16);
+	d3d_LMapSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 0, 1);
+	d3d_WarpSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, 0, 0, 1);
+	d3d_DrawSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, 0, 0, 1);
+	d3d_CineSampler[1] = D_CreateSamplerState (D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, 0, 0, 1);
 }
 
 

@@ -88,6 +88,48 @@ int AverageMipGC (int _1, int _2, int _3, int _4)
 }
 
 
+byte *Image_Upscale8 (byte *in, int inwidth, int inheight)
+{
+	byte *out = (byte *) ri.Load_AllocMemory (inwidth * inheight * 4);
+	int outwidth = inwidth << 1;
+	int outheight = inheight << 1;
+	int outx, outy, inx, iny;
+
+	for (outy = 0; outy < outheight; outy++)
+	{
+		for (outx = 0; outx < outwidth; outx++)
+		{
+			iny = outy >> 1;
+			inx = outx >> 1;
+			out[outy * outwidth + outx] = in[iny * inwidth + inx];
+		}
+	}
+
+	return out;
+}
+
+
+unsigned *Image_Upscale32 (unsigned *in, int inwidth, int inheight)
+{
+	unsigned *out = (unsigned *) ri.Load_AllocMemory (inwidth * inheight * 4 * sizeof (unsigned));
+	int outwidth = inwidth << 1;
+	int outheight = inheight << 1;
+	int outx, outy, inx, iny;
+
+	for (outy = 0; outy < outheight; outy++)
+	{
+		for (outx = 0; outx < outwidth; outx++)
+		{
+			iny = outy >> 1;
+			inx = outx >> 1;
+			out[outy * outwidth + outx] = in[iny * inwidth + inx];
+		}
+	}
+
+	return out;
+}
+
+
 /*
 =================================================================
 
@@ -440,7 +482,7 @@ typedef struct floodfill_s {
 void R_FloodFillSkin (byte *skin, int skinwidth, int skinheight)
 {
 	byte				fillcolor = *skin; // assume this is the pixel to fill
-	floodfill_t			fifo[FLOODFILL_FIFO_SIZE];
+	floodfill_t			*fifo = (floodfill_t *) ri.Load_AllocMemory (FLOODFILL_FIFO_SIZE * sizeof (floodfill_t));
 	int					inpt = 0, outpt = 0;
 	int					filledcolor = -1;
 	int					i;

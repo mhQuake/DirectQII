@@ -409,6 +409,7 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 #define TEX_R32F			(1 << 9) // single-channel 32-bit floating-point texture
 #define TEX_R16G16			(1 << 10) // 2-channel 16-bit per channel signed-normalized format for use with noise
 #define TEX_PLAYERTEXTURE	(1 << 11) // used for player colour translations
+#define TEX_UPSCALE			(1 << 12) // texture was upscaled
 #define TEX_CHARSET			(1 << 13) // charset uses a 16x16 texture array
 #define TEX_MUTABLE			(1 << 14) // textures are immutable unless this flag is specified
 #define TEX_TRANS33			(1 << 15) // 0.333 alpha encoded into the texture
@@ -462,6 +463,10 @@ unsigned short Image_GammaVal8to16 (byte val, float gamma);
 byte Image_GammaVal16to8 (unsigned short val, float gamma);
 unsigned short Image_GammaVal16to16 (unsigned short val, float gamma);
 void Image_ApplyTranslationRGB (byte *rgb, int size, byte *table);
+
+// upscale
+byte *Image_Upscale8 (byte *in, int inwidth, int inheight);
+unsigned *Image_Upscale32 (unsigned *in, int inwidth, int inheight);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
