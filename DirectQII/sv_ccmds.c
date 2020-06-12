@@ -161,62 +161,35 @@ void SV_WipeSavegame (char *savename)
 	Com_DPrintf ("SV_WipeSaveGame(%s)\n", savename);
 
 	Com_sprintf (name, sizeof (name), "%s/save/%s/server.ssv", FS_Gamedir (), savename);
-	remove (name);
+	FS_RemoveFile (name);
+
 	Com_sprintf (name, sizeof (name), "%s/save/%s/game.ssv", FS_Gamedir (), savename);
-	remove (name);
+	FS_RemoveFile (name);
+
+	Com_sprintf (name, sizeof (name), "%s/save/%s/mapshot.tga", FS_Gamedir (), savename);
+	FS_RemoveFile (name);
 
 	Com_sprintf (name, sizeof (name), "%s/save/%s/*.sav", FS_Gamedir (), savename);
 	s = Sys_FindFirst (name, 0, 0);
+
 	while (s)
 	{
-		remove (s);
+		FS_RemoveFile (s);
 		s = Sys_FindNext (0, 0);
 	}
+
 	Sys_FindClose ();
+
 	Com_sprintf (name, sizeof (name), "%s/save/%s/*.sv2", FS_Gamedir (), savename);
 	s = Sys_FindFirst (name, 0, 0);
+
 	while (s)
 	{
-		remove (s);
+		FS_RemoveFile (s);
 		s = Sys_FindNext (0, 0);
 	}
+
 	Sys_FindClose ();
-}
-
-
-/*
-================
-CopyFile
-================
-*/
-void CopyFile (char *src, char *dst)
-{
-	FILE	*f1, *f2;
-	int		l;
-	byte	buffer[65536];
-
-	Com_DPrintf ("CopyFile (%s, %s)\n", src, dst);
-
-	f1 = fopen (src, "rb");
-	if (!f1)
-		return;
-	f2 = fopen (dst, "wb");
-	if (!f2)
-	{
-		fclose (f1);
-		return;
-	}
-
-	while (1)
-	{
-		l = fread (buffer, 1, sizeof (buffer), f1);
-		if (!l)
-			break;
-		fwrite (buffer, 1, l, f2);
-	}
-
-	fclose (f1);
-	fclose (f2);
 }
 
 
@@ -239,32 +212,38 @@ void SV_CopySaveGame (char *src, char *dst)
 	Com_sprintf (name, sizeof (name), "%s/save/%s/server.ssv", FS_Gamedir (), src);
 	Com_sprintf (name2, sizeof (name2), "%s/save/%s/server.ssv", FS_Gamedir (), dst);
 	FS_CreatePath (name2);
-	CopyFile (name, name2);
+	FS_CopyFile (name, name2);
 
 	Com_sprintf (name, sizeof (name), "%s/save/%s/game.ssv", FS_Gamedir (), src);
 	Com_sprintf (name2, sizeof (name2), "%s/save/%s/game.ssv", FS_Gamedir (), dst);
-	CopyFile (name, name2);
+	FS_CopyFile (name, name2);
+
+	Com_sprintf (name, sizeof (name), "%s/save/%s/mapshot.tga", FS_Gamedir (), src);
+	Com_sprintf (name2, sizeof (name2), "%s/save/%s/mapshot.tga", FS_Gamedir (), dst);
+	FS_CopyFile (name, name2);
 
 	Com_sprintf (name, sizeof (name), "%s/save/%s/", FS_Gamedir (), src);
 	len = strlen (name);
 	Com_sprintf (name, sizeof (name), "%s/save/%s/*.sav", FS_Gamedir (), src);
 	found = Sys_FindFirst (name, 0, 0);
+
 	while (found)
 	{
 		strcpy (name + len, found + len);
 
 		Com_sprintf (name2, sizeof (name2), "%s/save/%s/%s", FS_Gamedir (), dst, found + len);
-		CopyFile (name, name2);
+		FS_CopyFile (name, name2);
 
 		// change sav to sv2
 		l = strlen (name);
 		strcpy (name + l - 3, "sv2");
 		l = strlen (name2);
 		strcpy (name2 + l - 3, "sv2");
-		CopyFile (name, name2);
+		FS_CopyFile (name, name2);
 
 		found = Sys_FindNext (0, 0);
 	}
+
 	Sys_FindClose ();
 }
 
@@ -296,6 +275,7 @@ void SV_WriteLevelFile (void)
 	Com_sprintf (name, sizeof (name), "%s/save/current/%s.sav", FS_Gamedir (), sv.name);
 	ge->WriteLevel (name);
 }
+
 
 /*
 ==============
@@ -580,6 +560,7 @@ void SV_Map_f (void)
 	SV_WipeSavegame ("current");
 	SV_GameMap_f ();
 }
+
 
 /*
 =====================================================================

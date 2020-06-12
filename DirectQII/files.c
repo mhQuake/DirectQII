@@ -798,6 +798,47 @@ void FS_Path_f (void)
 		Com_Printf ("%s : %s\n", l->from, l->to);
 }
 
+
+void FS_CopyFile (char *src, char *dst)
+{
+	FILE *f1, *f2;
+
+	Com_DPrintf ("FS_CopyFile (%s, %s)\n", src, dst);
+
+	if ((f1 = fopen (src, "rb")) != NULL)
+	{
+		if ((f2 = fopen (dst, "wb")) != NULL)
+		{
+			while (1)
+			{
+				static byte	buffer[65536];
+				int l = fread (buffer, 1, sizeof (buffer), f1);
+
+				if (l)
+					fwrite (buffer, 1, l, f2);
+				else break;
+			}
+
+			fclose (f2);
+		}
+
+		fclose (f1);
+	}
+}
+
+
+void FS_RemoveFile (char *filename)
+{
+	FILE *f;
+
+	if ((f = fopen (filename, "rb")) != NULL)
+	{
+		fclose (f);
+		remove (filename);
+	}
+}
+
+
 /*
 ================
 FS_NextPath

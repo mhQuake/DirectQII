@@ -710,6 +710,9 @@ void FS_FreeFile (void *buffer);
 
 void FS_CreatePath (char *path);
 
+void FS_CopyFile (char *src, char *dst);
+void FS_RemoveFile (char *filename);
+
 
 /*
 ==============================================================
