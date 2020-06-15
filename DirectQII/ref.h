@@ -215,6 +215,7 @@ typedef struct refexport_s {
 	void (*AppActivate) (qboolean activate);
 	void (*EnumerateVideoModes) (void);
 	void (*CaptureScreenshot) (char *checkname);
+	void (*Mapshot) (char *checkname);
 } refexport_t;
 
 // these are the functions imported by the refresh module

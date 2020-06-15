@@ -37,9 +37,7 @@ qboolean	m_savevalid[MAX_SAVEGAMES];
 
 void MakeGreen (char *str)
 {
-	int i;
-
-	for (i = 0;; i++)
+	for (int i = 0;; i++)
 	{
 		if (!str[i]) break;
 		str[i] |= 0x80;
@@ -205,6 +203,7 @@ void SaveGameCallback (void *self)
 	menuaction_s *a = (menuaction_s *) self;
 
 	Cbuf_AddText (va ("save save%i\n", a->generic.localdata[0]));
+	re.Mapshot (va ("save%i\n", a->generic.localdata[0]));
 	M_ForceMenuOff ();
 }
 

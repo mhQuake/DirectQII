@@ -445,6 +445,7 @@ void SV_DemoMap_f (void)
 	SV_Map (true, Cmd_Argv (1), false);
 }
 
+
 /*
 ==================
 SV_GameMap_f

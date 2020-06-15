@@ -203,6 +203,7 @@ void Draw_Fill (int x, int y, int w, int h, int c);
 void Draw_FadeScreen (void);
 void D_EnumerateVideoModes (void);
 void D_CaptureScreenshot (char *checkname);
+void D_Mapshot (char *checkname);
 void R_ClearToBlack (void);
 
 /*
@@ -252,6 +253,7 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.AppActivate = GLimp_AppActivate;
 	re.EnumerateVideoModes = D_EnumerateVideoModes;
 	re.CaptureScreenshot = D_CaptureScreenshot;
+	re.Mapshot = D_Mapshot;
 
 	Swap_Init ();
 

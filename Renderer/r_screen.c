@@ -21,6 +21,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 
 
+void D_Mapshot (char *checkname)
+{
+}
+
+
 void D_CaptureScreenshot (char *checkname)
 {
 	ID3D11Texture2D *pBackBuffer = NULL;
