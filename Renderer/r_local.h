@@ -459,6 +459,7 @@ void Image_WriteDataToTGA (char *name, void *data, int width, int height, int bp
 
 // gamma
 byte Image_GammaVal8to8 (byte val, float gamma);
+byte Image_ContrastVal8to8 (byte val, float contrast);
 unsigned short Image_GammaVal8to16 (byte val, float gamma);
 byte Image_GammaVal16to8 (unsigned short val, float gamma);
 unsigned short Image_GammaVal16to16 (unsigned short val, float gamma);
@@ -539,4 +540,11 @@ void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSiz
 void R_ReleaseTBuffer (tbuffer_t *t);
 
 void R_CopyScreen (texture_t *dst);
+
+
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// mapshots
+#define MAPSHOT_SIZE	128
+
+void R_RenderFrame (refdef_t *fd);
 

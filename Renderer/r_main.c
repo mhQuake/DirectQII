@@ -326,8 +326,12 @@ void R_DrawEntitiesOnList (qboolean trans)
 	{
 		entity_t *e = &r_newrefdef.entities[i];
 
+		// draw translucent and opaque entities in their proper passes
 		if (!trans && (e->flags & RF_TRANSLUCENT)) continue;
 		if (trans && !(e->flags & RF_TRANSLUCENT)) continue;
+
+		// optionally skip weapon models
+		if ((e->flags & RF_WEAPONMODEL) && (r_newrefdef.rdflags & RDF_NOWEAPONMODEL)) continue;
 
 		if (e->flags & RF_BEAM)
 		{

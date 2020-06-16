@@ -500,7 +500,7 @@ void PlayerConfig_MenuDraw (void)
 			(viddef.conwidth / 2) * (320.0f / viddef.conwidth) - 8,
 			(viddef.conheight / 2) * (240.0f / viddef.conheight) - 77,
 			RDWIDTH / 8, RDHEIGHT / 8
-			);
+		);
 
 		refdef.height += 4;
 

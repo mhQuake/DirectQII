@@ -202,8 +202,8 @@ void SaveGameCallback (void *self)
 {
 	menuaction_s *a = (menuaction_s *) self;
 
+	re.Mapshot (va ("%s/save/current/mapshot.tga", FS_Gamedir ()));
 	Cbuf_AddText (va ("save save%i\n", a->generic.localdata[0]));
-	re.Mapshot (va ("save%i\n", a->generic.localdata[0]));
 	M_ForceMenuOff ();
 }
 

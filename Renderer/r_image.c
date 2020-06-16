@@ -38,6 +38,17 @@ byte Image_GammaVal8to8 (byte val, float gamma)
 }
 
 
+byte Image_ContrastVal8to8 (byte val, float contrast)
+{
+	float f = (float) val * contrast;
+
+	if (f < 0) f = 0;
+	if (f > 255) f = 255;
+
+	return f;
+}
+
+
 unsigned short Image_GammaVal8to16 (byte val, float gamma)
 {
 	float f = powf ((val + 1) / 256.0, gamma);

@@ -561,6 +561,7 @@ typedef struct pmove_s {
 // player_state_t->refdef flags
 #define	RDF_UNDERWATER		1		// warp the screen as apropriate
 #define RDF_NOWORLDMODEL	2		// used for player configuration screen
+#define RDF_NOWEAPONMODEL	4		// used for mapshots
 
 //ROGUE
 #define	RDF_IRGOGGLES		4
