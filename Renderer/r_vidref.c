@@ -204,7 +204,7 @@ void Draw_FadeScreen (void);
 void D_EnumerateVideoModes (void);
 void D_CaptureScreenshot (char *checkname);
 void D_Mapshot (char *checkname);
-void R_ClearToBlack (void);
+
 
 /*
 ===============

@@ -132,14 +132,11 @@ void D_Mapshot (char *checkname)
 	refdef.rdflags |= RDF_NOWEAPONMODEL;
 
 	// and draw it
+	R_ClearToBlack ();
 	R_RenderFrame (&refdef);
 
-	// now we can copy it off
-	if (D_CaptureScreenSubrect (checkname, 0, 0, MAPSHOT_SIZE, MAPSHOT_SIZE, vid_gamma->value, vid_brightness->value))
-	{
-		// ...done
-		ri.Con_Printf (PRINT_ALL, "Wrote %s\n", checkname);
-	}
+	// now we can copy it off (this one needs to inverse it's brightness and gamma, but doesn't report)
+	D_CaptureScreenSubrect (checkname, 0, 0, MAPSHOT_SIZE, MAPSHOT_SIZE, vid_gamma->value, vid_brightness->value);
 }
 
 

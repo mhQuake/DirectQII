@@ -51,6 +51,9 @@ void R_SyncPipeline (void);
 // different viewport
 void R_Set2D (void);
 
+// screen wipes
+void R_ClearToBlack (void);
+
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // world transforms
@@ -428,7 +431,6 @@ image_t *R_LoadTexArray (char *base);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // images
-
 #pragma pack(push, 1)
 typedef struct _TargaHeader {
 	unsigned char 	id_length, colormap_type, image_type;
@@ -511,6 +513,7 @@ void R_FreeUnusedSpriteBuffers (void);
 extern HANDLE hRefHeap;
 
 
+// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // null model
 void R_DrawNullModel (entity_t *e, QMATRIX *localmatrix);
 void R_PrepareNullModel (entity_t *e, QMATRIX *localmatrix);
