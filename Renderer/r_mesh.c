@@ -735,6 +735,9 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 	R_LightAliasModel (e, &consts, localmatrix);
 	R_TransformAliasModel (e, hdr, &consts, localmatrix);
 
+	// the new lighting is slightly darker than the old so scale it up to compensate; this is a good working range
+	Vector3Scalef (consts.shadelight, consts.shadelight, 1.28f);
+
 	// and update to the cbuffer
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MeshConstants, 0, NULL, &consts, 0, 0);
 

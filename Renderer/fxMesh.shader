@@ -53,11 +53,17 @@ PS_DYNAMICLIGHT MeshDynamicVS (VS_MESH vs_in)
 #ifdef PIXELSHADER
 float4 MeshLightmapPS (PS_MESH ps_in) : SV_TARGET0
 {
-	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
-	float shadedot = dot (normalize (ps_in.Normal), ShadeVector);
-	float3 lmap = ShadeLight * max (shadedot + 1.0f, (shadedot * 0.2954545f) + 1.0f);
+	// read the texture
+	float4 diff = mainTexture.Sample (mainSampler, ps_in.TexCoord);
 
-	return float4 (diff.rgb * Desaturate (lmap), diff.a * AlphaVal);
+	// apply gamma to diffuse
+	diff = GetGamma (diff);
+
+	// perform the lighting using the same equations as qrad.exe/light.exe (assumes shadevector is already normalized)
+	float angle = max (dot (normalize (ps_in.Normal), ShadeVector), 0.0f) * 0.5f + 0.5f;
+
+	// perform the light mapping to output
+	return float4 (diff.rgb * Desaturate (ShadeLight * angle), diff.a * AlphaVal);
 }
 
 float4 MeshFullbrightPS (PS_MESH ps_in) : SV_TARGET0
