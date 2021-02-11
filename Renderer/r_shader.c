@@ -169,8 +169,8 @@ static char *D_LoadShaderSource (int resourceID)
 	char *fullsource = (char *) ri.Load_AllocMemory (includelength + shaderlength + 2);
 
 	// and combine them
-	strcpy (fullsource, includesource);
-	strcpy (&fullsource[includelength], shadersource);
+	strncpy (fullsource, includesource, includelength);
+	strncpy (&fullsource[includelength], shadersource, shaderlength);
 
 	// ensure this happens because resource-loading of an RCDATA resource will not necessarily terminate strings
 	fullsource[includelength + shaderlength] = 0;
