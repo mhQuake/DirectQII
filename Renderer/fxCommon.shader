@@ -112,50 +112,33 @@ Texture2D<float4> warpTexture : register(t5);	// underwater warp noise texture
 Texture2DArray<float4> charTexture : register(t6);	// characters and numbers
 
 
-float3 HUEtoRGB (in float H)
+float3 rgb2hsv (float3 c)
 {
-	float R = abs (H * 6 - 3) - 1;
-	float G = 2 - abs (H * 6 - 2);
-	float B = 2 - abs (H * 6 - 4);
-	return saturate (float3 (R,G,B));
+	float4 K = float4 (0.0f, -1.0f / 3.0f, 2.0f / 3.0f, -1.0f);
+	float4 p = lerp (float4 (c.bg, K.wz), float4 (c.gb, K.xy), step (c.b, c.g));
+	float4 q = lerp (float4 (p.xyw, c.r), float4 (c.r, p.yzx), step (p.x, c.r));
+
+	float d = q.x - min (q.w, q.y);
+	float e = 1.0e-10;
+	return float3 (abs (q.z + (q.w - q.y) / (6.0f * d + e)), d / (q.x + e), q.x);
 }
 
 
-float3 HSLtoRGB (in float3 HSL)
+float3 hsv2rgb (float3 c)
 {
-	float3 RGB = HUEtoRGB (HSL.x);
-	float C = (1 - abs (2 * HSL.z - 1)) * HSL.y;
-	return (RGB - 0.5) * C + HSL.z;
-}
-
-
-float Epsilon = 1e-10;
-
-float3 RGBtoHCV(in float3 RGB)
-{
-	// Based on work by Sam Hocevar and Emil Persson
-	float4 P = (RGB.g < RGB.b) ? float4 (RGB.bg, -1.0, 2.0 / 3.0) : float4 (RGB.gb, 0.0, -1.0 / 3.0);
-	float4 Q = (RGB.r < P.x) ? float4 (P.xyw, RGB.r) : float4 (RGB.r, P.yzx);
-	float C = Q.x - min (Q.w, Q.y);
-	float H = abs ((Q.w - Q.y) / (6 * C + Epsilon) + Q.z);
-	return float3 (H, C, Q.x);
-}
-
-
-float3 RGBtoHSL(in float3 RGB)
-{
-	float3 HCV = RGBtoHCV (RGB);
-	float L = HCV.z - HCV.y * 0.5;
-	float S = HCV.y / (1 - abs (L * 2 - 1) + Epsilon);
-	return float3 (HCV.x, S, L);
+	float4 K = float4 (1.0f, 2.0f / 3.0f, 1.0f / 3.0f, 3.0f);
+	float3 p = abs (frac (c.xxx + K.xyz) * 6.0f - K.www);
+	return c.z * lerp (K.xxx, clamp (p - K.xxx, 0.0f, 1.0f), c.y);
 }
 
 
 float3 Desaturate (float3 RGB)
 {
-	// hack hack hack - because light can overbright we scale it down, then apply the desaturation, then bring it back up again
-	// otherwise we get clamping issues in the conversion funcs if any of the channels are above 1
-	return HSLtoRGB (RGBtoHSL (RGB * 0.1f) * float3 (1.0f, desaturation, 1.0f)) * 10.0f;
+	// hack hack hack - because light can overbright we scale it down, then apply the saturation, then bring it back up again,
+	// otherwise we get clamping issues in the conversion funcs if any of the channels are above 1.  note that even the id1 maps
+	// can go above 2x overbright just from lightstyles alone, so a 2x scale is *NOT* sufficient here.
+	float scale = RGB.r + RGB.g + RGB.b + 1.0f; // this doesn't need to be fancy, it just needs to be good enough
+	return hsv2rgb (rgb2hsv (RGB * (1.0f / scale)) * float3 (1.0f, desaturation, 1.0f)) * scale;
 }
 
 

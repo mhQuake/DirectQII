@@ -43,7 +43,9 @@ void R_Register (void)
 	R_UpdateTextureMode ();
 
 	r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0, NULL);
-	r_desaturatelighting = ri.Cvar_Get ("r_desaturatelighting", "1", CVAR_ARCHIVE, NULL);
+
+	// changed the name of this and set a lower default so that it looks better from the get-go
+	r_lightsaturation = ri.Cvar_Get ("r_lightsaturation", "0.5", CVAR_ARCHIVE, NULL);
 
 	vid_mode = ri.Cvar_Get ("vid_mode", "-1", CVAR_ARCHIVE | CVAR_VIDEO, NULL);
 	gl_finish = ri.Cvar_Get ("gl_finish", "0", CVAR_ARCHIVE, NULL);

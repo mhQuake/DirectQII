@@ -103,7 +103,7 @@ static void SaturationCallback (void *s)
 {
 	// this now works without needing a vid_restart
 	menuslider_s *slider = (menuslider_s *) s;
-	Cvar_SetValue ("r_desaturatelighting", slider->curvalue * 0.1f);
+	Cvar_SetValue ("r_lightsaturation", slider->curvalue * 0.1f);
 }
 
 
@@ -251,7 +251,7 @@ void VID_MenuInit (void)
 	s_desat_slider.generic.callback = SaturationCallback;
 	s_desat_slider.minvalue = 0;
 	s_desat_slider.maxvalue = 10;
-	s_desat_slider.curvalue = Cvar_VariableValue ("r_desaturatelighting") * 10;
+	s_desat_slider.curvalue = Cvar_VariableValue ("r_lightsaturation") * 10;
 
 	s_vsync_box.generic.type = MTYPE_SPINCONTROL;
 	s_vsync_box.generic.x = 0;

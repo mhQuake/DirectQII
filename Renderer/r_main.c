@@ -144,7 +144,7 @@ cvar_t	*r_novis;
 cvar_t	*r_lefthand;
 
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
-cvar_t	*r_desaturatelighting;
+cvar_t	* r_lightsaturation;
 
 cvar_t	*r_crunchypixels;
 cvar_t	*gl_texturemode;
@@ -525,11 +525,11 @@ void R_SetupGL (void)
 	Vector4Copy (consts.frustum2, frustum[2].normal);	// overflow is deliberate
 	Vector4Copy (consts.frustum3, frustum[3].normal);	// overflow is deliberate
 
-	if (r_desaturatelighting->value < 0)
+	if (r_lightsaturation->value < 0)
 		consts.desaturation = 0;
-	else if (r_desaturatelighting->value > 1)
+	else if (r_lightsaturation->value > 1)
 		consts.desaturation = 1;
-	else consts.desaturation = r_desaturatelighting->value;
+	else consts.desaturation = r_lightsaturation->value;
 
 	// and update to the cbuffer
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MainConstants, 0, NULL, &consts, 0, 0);
