@@ -125,8 +125,8 @@ void D_Mapshot (char *checkname)
 	refdef.height = MAPSHOT_SIZE;
 
 	// this is a special 1:1 aspect for mapshots so set the horizontal and vertical FOV to the same as the vertical FOV for a regular mode at horizontal 90
-	refdef.main_fov.x = refdef.main_fov.y = 68.0386963f;
-	refdef.gun_fov.x = refdef.gun_fov.y = 68.0386963f;
+	refdef.fovvar = 90.0f;
+	refdef.fov.x = refdef.fov.y = 68.0386963f;
 
 	// exclude the weapon model from mapshot renders
 	refdef.rdflags |= RDF_NOWEAPONMODEL;

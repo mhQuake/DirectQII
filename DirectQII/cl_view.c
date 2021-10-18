@@ -575,12 +575,8 @@ void V_RenderView (void)
 		cl.refdef.width = viddef.width;
 		cl.refdef.height = viddef.height;
 
-		SCR_SetFOV (&cl.refdef.main_fov, cl.refdef.main_fov.x, cl.refdef.width, cl.refdef.height);
-
-		// compute a separate FOV for the gun so that values > 90 cna be handled without it looking like you're playing Wipeout
-		if (cl.refdef.main_fov.x > 90)
-			SCR_SetFOV (&cl.refdef.gun_fov, 90, cl.refdef.width, cl.refdef.height);
-		else SCR_SetFOV (&cl.refdef.gun_fov, cl.refdef.main_fov.x, cl.refdef.width, cl.refdef.height);
+		// compute FOV
+		SCR_SetFOV (&cl.refdef.fov, cl.refdef.fovvar, cl.refdef.width, cl.refdef.height);
 
 		cl.refdef.time = cl.time * 0.001;
 		cl.refdef.areabits = cl.frame.areabits;

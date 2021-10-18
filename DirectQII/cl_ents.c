@@ -1261,7 +1261,7 @@ void CL_CalcViewValues (void)
 	AngleVectors (cl.refdef.viewangles, cl.v_forward, cl.v_right, cl.v_up);
 
 	// interpolate field of view
-	cl.refdef.main_fov.x = ops->fov + lerp * (ps->fov - ops->fov);
+	cl.refdef.fovvar = ops->fov + lerp * (ps->fov - ops->fov);
 
 	// don't interpolate blend color
 	for (i = 0; i < 4; i++)

@@ -59,7 +59,6 @@ void R_ClearToBlack (void);
 // world transforms
 extern QMATRIX	r_view_matrix;
 extern QMATRIX	r_proj_matrix;
-extern QMATRIX	r_gun_matrix;
 extern QMATRIX	r_mvp_matrix;
 extern QMATRIX	r_local_matrix[MAX_ENTITIES];
 
@@ -240,6 +239,7 @@ extern	cvar_t	*vid_height;
 extern	cvar_t	*vid_vsync;
 
 extern	cvar_t	*intensity;
+
 
 void R_UpdateTextureMode (void);
 

@@ -45,36 +45,25 @@ QMATRIX *R_MatrixIdentity (QMATRIX *m)
 
 QMATRIX *R_MatrixMultiply (QMATRIX *out, QMATRIX *m1, QMATRIX *m2)
 {
-	// https://github.com/mhQuake/DirectQII/issues/1
-	int i;
-
-	__m128 row1 = _mm_load_ps (m2->m4x4[0]);
-	__m128 row2 = _mm_load_ps (m2->m4x4[1]);
-	__m128 row3 = _mm_load_ps (m2->m4x4[2]);
-	__m128 row4 = _mm_load_ps (m2->m4x4[3]);
-
-	for (i = 0; i < 4; i++)
-	{
-		__m128 brod1 = _mm_set1_ps (m1->m4x4[i][0]);
-		__m128 brod2 = _mm_set1_ps (m1->m4x4[i][1]);
-		__m128 brod3 = _mm_set1_ps (m1->m4x4[i][2]);
-		__m128 brod4 = _mm_set1_ps (m1->m4x4[i][3]);
-
-		__m128 row = _mm_add_ps (
-			_mm_add_ps (
-			_mm_mul_ps (brod1, row1),
-			_mm_mul_ps (brod2, row2)
-			),
-			_mm_add_ps (
-			_mm_mul_ps (brod3, row3),
-			_mm_mul_ps (brod4, row4)
-			)
-			);
-
-		_mm_store_ps (out->m4x4[i], row);
-	}
-
-	return out;
+	return R_MatrixLoadf (
+		out,
+		(m1->m4x4[0][0] * m2->m4x4[0][0]) + (m1->m4x4[1][0] * m2->m4x4[0][1]) + (m1->m4x4[2][0] * m2->m4x4[0][2]) + (m1->m4x4[3][0] * m2->m4x4[0][3]),
+		(m1->m4x4[0][1] * m2->m4x4[0][0]) + (m1->m4x4[1][1] * m2->m4x4[0][1]) + (m1->m4x4[2][1] * m2->m4x4[0][2]) + (m1->m4x4[3][1] * m2->m4x4[0][3]),
+		(m1->m4x4[0][2] * m2->m4x4[0][0]) + (m1->m4x4[1][2] * m2->m4x4[0][1]) + (m1->m4x4[2][2] * m2->m4x4[0][2]) + (m1->m4x4[3][2] * m2->m4x4[0][3]),
+		(m1->m4x4[0][3] * m2->m4x4[0][0]) + (m1->m4x4[1][3] * m2->m4x4[0][1]) + (m1->m4x4[2][3] * m2->m4x4[0][2]) + (m1->m4x4[3][3] * m2->m4x4[0][3]),
+		(m1->m4x4[0][0] * m2->m4x4[1][0]) + (m1->m4x4[1][0] * m2->m4x4[1][1]) + (m1->m4x4[2][0] * m2->m4x4[1][2]) + (m1->m4x4[3][0] * m2->m4x4[1][3]),
+		(m1->m4x4[0][1] * m2->m4x4[1][0]) + (m1->m4x4[1][1] * m2->m4x4[1][1]) + (m1->m4x4[2][1] * m2->m4x4[1][2]) + (m1->m4x4[3][1] * m2->m4x4[1][3]),
+		(m1->m4x4[0][2] * m2->m4x4[1][0]) + (m1->m4x4[1][2] * m2->m4x4[1][1]) + (m1->m4x4[2][2] * m2->m4x4[1][2]) + (m1->m4x4[3][2] * m2->m4x4[1][3]),
+		(m1->m4x4[0][3] * m2->m4x4[1][0]) + (m1->m4x4[1][3] * m2->m4x4[1][1]) + (m1->m4x4[2][3] * m2->m4x4[1][2]) + (m1->m4x4[3][3] * m2->m4x4[1][3]),
+		(m1->m4x4[0][0] * m2->m4x4[2][0]) + (m1->m4x4[1][0] * m2->m4x4[2][1]) + (m1->m4x4[2][0] * m2->m4x4[2][2]) + (m1->m4x4[3][0] * m2->m4x4[2][3]),
+		(m1->m4x4[0][1] * m2->m4x4[2][0]) + (m1->m4x4[1][1] * m2->m4x4[2][1]) + (m1->m4x4[2][1] * m2->m4x4[2][2]) + (m1->m4x4[3][1] * m2->m4x4[2][3]),
+		(m1->m4x4[0][2] * m2->m4x4[2][0]) + (m1->m4x4[1][2] * m2->m4x4[2][1]) + (m1->m4x4[2][2] * m2->m4x4[2][2]) + (m1->m4x4[3][2] * m2->m4x4[2][3]),
+		(m1->m4x4[0][3] * m2->m4x4[2][0]) + (m1->m4x4[1][3] * m2->m4x4[2][1]) + (m1->m4x4[2][3] * m2->m4x4[2][2]) + (m1->m4x4[3][3] * m2->m4x4[2][3]),
+		(m1->m4x4[0][0] * m2->m4x4[3][0]) + (m1->m4x4[1][0] * m2->m4x4[3][1]) + (m1->m4x4[2][0] * m2->m4x4[3][2]) + (m1->m4x4[3][0] * m2->m4x4[3][3]),
+		(m1->m4x4[0][1] * m2->m4x4[3][0]) + (m1->m4x4[1][1] * m2->m4x4[3][1]) + (m1->m4x4[2][1] * m2->m4x4[3][2]) + (m1->m4x4[3][1] * m2->m4x4[3][3]),
+		(m1->m4x4[0][2] * m2->m4x4[3][0]) + (m1->m4x4[1][2] * m2->m4x4[3][1]) + (m1->m4x4[2][2] * m2->m4x4[3][2]) + (m1->m4x4[3][2] * m2->m4x4[3][3]),
+		(m1->m4x4[0][3] * m2->m4x4[3][0]) + (m1->m4x4[1][3] * m2->m4x4[3][1]) + (m1->m4x4[2][3] * m2->m4x4[3][2]) + (m1->m4x4[3][3] * m2->m4x4[3][3])
+	);
 }
 
 
@@ -99,7 +88,7 @@ QMATRIX *R_MatrixOrtho (QMATRIX *m, float left, float right, float bottom, float
 		1
 	};
 
-	return R_MatrixMultiply (m, &m1, m);
+	return R_MatrixMultiply (m, m, &m1);
 }
 
 
@@ -132,7 +121,7 @@ QMATRIX *R_MatrixFrustum (QMATRIX *m, float fovx, float fovy, float zn, float zf
 		0
 	};
 
-	return R_MatrixMultiply (m, &m2, m);
+	return R_MatrixMultiply (m, m, &m2);
 }
 
 
@@ -203,7 +192,7 @@ QMATRIX *R_MatrixRotate (QMATRIX *m, float p, float y, float r)
 		1.0f
 	};
 
-	return R_MatrixMultiply (m, &m1, m);
+	return R_MatrixMultiply (m, m, &m1);
 }
 
 
@@ -231,7 +220,7 @@ QMATRIX *R_MatrixRotateAxis (QMATRIX *m, float angle, float x, float y, float z)
 		1.0f
 	};
 
-	return R_MatrixMultiply (m, &m1, m);
+	return R_MatrixMultiply (m, m, &m1);
 }
 
 
@@ -266,7 +255,7 @@ QMATRIX *R_MatrixCamera (QMATRIX *m, const float *origin, const float *angles)
 		1.0f
 	};
 
-	return R_MatrixMultiply (m, &m1, m);
+	return R_MatrixMultiply (m, m, &m1);
 }
 
 

@@ -126,7 +126,8 @@ typedef struct fov_s {
 
 typedef struct refdef_s {
 	int			x, y, width, height; // in virtual screen coordinates
-	fov_t		main_fov, gun_fov;
+	float		fovvar;		// raw FOV value before adjustment for widescreen/etc
+	fov_t		fov;
 	float		vieworg[3];
 	float		viewangles[3];
 	float		blend[4];			// rgba 0-1 full screen blend

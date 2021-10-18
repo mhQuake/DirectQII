@@ -457,7 +457,7 @@ void PlayerConfig_MenuDraw (void)
 	refdef.width = ((RDWIDTH) * viddef.width) / viddef.conwidth;
 	refdef.height = ((RDHEIGHT) * viddef.height) / viddef.conheight;
 
-	SCR_SetFOV (&refdef.main_fov, 40, RDWIDTH, RDHEIGHT);
+	SCR_SetFOV (&refdef.fov, 40, RDWIDTH, RDHEIGHT);
 	refdef.time = cls.realtime * 0.001;
 
 	if (pmi->skindisplaynames)

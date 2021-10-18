@@ -119,7 +119,6 @@ float		v_blend[4];			// final blending color
 // world transforms
 QMATRIX	r_view_matrix;
 QMATRIX	r_proj_matrix;
-QMATRIX	r_gun_matrix;
 QMATRIX	r_mvp_matrix;
 QMATRIX r_local_matrix[MAX_ENTITIES];
 
@@ -169,10 +168,10 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 	entityconstants_t consts;
 
 	// we need to retain the local matrix for lighting so transform it into the cBuffer directly
-	if (((rflags & RF_WEAPONMODEL) && r_lefthand->value) || (rflags & RF_DEPTHHACK))
+	if (((rflags & RF_WEAPONMODEL) && (r_lefthand->value || r_newrefdef.fovvar > 90.0f)) || (rflags & RF_DEPTHHACK))
 	{
+		// this will be the matrix that's used as a base for this model
 		QMATRIX flipmatrix;
-
 		R_MatrixIdentity (&flipmatrix);
 
 		// scale the matrix to flip from right-handed to left-handed
@@ -182,13 +181,20 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 		if (rflags & RF_DEPTHHACK) R_MatrixScale (&flipmatrix, 1.0f, 1.0f, 0.3f);
 
 		// multiply by MVP for the final matrix, using a separate FOV for the gun if > 90
-		if (rflags & RF_WEAPONMODEL)
-			R_MatrixMultiply (&flipmatrix, &r_gun_matrix, &flipmatrix);
-		else R_MatrixMultiply (&flipmatrix, &r_mvp_matrix, &flipmatrix);
+		if ((rflags & RF_WEAPONMODEL) && r_newrefdef.fovvar > 90.0f)
+		{
+			float fovscale = tan (r_newrefdef.fovvar * (0.5f * M_PI / 180.0f));
+			QMATRIX r_viewmodel_scale = {fovscale, 0, 0, 0, 0, fovscale, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 
-		R_MatrixMultiply (&consts.localMatrix, localMatrix, &flipmatrix);
+			R_MatrixMultiply (&flipmatrix, &flipmatrix, &r_proj_matrix);
+			R_MatrixMultiply (&flipmatrix, &flipmatrix, &r_viewmodel_scale);
+			R_MatrixMultiply (&flipmatrix, &flipmatrix, &r_view_matrix);
+		}
+		else R_MatrixMultiply (&flipmatrix, &flipmatrix, &r_mvp_matrix);
+
+		R_MatrixMultiply (&consts.localMatrix, &flipmatrix, localMatrix);
 	}
-	else R_MatrixMultiply (&consts.localMatrix, localMatrix, &r_mvp_matrix);
+	else R_MatrixMultiply (&consts.localMatrix, &r_mvp_matrix, localMatrix);
 
 	// the color param can be NULL indicating white
 	if (color)
@@ -427,7 +433,9 @@ void R_ExtractFrustum (cplane_t *f, QMATRIX *m)
 float R_GetFarClip (void)
 {
 	int i;
-	float farclip = 0;
+
+	// never go below the standard farclip of 4096
+	float farclip = 4096;
 
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 		return 4096;
@@ -471,26 +479,22 @@ void R_SetupGL (void)
 
 	// the projection matrix may be only updated when the refdef changes but we do it every frame so that we can do waterwarp
 	R_MatrixIdentity (&r_proj_matrix);
-	R_MatrixFrustum (&r_proj_matrix, r_newrefdef.main_fov.x, r_newrefdef.main_fov.y, r_nearclip, r_farclip);
-
-	R_MatrixIdentity (&r_gun_matrix);
-	R_MatrixFrustum (&r_gun_matrix, r_newrefdef.gun_fov.x, r_newrefdef.gun_fov.y, r_nearclip, r_farclip);
+	R_MatrixFrustum (&r_proj_matrix, r_newrefdef.fov.x, r_newrefdef.fov.y, r_nearclip, r_farclip);
 
 	// modelview is updated every frame; done in reverse so that we can use the new sexy rotation on it
 	R_MatrixIdentity (&r_view_matrix);
 	R_MatrixCamera (&r_view_matrix, r_newrefdef.vieworg, r_newrefdef.viewangles);
 
-	// compute the global MVP (+ a second for the gun at fov > 90)
-	R_MatrixMultiply (&r_mvp_matrix, &r_view_matrix, &r_proj_matrix);
-	R_MatrixMultiply (&r_gun_matrix, &r_view_matrix, &r_gun_matrix);
+	// compute the global MVP
+	R_MatrixMultiply (&r_mvp_matrix, &r_proj_matrix, &r_view_matrix);
 
 	// and extract the frustum from it
 	R_ExtractFrustum (frustum, &r_mvp_matrix);
 
 	// take these from the view matrix
-	Vector3Set (vpn, -r_view_matrix.m4x4[0][2], -r_view_matrix.m4x4[1][2], -r_view_matrix.m4x4[2][2]);
-	Vector3Set (vup, r_view_matrix.m4x4[0][1], r_view_matrix.m4x4[1][1], r_view_matrix.m4x4[2][1]);
-	Vector3Set (vright, r_view_matrix.m4x4[0][0], r_view_matrix.m4x4[1][0], r_view_matrix.m4x4[2][0]);
+	Vector3Set (vpn,   -r_view_matrix.m4x4[0][2], -r_view_matrix.m4x4[1][2], -r_view_matrix.m4x4[2][2]);
+	Vector3Set (vup,    r_view_matrix.m4x4[0][1],  r_view_matrix.m4x4[1][1],  r_view_matrix.m4x4[2][1]);
+	Vector3Set (vright, r_view_matrix.m4x4[0][0],  r_view_matrix.m4x4[1][0],  r_view_matrix.m4x4[2][0]);
 
 	// setup the shader constants that are going to remain unchanged for the frame; time-based animations, etc
 	R_MatrixLoad (&consts.mvpMatrix, &r_mvp_matrix);
