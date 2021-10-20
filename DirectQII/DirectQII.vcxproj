@@ -124,13 +124,6 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Renderer\Renderer.vcxproj">
-      <Project>{f2eb7945-2837-4393-9134-9b6c9defbe19}</Project>
-      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="cd_win.c" />
     <ClCompile Include="cl_cin.c" />
     <ClCompile Include="cl_effects.c" />
@@ -146,15 +139,17 @@
     <ClCompile Include="cl_tent.c" />
     <ClCompile Include="cl_view.c" />
     <ClCompile Include="cmd.c" />
-    <ClCompile Include="cmodel.c" />
+    <ClCompile Include="sv_cmodel.c" />
     <ClCompile Include="common.c" />
     <ClCompile Include="conproc.c" />
     <ClCompile Include="console.c" />
     <ClCompile Include="crc.c" />
     <ClCompile Include="cvar.c" />
     <ClCompile Include="files.c" />
+    <ClCompile Include="glw_imp.c" />
     <ClCompile Include="in_win.c" />
     <ClCompile Include="keys.c" />
+    <ClCompile Include="matrix.c" />
     <ClCompile Include="md4.c" />
     <ClCompile Include="menu.c" />
     <ClCompile Include="menu_addressbook.c" />
@@ -172,13 +167,35 @@
     <ClCompile Include="menu_quit.c" />
     <ClCompile Include="menu_saveload.c" />
     <ClCompile Include="menu_startserver.c" />
-    <ClCompile Include="m_flash.c" />
+    <ClCompile Include="mod_alias.c" />
+    <ClCompile Include="mod_brush.c" />
+    <ClCompile Include="mod_sprite.c" />
+    <ClCompile Include="cl_mflash.c" />
     <ClCompile Include="net_chan.c" />
     <ClCompile Include="net_wins.c" />
     <ClCompile Include="pmove.c" />
     <ClCompile Include="qmenu.c" />
     <ClCompile Include="q_shared.c" />
     <ClCompile Include="q_shwin.c" />
+    <ClCompile Include="r_beam.c" />
+    <ClCompile Include="r_draw.c" />
+    <ClCompile Include="r_image.c" />
+    <ClCompile Include="r_light.c" />
+    <ClCompile Include="r_main.c" />
+    <ClCompile Include="r_mesh.c" />
+    <ClCompile Include="r_model.c" />
+    <ClCompile Include="r_null.c" />
+    <ClCompile Include="r_particles.c" />
+    <ClCompile Include="r_screen.c" />
+    <ClCompile Include="r_shader.c" />
+    <ClCompile Include="r_sky.c" />
+    <ClCompile Include="r_sprite.c" />
+    <ClCompile Include="r_state.c" />
+    <ClCompile Include="r_surf.c" />
+    <ClCompile Include="r_texture.c" />
+    <ClCompile Include="r_vcache.c" />
+    <ClCompile Include="r_vidref.c" />
+    <ClCompile Include="r_warp.c" />
     <ClCompile Include="snd_dma.c" />
     <ClCompile Include="snd_mem.c" />
     <ClCompile Include="snd_mix.c" />
@@ -207,12 +224,15 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="keys.h" />
+    <ClInclude Include="matrix.h" />
     <ClInclude Include="qcommon.h" />
     <ClInclude Include="qfiles.h" />
     <ClInclude Include="qmenu.h" />
     <ClInclude Include="q_shared.h" />
     <ClInclude Include="ref.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="r_local.h" />
+    <ClInclude Include="r_model.h" />
     <ClInclude Include="screen.h" />
     <ClInclude Include="server.h" />
     <ClInclude Include="snd_loc.h" />
@@ -224,6 +244,18 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="q2.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="envmap.pcx" />
+    <None Include="fxBeam.shader" />
+    <None Include="fxCommon.shader" />
+    <None Include="fxDraw.shader" />
+    <None Include="fxMesh.shader" />
+    <None Include="fxNull.shader" />
+    <None Include="fxParticles.shader" />
+    <None Include="fxSprite.shader" />
+    <None Include="fxSurf.shader" />
+    <None Include="fxWaterwarp.shader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

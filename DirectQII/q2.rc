@@ -8,14 +8,14 @@ IDI_ICON1			ICON	DISCARDABLE		"q2.ico"
 
 // shader resources	belong in the Reflib but must be embedded in the main .exe to load successfully
 // these are given a ".shader" extension to prevent VS from trying to compile them
-IDR_BEAMSHADER		RCDATA		"../Renderer/fxBeam.shader"
-IDR_DRAWSHADER		RCDATA		"../Renderer/fxDraw.shader"
-IDR_MESHSHADER		RCDATA		"../Renderer/fxMesh.shader"
-IDR_NULLSHADER		RCDATA		"../Renderer/fxNull.shader"
-IDR_PARTSHADER		RCDATA		"../Renderer/fxParticles.shader"
-IDR_SPRITESHADER	RCDATA		"../Renderer/fxSprite.shader"
-IDR_SURFSHADER		RCDATA		"../Renderer/fxSurf.shader"
-IDR_WATERWARP		RCDATA		"../Renderer/fxWaterwarp.shader"
+IDR_BEAMSHADER		RCDATA		"fxBeam.shader"
+IDR_DRAWSHADER		RCDATA		"fxDraw.shader"
+IDR_MESHSHADER		RCDATA		"fxMesh.shader"
+IDR_NULLSHADER		RCDATA		"fxNull.shader"
+IDR_PARTSHADER		RCDATA		"fxParticles.shader"
+IDR_SPRITESHADER	RCDATA		"fxSprite.shader"
+IDR_SURFSHADER		RCDATA		"fxSurf.shader"
+IDR_WATERWARP		RCDATA		"fxWaterwarp.shader"
 
-IDR_COMMON			RCDATA		"../Renderer/fxCommon.shader"
+IDR_COMMON			RCDATA		"fxCommon.shader"
 

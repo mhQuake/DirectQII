@@ -18,12 +18,6 @@ rmdir Debug /s /q
 rmdir Release /s /q
 
 cd ..
-cd Renderer
-
-rmdir Debug /s /q
-rmdir Release /s /q
-
-cd ..
 
 echo done
 pause

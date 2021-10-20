@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectQII", "DirectQII\DirectQII.vcxproj", "{D7A72414-8DA1-44BC-9425-7EDE32C1CFAC}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Renderer", "Renderer\Renderer.vcxproj", "{F2EB7945-2837-4393-9134-9B6C9DEFBE19}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,12 +15,11 @@ Global
 		{D7A72414-8DA1-44BC-9425-7EDE32C1CFAC}.Debug|Win32.Build.0 = Debug|Win32
 		{D7A72414-8DA1-44BC-9425-7EDE32C1CFAC}.Release|Win32.ActiveCfg = Release|Win32
 		{D7A72414-8DA1-44BC-9425-7EDE32C1CFAC}.Release|Win32.Build.0 = Release|Win32
-		{F2EB7945-2837-4393-9134-9B6C9DEFBE19}.Debug|Win32.ActiveCfg = Debug|Win32
-		{F2EB7945-2837-4393-9134-9B6C9DEFBE19}.Debug|Win32.Build.0 = Debug|Win32
-		{F2EB7945-2837-4393-9134-9B6C9DEFBE19}.Release|Win32.ActiveCfg = Release|Win32
-		{F2EB7945-2837-4393-9134-9B6C9DEFBE19}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {98AFB6A5-0084-48C1-BE45-296BF2376DA7}
 	EndGlobalSection
 EndGlobal
