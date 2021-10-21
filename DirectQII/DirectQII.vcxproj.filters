@@ -251,9 +251,6 @@
     <ClCompile Include="cmd.c">
       <Filter>Interface</Filter>
     </ClCompile>
-    <ClCompile Include="conproc.c">
-      <Filter>Interface</Filter>
-    </ClCompile>
     <ClCompile Include="console.c">
       <Filter>Interface</Filter>
     </ClCompile>
@@ -317,9 +314,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="conproc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="console.h">

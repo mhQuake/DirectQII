@@ -752,7 +752,6 @@ float frand (void); // 0 ti 1
 float crand (void);	// -1 to 1
 
 extern	cvar_t	*developer;
-extern	cvar_t	*dedicated;
 
 void Z_Free (void *ptr);
 void *Z_TagAlloc (int size, int tag);
@@ -789,8 +788,6 @@ void Sys_UnloadGame (void);
 void *Sys_GetGameAPI (void *parms);
 // loads the game dll and calls the api init function
 
-char *Sys_ConsoleInput (void);
-void Sys_ConsoleOutput (char *string);
 void Sys_SendKeyEvents (void);
 void Sys_Error (char *error, ...);
 void Sys_Quit (void);

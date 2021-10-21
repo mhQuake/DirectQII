@@ -1705,9 +1705,6 @@ void CL_Frame (int msec)
 {
 	static int	extratime = 0;
 
-	if (dedicated->value)
-		return;
-
 	// keep the random time-dependent
 	srand (cl.time);
 
@@ -1775,9 +1772,6 @@ CL_Init
 */
 void CL_Init (void)
 {
-	if (dedicated->value)
-		return;		// nothing running on the client
-
 	// all archived variables will now be loaded
 
 	Con_Init ();

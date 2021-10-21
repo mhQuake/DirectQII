@@ -141,7 +141,6 @@
     <ClCompile Include="cmd.c" />
     <ClCompile Include="sv_cmodel.c" />
     <ClCompile Include="common.c" />
-    <ClCompile Include="conproc.c" />
     <ClCompile Include="console.c" />
     <ClCompile Include="crc.c" />
     <ClCompile Include="cvar.c" />
@@ -218,7 +217,6 @@
     <ClInclude Include="anorms.h" />
     <ClInclude Include="cdaudio.h" />
     <ClInclude Include="client.h" />
-    <ClInclude Include="conproc.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="crc.h" />
     <ClInclude Include="game.h" />

@@ -363,10 +363,7 @@ qboolean	NET_GetPacket (netsrc_t sock, netadr_t *net_from, sizebuf_t *net_messag
 
 			if (err == WSAEWOULDBLOCK)
 				continue;
-			if (dedicated->value)	// let dedicated servers continue after errors
-				Com_Printf ("NET_GetPacket: %s", NET_ErrorString ());
-			else
-				Com_Error (ERR_DROP, "NET_GetPacket: %s", NET_ErrorString ());
+			Com_Error (ERR_DROP, "NET_GetPacket: %s", NET_ErrorString ());
 			continue;
 		}
 
@@ -441,21 +438,9 @@ void NET_SendPacket (netsrc_t sock, int length, void *data, netadr_t to)
 		if ((err == WSAEADDRNOTAVAIL) && ((to.type == NA_BROADCAST) || (to.type == NA_BROADCAST_IPX)))
 			return;
 
-		if (dedicated->value)	// let dedicated servers continue after errors
-		{
-			Com_Printf ("NET_SendPacket ERROR: %s\n", NET_ErrorString ());
-		}
-		else
-		{
-			if (err == WSAEADDRNOTAVAIL)
-			{
-				Com_DPrintf ("NET_SendPacket Warning: %s : %s\n", NET_ErrorString (), NET_AdrToString (to));
-			}
-			else
-			{
-				Com_Error (ERR_DROP, "NET_SendPacket ERROR: %s\n", NET_ErrorString ());
-			}
-		}
+		if (err == WSAEADDRNOTAVAIL)
+			Com_DPrintf ("NET_SendPacket Warning: %s : %s\n", NET_ErrorString (), NET_AdrToString (to));
+		else Com_Error (ERR_DROP, "NET_SendPacket ERROR: %s\n", NET_ErrorString ());
 	}
 }
 
@@ -530,43 +515,40 @@ void NET_OpenIP (void)
 {
 	cvar_t	*ip;
 	int		port;
-	int		dedicated;
 
 	ip = Cvar_Get ("ip", "localhost", CVAR_NOSET, NULL);
-
-	dedicated = Cvar_VariableValue ("dedicated");
 
 	if (!ip_sockets[NS_SERVER])
 	{
 		port = Cvar_Get ("ip_hostport", "0", CVAR_NOSET, NULL)->value;
+
 		if (!port)
 		{
 			port = Cvar_Get ("hostport", "0", CVAR_NOSET, NULL)->value;
+
 			if (!port)
 			{
 				port = Cvar_Get ("port", va ("%i", PORT_SERVER), CVAR_NOSET, NULL)->value;
 			}
 		}
+
 		ip_sockets[NS_SERVER] = NET_IPSocket (ip->string, port);
-		if (!ip_sockets[NS_SERVER] && dedicated)
-			Com_Error (ERR_FATAL, "Couldn't allocate dedicated server IP port");
 	}
-
-
-	// dedicated servers don't need client ports
-	if (dedicated)
-		return;
 
 	if (!ip_sockets[NS_CLIENT])
 	{
 		port = Cvar_Get ("ip_clientport", "0", CVAR_NOSET, NULL)->value;
+
 		if (!port)
 		{
 			port = Cvar_Get ("clientport", va ("%i", PORT_CLIENT), CVAR_NOSET, NULL)->value;
+
 			if (!port)
 				port = PORT_ANY;
 		}
+
 		ip_sockets[NS_CLIENT] = NET_IPSocket (ip->string, port);
+
 		if (!ip_sockets[NS_CLIENT])
 			ip_sockets[NS_CLIENT] = NET_IPSocket (ip->string, PORT_ANY);
 	}
@@ -634,38 +616,38 @@ NET_OpenIPX
 void NET_OpenIPX (void)
 {
 	int		port;
-	int		dedicated;
-
-	dedicated = Cvar_VariableValue ("dedicated");
 
 	if (!ipx_sockets[NS_SERVER])
 	{
 		port = Cvar_Get ("ipx_hostport", "0", CVAR_NOSET, NULL)->value;
+
 		if (!port)
 		{
 			port = Cvar_Get ("hostport", "0", CVAR_NOSET, NULL)->value;
+
 			if (!port)
 			{
 				port = Cvar_Get ("port", va ("%i", PORT_SERVER), CVAR_NOSET, NULL)->value;
 			}
 		}
+
 		ipx_sockets[NS_SERVER] = NET_IPXSocket (port);
 	}
-
-	// dedicated servers don't need client ports
-	if (dedicated)
-		return;
 
 	if (!ipx_sockets[NS_CLIENT])
 	{
 		port = Cvar_Get ("ipx_clientport", "0", CVAR_NOSET, NULL)->value;
+
 		if (!port)
 		{
 			port = Cvar_Get ("clientport", va ("%i", PORT_CLIENT), CVAR_NOSET, NULL)->value;
+
 			if (!port)
 				port = PORT_ANY;
 		}
+
 		ipx_sockets[NS_CLIENT] = NET_IPXSocket (port);
+
 		if (!ipx_sockets[NS_CLIENT])
 			ipx_sockets[NS_CLIENT] = NET_IPXSocket (PORT_ANY);
 	}
@@ -721,11 +703,7 @@ void NET_Sleep (int msec)
 {
 	struct timeval timeout;
 	fd_set	fdset;
-	extern cvar_t *dedicated;
 	int i;
-
-	if (!dedicated || !dedicated->value)
-		return; // we're not a server, just run full speed
 
 	FD_ZERO (&fdset);
 	i = 0;

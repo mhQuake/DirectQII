@@ -37,7 +37,6 @@ cvar_t	*developer;
 cvar_t	*timescale;
 cvar_t	*fixedtime;
 cvar_t	*logfile_active;	// 1 = buffer log, 2 = flush after each print
-cvar_t	*dedicated;
 
 FILE	*logfile;
 
@@ -107,9 +106,6 @@ void Com_Printf (char *fmt, ...)
 	}
 
 	Con_Print (msg);
-
-	// also echo to debugging console
-	Sys_ConsoleOutput (msg);
 
 	// logfile
 	if (logfile_active && logfile_active->value)
@@ -1305,18 +1301,9 @@ void Qcommon_Init (int argc, char **argv)
 	timescale = Cvar_Get ("timescale", "1", CVAR_CHEAT, NULL);
 	fixedtime = Cvar_Get ("fixedtime", "0", CVAR_CHEAT, NULL);
 	logfile_active = Cvar_Get ("logfile", "0", 0, NULL);
-#ifdef DEDICATED_ONLY
-	dedicated = Cvar_Get ("dedicated", "1", CVAR_NOSET, NULL);
-#else
-	dedicated = Cvar_Get ("dedicated", "0", CVAR_NOSET, NULL);
-#endif
 
 	s = va ("%4.2f %s %s %s", VERSION, CPUSTRING, __DATE__, BUILDSTRING);
 	Cvar_Get ("version", s, CVAR_SERVERINFO | CVAR_NOSET, NULL);
-
-
-	if (dedicated->value)
-		Cmd_AddCommand ("quit", Com_Quit);
 
 	Sys_Init ();
 
@@ -1330,10 +1317,7 @@ void Qcommon_Init (int argc, char **argv)
 	if (!Cbuf_AddLateCommands ())
 	{
 		// if the user didn't give any commands, run default action
-		if (!dedicated->value)
-			Cbuf_AddText ("d1\n");
-		else
-			Cbuf_AddText ("dedicated_start\n");
+		Cbuf_AddText ("d1\n");
 		Cbuf_Execute ();
 	}
 	else
@@ -1353,8 +1337,6 @@ Qcommon_Frame
 */
 void Qcommon_Frame (int msec)
 {
-	char	*s;
-
 	if (setjmp (abortframe))
 		return;			// an ERR_DROP was thrown
 
@@ -1366,12 +1348,6 @@ void Qcommon_Frame (int msec)
 		if (msec < 1)
 			msec = 1;
 	}
-
-	do
-	{
-		if ((s = Sys_ConsoleInput ()) != NULL)
-			Cbuf_AddText (va ("%s\n", s));
-	} while (s);
 
 	Cbuf_Execute ();
 
