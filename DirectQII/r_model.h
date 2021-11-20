@@ -54,6 +54,7 @@ typedef struct mmodel_s {
 
 #define	SURF_PLANEBACK		2
 
+
 typedef struct mtexinfo_s {
 	float		vecs[2][4];
 	int			flags;

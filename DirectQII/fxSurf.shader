@@ -148,7 +148,20 @@ float4 SurfAlphaPS (PS_BASIC ps_in) : SV_TARGET0
 	return float4 (diff.rgb, diff.a * AlphaVal);
 }
 
-float4 SurfLightmapPS (PS_LIGHTMAPPED ps_in) : SV_TARGET0
+float4 SurfLightmapPS_0Style (PS_LIGHTMAPPED ps_in) : SV_TARGET0
+{
+	return float4 (0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+float4 SurfLightmapPS_1Style (PS_LIGHTMAPPED ps_in) : SV_TARGET0
+{
+	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
+	float3 lmap = lmap0Texture.Sample (lmapSampler, ps_in.Lightmap).rgb * ps_in.Styles.x;
+
+	return float4 (diff.rgb * Desaturate (lmap), 1.0f);
+}
+
+float4 SurfLightmapPS_4Style (PS_LIGHTMAPPED ps_in) : SV_TARGET0
 {
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
 

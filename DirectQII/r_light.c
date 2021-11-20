@@ -318,7 +318,7 @@ void R_ShutdownLight (void)
 }
 
 
-void R_BuildLightMap (msurface_t *surf, int ch, int smax, int tmax)
+void R_CheckInitLightmapData (int lightmaptexturenum, int ch)
 {
 	// create the channel if needed first time it's seen
 	if (!lm_data[ch])
@@ -328,33 +328,53 @@ void R_BuildLightMap (msurface_t *surf, int ch, int smax, int tmax)
 	}
 
 	// create the texture if needed first time it's seen
-	if (!lm_data[ch][surf->lightmaptexturenum])
+	if (!lm_data[ch][lightmaptexturenum])
 	{
-		lm_data[ch][surf->lightmaptexturenum] = (lighttexel_t *) ri.Load_AllocMemory (LIGHTMAP_SIZE * LIGHTMAP_SIZE * sizeof (lighttexel_t));
-		memset (lm_data[ch][surf->lightmaptexturenum], 0, LIGHTMAP_SIZE * LIGHTMAP_SIZE * sizeof (lighttexel_t));
+		lm_data[ch][lightmaptexturenum] = (lighttexel_t *) ri.Load_AllocMemory (LIGHTMAP_SIZE * LIGHTMAP_SIZE * sizeof (lighttexel_t));
+		memset (lm_data[ch][lightmaptexturenum], 0, LIGHTMAP_SIZE * LIGHTMAP_SIZE * sizeof (lighttexel_t));
 	}
+}
 
-	if (surf->samples)
+
+void R_BuildLightMap_1Style (msurface_t *surf, int smax, int tmax)
+{
+	// copy over the full lightmap but for a single style
+	byte *lightmap = surf->samples;
+	lighttexel_t *dest = lm_data[0][surf->lightmaptexturenum] + (surf->light_t * LIGHTMAP_SIZE) + surf->light_s;
+
+	for (int t = 0; t < tmax; t++)
 	{
-		// copy over the lightmap beginning at the appropriate colour channel
-		byte *lightmap = surf->samples;
-		int maps;
-
-		for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
+		for (int s = 0; s < smax; s++)
 		{
-			lighttexel_t *dest = lm_data[ch][surf->lightmaptexturenum] + (surf->light_t * LIGHTMAP_SIZE) + surf->light_s;
-			int s, t;
+			dest[s].styles[0] = lightmap[0];
+			dest[s].styles[1] = lightmap[1];
+			dest[s].styles[2] = lightmap[2];
+			lightmap += 3;
+		}
 
-			for (t = 0; t < tmax; t++)
+		dest += LIGHTMAP_SIZE;
+	}
+}
+
+
+void R_BuildLightMap_4Style (msurface_t *surf, int ch, int smax, int tmax)
+{
+	// copy over the lightmap beginning at the appropriate colour channel
+	byte *lightmap = surf->samples;
+
+	for (int maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
+	{
+		lighttexel_t *dest = lm_data[ch][surf->lightmaptexturenum] + (surf->light_t * LIGHTMAP_SIZE) + surf->light_s;
+
+		for (int t = 0; t < tmax; t++)
+		{
+			for (int s = 0; s < smax; s++)
 			{
-				for (s = 0; s < smax; s++)
-				{
-					dest[s].styles[maps] = lightmap[ch];	// 'ch' is intentional here
-					lightmap += 3;
-				}
-
-				dest += LIGHTMAP_SIZE;
+				dest[s].styles[maps] = lightmap[ch];	// 'ch' is intentional here
+				lightmap += 3;
 			}
+
+			dest += LIGHTMAP_SIZE;
 		}
 	}
 }
@@ -367,12 +387,11 @@ R_CreateSurfaceLightmap
 */
 void R_CreateSurfaceLightmap (msurface_t *surf)
 {
-	int i;
 	int best = LIGHTMAP_SIZE;
 	int smax = (surf->extents[0] >> 4) + 1;
 	int tmax = (surf->extents[1] >> 4) + 1;
 
-	for (i = 0; i < LIGHTMAP_SIZE - smax; i++)
+	for (int i = 0; i < LIGHTMAP_SIZE - smax; i++)
 	{
 		int j, best2 = 0;
 
@@ -405,17 +424,33 @@ void R_CreateSurfaceLightmap (msurface_t *surf)
 	}
 
 	// mark off allocated regions
-	for (i = 0; i < smax; i++)
+	for (int i = 0; i < smax; i++)
 		lm_allocated[surf->light_s + i] = best + tmax;
 
 	// assign the lightmap to the surf
 	surf->lightmaptexturenum = r_currentlightmap;
 
+	// init lightmap data if required - this must always be done, even if the lightmap is not otherwise built, so that the data
+	// pointers will be valid for making textures from
+	R_CheckInitLightmapData (surf->lightmaptexturenum, 0);
+	R_CheckInitLightmapData (surf->lightmaptexturenum, 1);
+	R_CheckInitLightmapData (surf->lightmaptexturenum, 2);
+
 	// and build it's lightmaps
-	// each lightmap texture is one of r, g or b and contains 4 styles for it's colour channel
-	R_BuildLightMap (surf, 0, smax, tmax);
-	R_BuildLightMap (surf, 1, smax, tmax);
-	R_BuildLightMap (surf, 2, smax, tmax);
+	if (surf->styles[0] == 255 || !surf->samples)
+		; // no lightmap data for this surf
+	else if (surf->styles[1] == 255)
+	{
+		// single-style optimization
+		R_BuildLightMap_1Style (surf, smax, tmax);
+	}
+	else
+	{
+		// full lightmap - each texture is one of the r, g or b channels and contains the 4 styles in it's colour channel
+		R_BuildLightMap_4Style (surf, 0, smax, tmax);
+		R_BuildLightMap_4Style (surf, 1, smax, tmax);
+		R_BuildLightMap_4Style (surf, 2, smax, tmax);
+	}
 }
 
 

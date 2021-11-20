@@ -38,7 +38,9 @@ ID3D11Buffer *d3d_SurfIndexes = NULL;
 
 static int d3d_SurfBasicShader;
 static int d3d_SurfAlphaShader;
-static int d3d_SurfLightmapShader;
+static int d3d_SurfLightmapShader_0Style;
+static int d3d_SurfLightmapShader_1Style;
+static int d3d_SurfLightmapShader_4Style;
 static int d3d_SurfDynamicShader;
 static int d3d_SurfDrawTurbShader;
 
@@ -79,7 +81,9 @@ void R_InitSurfaces (void)
 
 	d3d_SurfBasicShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfBasicVS", NULL, "SurfBasicPS", DEFINE_LAYOUT (layout));
 	d3d_SurfAlphaShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfAlphaVS", NULL, "SurfAlphaPS", DEFINE_LAYOUT (layout));
-	d3d_SurfLightmapShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfLightmapVS", NULL, "SurfLightmapPS", DEFINE_LAYOUT (layout));
+	d3d_SurfLightmapShader_0Style = D_CreateShaderBundle (IDR_SURFSHADER, "SurfLightmapVS", NULL, "SurfLightmapPS_0Style", DEFINE_LAYOUT (layout));
+	d3d_SurfLightmapShader_1Style = D_CreateShaderBundle (IDR_SURFSHADER, "SurfLightmapVS", NULL, "SurfLightmapPS_1Style", DEFINE_LAYOUT (layout));
+	d3d_SurfLightmapShader_4Style = D_CreateShaderBundle (IDR_SURFSHADER, "SurfLightmapVS", NULL, "SurfLightmapPS_4Style", DEFINE_LAYOUT (layout));
 	d3d_SurfDrawTurbShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawTurbVS", NULL, "SurfDrawTurbPS", DEFINE_LAYOUT (layout));
 	d3d_SurfDynamicShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDynamicVS", "SurfDynamicGS", "GenericDynamicPS", DEFINE_LAYOUT (layout));
 }
@@ -154,24 +158,19 @@ void R_AddSurfaceToBatch (const msurface_t *surf)
 		else r_SurfIndexes = (unsigned int *) msr.pData + r_FirstSurfIndex;
 	}
 
-	// these should always be valid coming in here....
-	if (r_SurfIndexes && surf->numedges && surf->numindexes)
+	// write out indexes
+	unsigned int *ndx = &r_SurfIndexes[r_NumSurfIndexes];
+
+	// write in the indexes
+	for (int v = 2; v < surf->numedges; v++, ndx += 3)
 	{
-		// write out indexes
-		int v;
-		unsigned int *ndx = &r_SurfIndexes[r_NumSurfIndexes];
-
-		// write in the indexes
-		for (v = 2; v < surf->numedges; v++, ndx += 3)
-		{
-			ndx[0] = surf->firstvertex;
-			ndx[1] = surf->firstvertex + (v - 1);
-			ndx[2] = surf->firstvertex + v;
-		}
-
-		// accumulate indexes count
-		r_NumSurfIndexes += surf->numindexes;
+		ndx[0] = surf->firstvertex;
+		ndx[1] = surf->firstvertex + (v - 1);
+		ndx[2] = surf->firstvertex + v;
 	}
+
+	// accumulate indexes count
+	r_NumSurfIndexes += surf->numindexes;
 }
 
 
@@ -212,21 +211,6 @@ image_t *R_SelectSurfaceTexture (mtexinfo_t *ti, int frame)
 }
 
 
-void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
-{
-	if (ti->flags & SURF_WARP)
-		D_BindShaderBundle (d3d_SurfDrawTurbShader);
-	else if (alpha)
-		D_BindShaderBundle (d3d_SurfAlphaShader);
-	else
-	{
-		if (!r_worldmodel->lightdata || r_fullbright->value)
-			D_BindShaderBundle (d3d_SurfBasicShader);
-		else D_BindShaderBundle (d3d_SurfLightmapShader);
-	}
-}
-
-
 void R_SetupSurfaceState (QMATRIX *localmatrix, float alphaval, int flags)
 {
 	R_PrepareEntityForRendering (localmatrix, NULL, alphaval, flags);
@@ -235,23 +219,39 @@ void R_SetupSurfaceState (QMATRIX *localmatrix, float alphaval, int flags)
 }
 
 
+int R_SelectSurfaceShader (const msurface_t *surf, const mtexinfo_t *ti, qboolean alpha)
+{
+	// select the correct shader to use
+	if (ti->flags & SURF_WARP)
+		return d3d_SurfDrawTurbShader;
+	else if (alpha)
+		return d3d_SurfAlphaShader;
+	else if (!r_worldmodel->lightdata || r_fullbright->value)
+		return d3d_SurfBasicShader;
+	else if (surf->styles[0] == 255 || !surf->samples)
+		return d3d_SurfLightmapShader_0Style;
+	else if (surf->styles[1] == 255)
+		return d3d_SurfLightmapShader_1Style;
+	else return d3d_SurfLightmapShader_4Style;
+}
+
+
 void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float alphaval)
 {
-	int	i;
-	msurface_t	*surf;
+	// shader selection
+	int prevshader = -1;
+	int currshader = -1;
 
 	// and now set it up
 	R_SetupSurfaceState (localmatrix, alphaval, e->flags);
 
-	for (i = 0; i < mod->numtexinfo; i++)
+	for (int i = 0; i < mod->numtexinfo; i++)
 	{
+		msurface_t *surf;
 		mtexinfo_t *ti = &mod->texinfo[i];
 
 		// no surfaces
 		if ((surf = ti->image->texturechain) == NULL) continue;
-
-		// select the correct shader
-		R_SelectSurfaceShader (ti, e->flags & RF_TRANSLUCENT);
 
 		// select the correct texture
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
@@ -259,15 +259,27 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		// and draw the texture chain
 		for (; surf; surf = surf->texturechain)
 		{
+			// we might need to switch shaders in the middle of a texture chain if switching between the 1-style lightmap optimization
+			// and the full 4-style path, so defer shader selection to here
+			if ((currshader = R_SelectSurfaceShader (surf, ti, e->flags & RF_TRANSLUCENT)) != prevshader)
+			{
+				// end the current batch (it could be empty), switch shader, cache back
+				R_EndSurfaceBatch ();
+				D_BindShaderBundle (currshader);
+				prevshader = currshader;
+			}
+
+			// batch this surface and mark it as visible for dlights
 			R_AddSurfaceToBatch (surf);
 			surf->dlightframe = r_dlightframecount;
 		}
 
-		// and done
+		// and done - draw the batch and clear the texture chain
 		R_EndSurfaceBatch ();
 		ti->image->texturechain = NULL;
 	}
 
+	// draw sky if present
 	if (r_sky_surfaces)
 	{
 		R_DrawSkyChain (r_sky_surfaces);
@@ -348,7 +360,7 @@ void R_DrawAlphaSurfaces (void)
 
 			// switch texture and shader
 			R_BindTexture (R_SelectSurfaceTexture (s->texinfo, 0)->SRV);
-			R_SelectSurfaceShader (s->texinfo, true);
+			D_BindShaderBundle (R_SelectSurfaceShader (s, s->texinfo, true));
 
 			// cache back
 			lasttexinfo = s->texinfo;
