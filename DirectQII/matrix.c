@@ -20,9 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include "r_local.h"
 
-#include <xmmintrin.h>
-#include <smmintrin.h>
-
 
 #define DEG2RAD(a) ((a * M_PI) / 180.0f)
 
@@ -67,57 +64,53 @@ QMATRIX *R_MatrixMultiply (QMATRIX *out, QMATRIX *m1, QMATRIX *m2)
 }
 
 
-QMATRIX *R_MatrixOrtho (QMATRIX *m, float left, float right, float bottom, float top, float zNear, float zFar)
+QMATRIX *R_MatrixOrtho (QMATRIX *m, float l, float r, float b, float t, float zn, float zf)
 {
-	QMATRIX m1 = {
-		2 / (right - left),
+	// Direct3D ortho matrix
+	// adapted from https://docs.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixorthooffcenterrh
+	QMATRIX m2 = {
+		2 / (r - l),
 		0,
 		0,
 		0,
 		0,
-		2 / (top - bottom),
+		2 / (t - b),
 		0,
 		0,
 		0,
 		0,
-		-2 / (zFar - zNear),
+		1 / (zn - zf),
 		0,
-		-((right + left) / (right - left)),
-		-((top + bottom) / (top - bottom)),
-		-((zFar + zNear) / (zFar - zNear)),
+		(l + r) / (l - r),
+		(t + b) / (b - t),
+		zn / (zn - zf),
 		1
 	};
 
-	return R_MatrixMultiply (m, m, &m1);
+	return R_MatrixMultiply (m, m, &m2);
 }
 
 
 QMATRIX *R_MatrixFrustum (QMATRIX *m, float fovx, float fovy, float zn, float zf)
 {
-	float r = zn * tan ((fovx * M_PI) / 360.0);
-	float t = zn * tan ((fovy * M_PI) / 360.0);
-
-	float l = -r;
-	float b = -t;
-
-	// infinite projection variant without epsilon for shadows but with adjusting for LH to RH
-	// http://www.geometry.caltech.edu/pubs/UD12.pdf
+	// Direct3D frustum matrix
+	// adapted from https://docs.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovrh
 	QMATRIX m2 = {
-		2 * zn / (r - l),
+		1.0f / tan (DEG2RAD (fovx) * 0.5f),
 		0,
 		0,
 		0,
 		0,
-		2 * zn / (t - b),
+		1.0f / tan (DEG2RAD (fovy) * 0.5f),
 		0,
 		0,
-		(l + r) / (r - l),
-		(t + b) / (t - b),
-		-1, //zf / (zn - zf),
+		0,
+		0,
+		zf / (zn - zf),
 		-1,
 		0,
 		0,
-		-zn, //zn * zf / (zn - zf),
+		zn * zf / (zn - zf),
 		0
 	};
 

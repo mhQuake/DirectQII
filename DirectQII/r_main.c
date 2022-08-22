@@ -432,27 +432,25 @@ void R_ExtractFrustum (cplane_t *f, QMATRIX *m)
 
 float R_GetFarClip (void)
 {
-	int i;
-
 	// never go below the standard farclip of 4096
 	float farclip = 4096;
 
-	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
-		return 4096;
-
-	// this provides the maximum far clip per view position and worldmodel bounds
-	for (i = 0; i < 8; i++)
+	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
-		float dist;
-		vec3_t corner;
+		// this provides the maximum far clip per view position and worldmodel bounds
+		for (int i = 0; i < 8; i++)
+		{
+			float dist;
+			vec3_t corner;
 
-		// get this corner point
-		if (i & 1) corner[0] = r_worldmodel->mins[0]; else corner[0] = r_worldmodel->maxs[0];
-		if (i & 2) corner[1] = r_worldmodel->mins[1]; else corner[1] = r_worldmodel->maxs[1];
-		if (i & 4) corner[2] = r_worldmodel->mins[2]; else corner[2] = r_worldmodel->maxs[2];
+			// get this corner point
+			if (i & 1) corner[0] = r_worldmodel->mins[0]; else corner[0] = r_worldmodel->maxs[0];
+			if (i & 2) corner[1] = r_worldmodel->mins[1]; else corner[1] = r_worldmodel->maxs[1];
+			if (i & 4) corner[2] = r_worldmodel->mins[2]; else corner[2] = r_worldmodel->maxs[2];
 
-		if ((dist = Vector3Dist (r_newrefdef.vieworg, corner)) > farclip)
-			farclip = dist;
+			if ((dist = Vector3Dist (r_newrefdef.vieworg, corner)) > farclip)
+				farclip = dist;
+		}
 	}
 
 	return farclip;
