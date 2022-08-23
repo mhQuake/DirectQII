@@ -198,7 +198,6 @@ void Image_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int 
 	out = ri.Load_AllocMemory ((pcx->ymax + 1) * (pcx->xmax + 1));
 
 	*pic = out;
-
 	pix = out;
 
 	if (palette)
@@ -207,10 +206,8 @@ void Image_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int 
 		memcpy (*palette, (byte *) pcx + len - 768, 768);
 	}
 
-	if (width)
-		*width = pcx->xmax + 1;
-	if (height)
-		*height = pcx->ymax + 1;
+	if (width) *width = pcx->xmax + 1;
+	if (height) *height = pcx->ymax + 1;
 
 	for (y = 0; y <= pcx->ymax; y++, pix += pcx->xmax + 1)
 	{
@@ -239,6 +236,22 @@ void Image_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int 
 
 	ri.FS_FreeFile (pcx);
 }
+
+
+byte *Image_LoadPCX32 (char *name, int *width, int *height)
+{
+	byte *pic8 = NULL;
+	byte *pal8 = NULL;
+	byte *pic32 = NULL;
+
+	Image_LoadPCX (name, &pic8, &pal8, width, height);
+
+	if (pic8 && pal8)
+		pic32 = (byte *) GL_Image8To32 (pic8, *width, *height, d_8to24table_solid);
+
+	return pic32;
+}
+
 
 /*
 =========================================================

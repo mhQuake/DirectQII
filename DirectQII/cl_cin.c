@@ -94,7 +94,6 @@ void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *h
 		*palette = Zone_Alloc (768);
 		memcpy (*palette, (byte *) pcx + len - 768, 768);
 	}
-	else *palette = NULL;
 
 	if (width) *width = pcx->xmax + 1;
 	if (height) *height = pcx->ymax + 1;

@@ -115,8 +115,10 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 		sky_pic[i] = NULL;
 		sky_width[i] = sky_height[i] = -1;
 
-		// attempt to load it
-		if ((sky_pic[i] = Image_LoadTGA (va ("env/%s%s.tga", skyname, suf[i]), &sky_width[i], &sky_height[i])) == NULL) continue;
+		// attempt to load it - prefer TGA but allow fallback to PCX
+		if ((sky_pic[i] = Image_LoadTGA (va ("env/%s%s.tga", skyname, suf[i]), &sky_width[i], &sky_height[i])) == NULL)
+			if ((sky_pic[i] = Image_LoadPCX32 (va ("env/%s%s.pcx", skyname, suf[i]), &sky_width[i], &sky_height[i])) == NULL)
+				continue;
 
 		// figure the max size to create the cubemap at
 		if (sky_width[i] > max_size) max_size = sky_width[i];
