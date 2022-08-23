@@ -60,7 +60,7 @@ SCR_LoadPCX
 */
 void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height)
 {
-	// fixme - route through LoadPCX in the renderer
+	// fixme - route through Image_LoadPCX in the renderer
 	byte	*raw;
 	pcx_t	*pcx;
 	int		x, y;

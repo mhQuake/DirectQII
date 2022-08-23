@@ -437,7 +437,7 @@ image_t *GL_FindImage (char *name, imagetype_t type)
 	{
 		unsigned table[256];
 
-		LoadPCX (name, &pic, &palette, &width, &height);
+		Image_LoadPCX (name, &pic, &palette, &width, &height);
 
 		if (!pic)
 			return NULL;
@@ -574,7 +574,7 @@ image_t *R_LoadTexArray (char *base)
 
 	for (i = 0; i < 11; i++)
 	{
-		LoadPCX (va ("pics/%s%s.pcx", base, sb_nums[i]), &sb_pic[i], &sb_palette[i], &sb_width[i], &sb_height[i]);
+		Image_LoadPCX (va ("pics/%s%s.pcx", base, sb_nums[i]), &sb_pic[i], &sb_palette[i], &sb_width[i], &sb_height[i]);
 
 		if (!sb_pic[i]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
 		if (sb_width[i] != sb_width[0]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");

@@ -151,10 +151,10 @@ PCX LOADING
 
 /*
 ==============
-LoadPCX
+Image_LoadPCX
 ==============
 */
-void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height)
+void Image_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height)
 {
 	byte	*raw;
 	pcx_t	*pcx;
@@ -671,7 +671,7 @@ int Draw_GetPalette (void)
 	int		width, height;
 
 	// get the palette
-	LoadPCX ("pics/colormap.pcx", &pic, &pal, &width, &height);
+	Image_LoadPCX ("pics/colormap.pcx", &pic, &pal, &width, &height);
 
 	if (!pal)
 		ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
