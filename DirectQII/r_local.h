@@ -272,6 +272,9 @@ void R_DrawAlphaSurfaces (void);
 void R_CreateSpecialTextures (void);
 void Draw_InitLocal (void);
 
+// called once per-frame to check for modifications and rebuild anything that needs rebuilding
+void R_BeamFrame (void);
+
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 qboolean R_CullBoxClipflags (vec3_t mins, vec3_t maxs, int clipflags);
 qboolean R_CullSphere (float *center, float radius);
@@ -472,7 +475,7 @@ unsigned *Image_Upscale32 (unsigned *in, int inwidth, int inheight);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // lights
-void R_BindLightmaps (void);
+void R_LightFrame (void);
 void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags);
 void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix);
 void R_PushDlights (mnode_t *headnode, entity_t *e, model_t *mod, QMATRIX *localmatrix, int visframe);

@@ -693,8 +693,11 @@ void R_RenderFrame (refdef_t *fd)
 	if (!r_worldmodel && !(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 		ri.Sys_Error (ERR_DROP, "R_RenderFrame: NULL worldmodel");
 
-	R_BindLightmaps ();
+	// check and recreate everything that needs to be done once per frame
+	R_LightFrame ();
+	R_BeamFrame ();
 
+	// set up to draw
 	if (gl_finish->value)
 		R_SyncPipeline ();
 
@@ -702,12 +705,14 @@ void R_RenderFrame (refdef_t *fd)
 
 	R_SetupGL ();
 
+	// prepare everything that will be drawn
 	R_MarkLeaves ();	// done here so we know if we're in water
 
 	R_PrepareDlights ();
 
 	R_PrepareEntities ();
 
+	// draw it
 	if (D_BeginWaterWarp ())
 	{
 		R_RenderScene ();
@@ -719,6 +724,7 @@ void R_RenderFrame (refdef_t *fd)
 		R_PolyBlend ();
 	}
 
+	// for sending client light level back to the server
 	R_SetLightLevel ();
 }
 

@@ -537,7 +537,7 @@ void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, unsigned short *lm)
 }
 
 
-void R_BindLightmaps (void)
+void R_LightFrame (void)
 {
 	// VS tbuffers go to VS slots 0/1/2
 	ID3D11ShaderResourceView *VertexSRVs[3] = {d3d_LightStyles.SRV, d3d_LightNormals.SRV, d3d_QuakePalette.SRV};

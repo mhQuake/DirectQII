@@ -168,11 +168,13 @@ void V_AddLightStyle (int style, float value)
 {
 	if (style < 0 || style > MAX_LIGHTSTYLES)
 		Com_Error (ERR_DROP, "Bad light style %i", style);
-
-	// scale lightstyles to the overbright range when adding to the refresh
-	if (intensity->value > 1.0f)
-		r_lightstyles[style] = value * intensity->value;
-	else r_lightstyles[style] = value;
+	else
+	{
+		// scale lightstyles to the overbright range when adding to the refresh
+		if (intensity->value > 1.0f)
+			r_lightstyles[style] = value * intensity->value;
+		else r_lightstyles[style] = value;
+	}
 }
 
 
@@ -431,7 +433,6 @@ void SCR_SetFOV (fov_t *fov, float fovvar, int width, int height)
 	// set up relative to a baseline aspect of 640x480
 #define BASELINE_W	640.0f
 #define BASELINE_H	480.0f
-
 	// http://www.gamedev.net/topic/431111-perspective-math-calculating-horisontal-fov-from-vertical/
 	// horizontalFov = atan (tan (verticalFov) * aspectratio)
 	// verticalFov = atan (tan (horizontalFov) / aspectratio)
@@ -449,6 +450,8 @@ void SCR_SetFOV (fov_t *fov, float fovvar, int width, int height)
 		fov->y = SCR_CalcFovY (fovvar, BASELINE_W, BASELINE_H);
 		fov->x = SCR_CalcFovX (fov->y, width, height);
 	}
+#undef BASELINE_W
+#undef BASELINE_H
 }
 
 
@@ -645,3 +648,5 @@ void V_Init (void)
 
 	intensity = Cvar_Get ("intensity", "2", 0, NULL);
 }
+
+

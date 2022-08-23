@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
+#define VERTEXSLOT_BEAM		7
 
 typedef struct beampolyvert_s {
 	// this exists so that i don't get confused over what the actual count of verts is
@@ -117,7 +118,7 @@ static int d3d_BeamShader = 0;
 void R_InitBeam (void)
 {
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 7, 0)
+		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, VERTEXSLOT_BEAM, 0)
 	};
 
 	d3d_BeamShader = D_CreateShaderBundle (IDR_BEAMSHADER, "BeamVS", NULL, "BeamPS", DEFINE_LAYOUT (layout));
@@ -159,14 +160,7 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 		R_PrepareEntityForRendering (localmatrix, color, e->alpha, RF_TRANSLUCENT);
 		D_BindShaderBundle (d3d_BeamShader);
 
-		if (r_beamdetail->modified)
-		{
-			R_ShutdownBeam ();
-			R_CreateBeamVertexes (r_beamdetail->value);
-			r_beamdetail->modified = false;
-		}
-
-		D_BindVertexBuffer (7, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
+		D_BindVertexBuffer (VERTEXSLOT_BEAM, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
 		D_BindIndexBuffer (d3d_BeamIndexes, DXGI_FORMAT_R16_UINT);
 
 		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numbeamindexes, 0, 0);
@@ -195,6 +189,17 @@ void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix)
 	R_MatrixTranslate (localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
 	R_MatrixRotateAxis (localmatrix, (180.0f / M_PI) * acos ((Vector3Dot (upvec, dir) / len)), axis[0], axis[1], axis[2]);
 	R_MatrixScale (localmatrix, e->currframe, e->currframe, len);
+}
+
+
+void R_BeamFrame (void)
+{
+	if (r_beamdetail->modified)
+	{
+		R_ShutdownBeam ();
+		R_CreateBeamVertexes (r_beamdetail->value);
+		r_beamdetail->modified = false;
+	}
 }
 
 
