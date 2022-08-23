@@ -251,6 +251,7 @@
     <None Include="fxMesh.shader" />
     <None Include="fxNull.shader" />
     <None Include="fxParticles.shader" />
+    <None Include="fxSky.shader" />
     <None Include="fxSprite.shader" />
     <None Include="fxSurf.shader" />
     <None Include="fxWaterwarp.shader" />

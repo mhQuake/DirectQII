@@ -15,6 +15,7 @@ IDR_NULLSHADER		RCDATA		"fxNull.shader"
 IDR_PARTSHADER		RCDATA		"fxParticles.shader"
 IDR_SPRITESHADER	RCDATA		"fxSprite.shader"
 IDR_SURFSHADER		RCDATA		"fxSurf.shader"
+IDR_SKYSHADER		RCDATA		"fxSky.shader"
 IDR_WATERWARP		RCDATA		"fxWaterwarp.shader"
 
 IDR_COMMON			RCDATA		"fxCommon.shader"

@@ -38,8 +38,8 @@ void R_InitSky (void)
 		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0)
 	};
 
-	d3d_SurfDrawSkyShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawSkyVS", NULL, "SurfDrawSkyPS", DEFINE_LAYOUT (layout));
-	d3d_SkyNoSkyShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawSkyVS", NULL, "SkyNoSkyPS", DEFINE_LAYOUT (layout));
+	d3d_SurfDrawSkyShader = D_CreateShaderBundle (IDR_SKYSHADER, "SurfDrawSkyVS", NULL, "SurfDrawSkyPS", DEFINE_LAYOUT (layout));
+	d3d_SkyNoSkyShader = D_CreateShaderBundle (IDR_SKYSHADER, "SurfDrawSkyVS", NULL, "SkyNoSkyPS", DEFINE_LAYOUT (layout));
 }
 
 
@@ -73,7 +73,9 @@ void R_DrawSkyChain (msurface_t *surf)
 
 	if (r_lightmap->value)
 		D_BindShaderBundle (d3d_SkyNoSkyShader);
-	else D_BindShaderBundle (d3d_SurfDrawSkyShader);
+	else if (r_SkyCubemap.SRV)
+		D_BindShaderBundle (d3d_SurfDrawSkyShader);
+	else D_BindShaderBundle (d3d_SkyNoSkyShader);
 
 	for (; surf; surf = surf->texturechain)
 		R_AddSurfaceToBatch (surf);

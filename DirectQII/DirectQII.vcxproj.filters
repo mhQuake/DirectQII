@@ -412,5 +412,8 @@
     <None Include="fxWaterwarp.shader">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="fxSky.shader">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
