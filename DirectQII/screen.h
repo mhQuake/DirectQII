@@ -23,8 +23,6 @@ void SCR_Init (void);
 
 void SCR_UpdateScreen (int scrflags);
 
-void SCR_SizeUp (void);
-void SCR_SizeDown (void);
 void SCR_CenterPrint (char *str);
 void SCR_ClearCenterString (void);
 void SCR_BeginLoadingPlaque (void);
@@ -53,4 +51,5 @@ qboolean SCR_DrawCinematic (void);
 void SCR_RunCinematic (void);
 void SCR_StopCinematic (void);
 void SCR_FinishCinematic (void);
+
 

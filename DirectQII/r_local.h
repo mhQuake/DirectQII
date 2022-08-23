@@ -260,8 +260,6 @@ extern	unsigned	d_8to24table_trans66[256];
 extern	int		r_registration_sequence;
 
 
-void V_AddBlend (float r, float g, float b, float a, float *v_blend);
-
 int R_Init (void *hinstance, void *wndproc);
 void R_Shutdown (void);
 

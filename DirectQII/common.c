@@ -357,12 +357,11 @@ void MSG_WriteAngle16 (sizebuf_t *sb, float f)
 }
 
 
-void MSG_WriteDeltaUsercmd (sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd)
+void MSG_WriteDeltaUsercmd (sizebuf_t *buf, struct usercmd_s *from, struct usercmd_s *cmd)
 {
-	int		bits;
+	int	bits = 0;
 
 	// send the movement message
-	bits = 0;
 	if (cmd->angles[0] != from->angles[0])
 		bits |= CM_ANGLE1;
 	if (cmd->angles[1] != from->angles[1])
@@ -434,12 +433,14 @@ void MSG_WriteDir (sizebuf_t *sb, vec3_t dir)
 
 void MSG_ReadDir (sizebuf_t *sb, vec3_t dir)
 {
-	int		b;
-
-	b = MSG_ReadByte (sb);
+	int b = MSG_ReadByte (sb);
 	if (b >= NUMVERTEXNORMALS)
 		Com_Error (ERR_DROP, "MSF_ReadDir: out of range");
-	VectorCopy (bytedirs[b], dir);
+	else
+	{
+		// clear code anlysis warning
+		VectorCopy (bytedirs[b], dir);
+	}
 }
 
 
@@ -451,7 +452,7 @@ Writes part of a packetentities message.
 Can delta from either a baseline or a previous packet_entity
 ==================
 */
-void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *msg, qboolean force, qboolean newentity)
+void MSG_WriteDeltaEntity (struct entity_state_s *from, struct entity_state_s *to, sizebuf_t *msg, qboolean force, qboolean newentity)
 {
 	int		bits;
 
@@ -800,7 +801,7 @@ float MSG_ReadAngle16 (sizebuf_t *msg_read)
 	return SHORT2ANGLE (MSG_ReadShort (msg_read));
 }
 
-void MSG_ReadDeltaUsercmd (sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move)
+void MSG_ReadDeltaUsercmd (sizebuf_t *msg_read, struct usercmd_s *from, struct usercmd_s *move)
 {
 	int bits;
 

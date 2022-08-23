@@ -306,7 +306,7 @@ extern	sizebuf_t	net_message;
 
 void DrawString (int x, int y, char *s);
 void DrawAltString (int x, int y, char *s);	// toggle high bit
-qboolean	CL_CheckOrDownloadFile (char *filename);
+qboolean CL_CheckOrDownloadFile (char *filename);
 
 void CL_AddNetgraph (void);
 
@@ -410,7 +410,6 @@ void CL_ParseTEnt (void);
 void CL_ParseConfigString (void);
 void CL_ParseMuzzleFlash (void);
 void CL_ParseMuzzleFlash2 (void);
-void SmokeAndFlash (vec3_t origin);
 
 void CL_SetLightstyle (int i);
 void CL_RunLightStyles (void);
@@ -427,10 +426,6 @@ void CL_RegisterSounds (void);
 
 void CL_Quit_f (void);
 
-void IN_Accumulate (void);
-
-void CL_ParseLayout (void);
-
 
 //
 // cl_main
@@ -442,7 +437,6 @@ void CL_Init (void);
 void CL_FixUpGender (void);
 void CL_Disconnect (void);
 void CL_Disconnect_f (void);
-void CL_GetChallengePacket (void);
 void CL_PingServers_f (void);
 void CL_Snd_Restart_f (void);
 void CL_RequestNextDownload (void);
@@ -463,14 +457,11 @@ extern 	kbutton_t 	in_speed;
 
 void CL_InitInput (void);
 void CL_SendCmd (void);
-void CL_SendMove (usercmd_t *cmd);
 
 void CL_ClearState (void);
 
 void CL_ReadPackets (void);
 
-int  CL_ReadFromServer (void);
-void CL_WriteToServer (usercmd_t *cmd);
 void CL_BaseMove (usercmd_t *cmd);
 
 void IN_CenterView (void);
@@ -520,9 +511,8 @@ void CL_SmokeAndFlash (vec3_t origin);
 //
 // cl_pred.c
 //
-void CL_InitPrediction (void);
-void CL_PredictMove (void);
 void CL_CheckPredictionError (void);
+
 
 //
 // cl_fx.c
@@ -561,12 +551,13 @@ void M_Menu_Main_f (void);
 void M_ForceMenuOff (void);
 void M_AddToServerList (netadr_t adr, char *info);
 
+
 //
 // cl_inv.c
 //
 void CL_ParseInventory (void);
-void CL_KeyInventory (int key);
 void CL_DrawInventory (void);
+
 
 //
 // cl_pred.c
@@ -579,3 +570,5 @@ void x86_TimerStop (void);
 void x86_TimerInit (unsigned long smallest, unsigned longest);
 unsigned long *x86_TimerGetHistogram (void);
 #endif
+
+

@@ -45,12 +45,15 @@ int		r_registration_sequence;
 Mod_PointInLeaf
 ===============
 */
-mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
+mleaf_t *Mod_PointInLeaf (float *p, model_t *model)
 {
 	mnode_t		*node;
 
 	if (!model || !model->nodes)
+	{
 		ri.Sys_Error (ERR_DROP, "Mod_PointInLeaf: bad model");
+		return NULL; // clear code analysis warning
+	}
 
 	node = model->nodes;
 
