@@ -52,80 +52,45 @@ PCX LOADING
 =================================================================
 */
 
-
 /*
 ==============
 SCR_LoadPCX
 ==============
 */
-void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height)
+void SCR_LoadPCX (char *filename)
 {
-	// fixme - route through Image_LoadPCX in the renderer
-	byte	*raw;
-	pcx_t	*pcx;
-	int		x, y;
-	int		len;
-	int		dataByte, runLength;
-	byte	*out, *pix;
+	void Load_FreeMemory (void);
+	byte *load_pic = NULL;
+	byte *load_pal = NULL;
 
-	*pic = NULL;
+	// clear out
+	cin.pic = NULL;
+	cin.width = 0;
+	cin.height = 0;
 
-	// load the file
-	len = FS_LoadFile (filename, (void **) &raw);
-	if (!raw)
-		return;	// Com_Printf ("Bad pcx file %s\n", filename);
+	// route this through the renderer loader for consistency
+	re.LoadPCX (filename, &load_pic, &load_pal, &cin.width, &cin.height);
 
-	// parse the PCX file
-	pcx = (pcx_t *) raw;
-	raw = &pcx->data;
-
-	if (pcx->manufacturer != 0x0a || pcx->version != 5 || pcx->encoding != 1 || pcx->bits_per_pixel != 8)
+	// see what we got
+	if (load_pic && load_pal && cin.width > 0 && cin.height > 0)
 	{
-		Com_Printf ("Bad pcx file %s\n", filename);
-		return;
+		// copy over to zone
+		cin.pic = (byte *) Zone_Alloc (cin.width * cin.height);
+		memcpy (cin.pic, load_pic, cin.width * cin.height);
+		memcpy (cl.cinematicpalette, load_pal, sizeof (cl.cinematicpalette));
+	}
+	else
+	{
+		// didn't load - just set to NULL and 0 so we can detect it later...
+		cin.pic = NULL;
+		cin.width = 0;
+		cin.height = 0;
 	}
 
-	out = Zone_Alloc ((pcx->ymax + 1) * (pcx->xmax + 1));
-	*pic = out;
-	pix = out;
-
-	if (palette)
-	{
-		*palette = Zone_Alloc (768);
-		memcpy (*palette, (byte *) pcx + len - 768, 768);
-	}
-
-	if (width) *width = pcx->xmax + 1;
-	if (height) *height = pcx->ymax + 1;
-
-	for (y = 0; y <= pcx->ymax; y++, pix += pcx->xmax + 1)
-	{
-		for (x = 0; x <= pcx->xmax;)
-		{
-			dataByte = *raw++;
-
-			if ((dataByte & 0xC0) == 0xC0)
-			{
-				runLength = dataByte & 0x3F;
-				dataByte = *raw++;
-			}
-			else
-				runLength = 1;
-
-			while (runLength-- > 0)
-				pix[x++] = dataByte;
-		}
-	}
-
-	if (raw - (byte *) pcx > len)
-	{
-		Com_Printf ("PCX file %s was malformed", filename);
-		Zone_Free (*pic);
-		*pic = NULL;
-	}
-
-	FS_FreeFile (pcx);
+	// free temp memory for loading
+	Load_FreeMemory ();
 }
+
 
 //=============================================================
 
@@ -469,7 +434,6 @@ SCR_PlayCinematic
 void SCR_PlayCinematic (char *arg)
 {
 	int		width, height;
-	byte	*palette;
 	char	name[MAX_OSPATH], *dot;
 
 	// make sure CD isn't playing music
@@ -482,7 +446,8 @@ void SCR_PlayCinematic (char *arg)
 	{
 		// static pcx image
 		Com_sprintf (name, sizeof (name), "pics/%s", arg);
-		SCR_LoadPCX (name, &cin.pic, &palette, &cin.width, &cin.height);
+		SCR_LoadPCX (name);
+
 		cl.cinematicframe = -1;
 		cl.cinematictime = 1;
 		SCR_EndLoadingPlaque ();
@@ -492,11 +457,6 @@ void SCR_PlayCinematic (char *arg)
 		{
 			Com_Printf ("%s not found.\n", name);
 			cl.cinematictime = 0;
-		}
-		else
-		{
-			memcpy (cl.cinematicpalette, palette, sizeof (cl.cinematicpalette));
-			Zone_Free (palette);
 		}
 
 		return;

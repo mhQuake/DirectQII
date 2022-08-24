@@ -239,6 +239,9 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.DrawFadeScreen = Draw_FadeScreen;
 	re.Clear = R_ClearToBlack;
 
+	// PCX loading for cinematics
+	re.LoadPCX = Image_LoadPCX;
+
 	re.DrawChar = Draw_Char;
 	re.DrawString = Draw_Flush;
 	re.DrawField = Draw_Field;

@@ -201,6 +201,8 @@ typedef struct refexport_s {
 	void (*DrawFadeScreen) (void);
 	void (*Clear) (void);
 
+	void (*LoadPCX) (char *filename, byte **pic, byte **palette, int *width, int *height);
+
 	void (*DrawChar) (int x, int y, int num);
 	void (*DrawString) (void);
 	void (*DrawField) (int x, int y, int color, int width, int value);
