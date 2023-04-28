@@ -387,7 +387,7 @@ void R_SetupFrame (void)
 	r_framecount++;
 
 	// current viewcluster
-	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
+	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL) && (r_worldmodel != NULL))
 		r_viewleaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
 
 	// scale for value of gl_polyblend
