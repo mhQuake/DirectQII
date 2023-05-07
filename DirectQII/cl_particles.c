@@ -66,6 +66,9 @@ void CL_ClearParticles (void)
 {
 	int		i;
 
+	// keep the randomized particle size consistent across runs
+	srand (350125); // GO!
+
 	free_particles = &particles[0];
 	active_particles = NULL;
 
