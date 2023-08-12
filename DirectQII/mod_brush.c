@@ -213,6 +213,10 @@ void Mod_LoadTexinfo (lump_t *l, dbsp_t *bsp)
 			ri.Con_Printf (PRINT_ALL, "Couldn't load %s\n", name);
 			out->image = r_notexture;
 		}
+
+		// load the glow map (always PNG format 
+		Com_sprintf (name, sizeof (name), "textures/%s_glow.png", in->texture);
+		out->image->glow = GL_LoadPngGlowMap (name, out->flags);
 	}
 
 	// count animation frames

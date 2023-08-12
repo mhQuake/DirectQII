@@ -152,12 +152,16 @@ typedef struct image_s {
 	ID3D11Texture2D *Texture;
 	ID3D11ShaderResourceView *SRV;
 	ID3D11RenderTargetView *RTV;
+
+	// optional glow map
+	struct image_s *glow;
 } image_t;
 
 #define	TEXNUM_LIGHTMAPS	1024
 #define	TEXNUM_IMAGES		1153
 
-#define		MAX_GLTEXTURES	1024
+// expanded for glow maps
+#define		MAX_GLTEXTURES	2048
 
 
 //===================================================================
@@ -301,6 +305,8 @@ int Draw_GetPalette (void);
 image_t *R_RegisterSkin (char *name);
 image_t *GL_FindImage (char *name, imagetype_t type);
 image_t *GL_LoadWal (char *name, int flags);
+image_t *GL_LoadPngGlowMap (char *name, int flags);
+image_t *GL_HaveImage (char *name, int flags);
 
 void R_InitImages (void);
 void R_ShutdownImages (void);
@@ -445,6 +451,7 @@ typedef struct _TargaHeader {
 byte *Image_LoadTGA (char *name, int *width, int *height);
 void Image_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
 byte *Image_LoadPCX32 (char *name, int *width, int *height);
+byte *Image_LoadSTB (char *name, int *width, int *height);
 
 unsigned *Image_ResampleToSize (unsigned *in, int inwidth, int inheight, int outwidth, int outheight);
 unsigned *Image_MipReduceLinearFilter (unsigned *in, int inwidth, int inheight);

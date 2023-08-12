@@ -336,6 +336,7 @@ float ColorNormalize (vec3_t out, vec3_t in)
 /*
 ================
 GL_LoadWal
+
 ================
 */
 image_t *GL_LoadWal (char *name, int flags)
@@ -402,6 +403,37 @@ image_t *GL_LoadWal (char *name, int flags)
 	// store out the flags used for matching
 	image->texinfoflags = flags;
 
+	return image;
+}
+
+
+/*
+================
+GL_LoadPngGlowMap
+
+================
+*/
+image_t *GL_LoadPngGlowMap (char *name, int flags)
+{
+	int	width, height;
+	image_t *image;
+	byte *texels;
+
+	// look for it
+	if ((image = GL_HaveImage (name, flags)) != NULL)
+		return image;
+
+	// load from disk
+	if ((texels = Image_LoadSTB (name, &width, &height)) == NULL)
+	{
+		// didn't get one
+		return NULL;
+	}
+
+	// we have texels now so we can fill in an image_t
+	image = GL_LoadPic (name, texels, width, height, it_wall, 32, NULL);
+
+	// this is allowed fail silently
 	return image;
 }
 

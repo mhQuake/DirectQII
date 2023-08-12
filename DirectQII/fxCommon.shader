@@ -110,6 +110,7 @@ Texture2DArray<float4> lmap2Texture : register(t3);	// lightmap styles 0/1/2/3
 TextureCube<float4> sboxTexture : register(t4);	// sky box texture
 Texture2D<float4> warpTexture : register(t5);	// underwater warp noise texture
 Texture2DArray<float4> charTexture : register(t6);	// characters and numbers
+Texture2D<float4> glowTexture : register(t7);	// glow map texture
 
 
 float3 rgb2hsv (float3 c)

@@ -264,6 +264,7 @@ TARGA LOADING
 /*
 =============
 Image_LoadTGA
+
 =============
 */
 byte *Image_LoadTGA (char *name, int *width, int *height)
@@ -463,6 +464,86 @@ breakOut:;
 
 	ri.FS_FreeFile (buffer);
 	return pic;
+}
+
+
+/*
+=========================================================
+
+STB_IMAGE LOADING
+
+=========================================================
+*/
+
+// we provide custom allocators for stb_image so that it won't use stdlib allocators and we can instead just do a single big old Hunk_Free when done
+void *STB_IMG_Alloc (int size) { return ri.Load_AllocMemory (size); }
+
+// our free implementation is just a stub and our realloc doesn't free the old allocation
+void STB_IMG_Free (void *ptr) {}
+
+// we can't support a custom realloc with our current hunk implementation as we don't track allocation sizes, so we implement STBI_REALLOC_SIZED instead
+void *STB_IMG_Realloc (void *p, int oldsz, int newsz)
+{
+	void *q = (void *) STB_IMG_Alloc (newsz);
+	memcpy (q, p, oldsz);
+	return q;
+}
+
+// hostile takeover!
+#define STBI_MALLOC STB_IMG_Alloc
+#define STBI_REALLOC_SIZED STB_IMG_Realloc
+#define STBI_FREE STB_IMG_Free
+
+// needs to be defined before including stb_image.h
+#define STB_IMAGE_IMPLEMENTATION
+
+// these are the only types we want to have code for
+#define STBI_ONLY_TGA
+#define STBI_ONLY_JPEG
+#define STBI_ONLY_PNG
+#define STBI_ONLY_BMP
+
+// !!!!! a 2048x2048 skybox is 100mb !!!!!
+#define STBI_MAX_DIMENSIONS	2048
+
+// and now we can include it
+#include "stb_image.h"
+
+
+/*
+=============
+Image_LoadTGA
+
+=============
+*/
+byte *Image_LoadSTB (char *name, int *width, int *height)
+{
+	byte *buffer;
+	int		length;
+
+	// load the file
+	length = ri.FS_LoadFile (name, (void **) &buffer);
+
+	if (!buffer)
+	{
+		ri.Con_Printf (PRINT_DEVELOPER, "Bad file %s\n", name);
+		return NULL;
+	}
+
+	// attempt to load as 4-component RGBA
+	int channels = 0;
+	byte *data = stbi_load_from_memory (buffer, length, width, height, &channels, 4);
+
+	// check for failure
+	if (!data)
+	{
+		ri.Con_Printf (PRINT_DEVELOPER, "Image_LoadSTB: %s is a bad file\n", name);
+		ri.FS_FreeFile (buffer);
+		return NULL;
+	}
+
+	ri.FS_FreeFile (buffer);
+	return data;
 }
 
 
