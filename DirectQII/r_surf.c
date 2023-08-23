@@ -254,15 +254,7 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		if ((surf = ti->image->texturechain) == NULL) continue;
 
 		// select the correct texture
-		image_t *texture = R_SelectSurfaceTexture (ti, e->currframe);
-
-		// bind it
-		R_BindTexture (texture->SRV);
-
-		// glow map (for brush surfaces, the glow map is a greyscaled image that is multiplied with the base image to give the glow image)
-		if (texture->glow)
-			d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 7, 1, &texture->glow->SRV);
-		else d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 7, 1, &r_blacktexture->SRV);
+		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
 
 		// and draw the texture chain
 		for (; surf; surf = surf->texturechain)

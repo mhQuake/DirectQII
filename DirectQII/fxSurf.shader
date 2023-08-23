@@ -137,16 +137,14 @@ float4 SurfLightmapPS_0Style (PS_LIGHTMAPPED ps_in) : SV_TARGET0
 float4 SurfLightmapPS_1Style (PS_LIGHTMAPPED ps_in) : SV_TARGET0
 {
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
-	float4 glow = diff * glowTexture.Sample (mainSampler, ps_in.TexCoord);
 	float3 lmap = lmap0Texture.Sample (lmapSampler, ps_in.Lightmap).rgb * ps_in.Styles.x;
 
-	return max (glow, float4 (diff.rgb * Desaturate (lmap), 1.0f));
+	return float4 (diff.rgb * Desaturate (lmap), 1.0f);
 }
 
 float4 SurfLightmapPS_4Style (PS_LIGHTMAPPED ps_in) : SV_TARGET0
 {
 	float4 diff = GetGamma (mainTexture.Sample (mainSampler, ps_in.TexCoord));
-	float4 glow = diff * glowTexture.Sample (mainSampler, ps_in.TexCoord);
 
 	float3 lmap = float3 (
 		dot (lmap0Texture.Sample (lmapSampler, ps_in.Lightmap), ps_in.Styles),
@@ -154,7 +152,7 @@ float4 SurfLightmapPS_4Style (PS_LIGHTMAPPED ps_in) : SV_TARGET0
 		dot (lmap2Texture.Sample (lmapSampler, ps_in.Lightmap), ps_in.Styles)
 	);
 
-	return max (glow, float4 (diff.rgb * Desaturate (lmap), 1.0f));
+	return float4 (diff.rgb * Desaturate (lmap), 1.0f);
 }
 
 float4 SurfDrawTurbPS (PS_DRAWTURB ps_in) : SV_TARGET0

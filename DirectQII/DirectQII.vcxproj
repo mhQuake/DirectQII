@@ -235,7 +235,6 @@
     <ClInclude Include="server.h" />
     <ClInclude Include="snd_loc.h" />
     <ClInclude Include="sound.h" />
-    <ClInclude Include="stb_image.h" />
     <ClInclude Include="vid.h" />
   </ItemGroup>
   <ItemGroup>

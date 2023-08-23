@@ -370,9 +370,6 @@
     <ClInclude Include="vid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stb_image.h">
-      <Filter>Images</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="q2.ico">
