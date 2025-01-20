@@ -86,9 +86,7 @@ void R_DrawParticles (void)
 		// but we might wish to add particle fade at some time so we can't do it (note: all particles in Q2 have fade)
 		D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSDepthNoWrite, d3d_RSFullCull);
 
-		if (r_crunchypixels->value)
-			D_BindShaderBundle (d3d_ParticleSquareShader);
-		else D_BindShaderBundle (d3d_ParticleCircleShader);
+		D_BindShaderBundle (d3d_ParticleSquareShader);
 
 		D_BindVertexBuffer (6, d3d_ParticleVertexes, sizeof (particle_t), 0);
 

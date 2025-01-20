@@ -145,9 +145,6 @@ cvar_t	*r_lefthand;
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 cvar_t	* r_lightsaturation;
 
-cvar_t	*r_crunchypixels;
-cvar_t	*gl_texturemode;
-
 cvar_t	*vid_mode;
 cvar_t	*gl_finish;
 cvar_t	*gl_clear;

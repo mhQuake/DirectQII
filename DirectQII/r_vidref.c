@@ -37,11 +37,6 @@ void R_Register (void)
 	r_drawworld = ri.Cvar_Get ("r_drawworld", "1", CVAR_CHEAT, NULL);
 	r_novis = ri.Cvar_Get ("r_novis", "0", 0, R_RegeneratePVS);
 
-	r_crunchypixels = ri.Cvar_Get ("r_crunchypixels", "0", CVAR_ARCHIVE, NULL);
-	gl_texturemode = ri.Cvar_Get ("gl_texturemode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE, R_UpdateTextureMode);
-
-	R_UpdateTextureMode ();
-
 	r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0, NULL);
 
 	// changed the name of this and set a lower default so that it looks better from the get-go
