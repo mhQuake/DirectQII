@@ -25,7 +25,7 @@ extern vidmenu_t vid_modedata;
 
 void R_Register (void)
 {
-	scr_viewsize = ri.Cvar_Get ("viewsize", "100", CVAR_ARCHIVE, NULL);
+	scr_conscale = ri.Cvar_Get ("scr_conscale", "1", CVAR_ARCHIVE, NULL);
 	r_testnullmodels = ri.Cvar_Get ("r_testnullmodels", "0", CVAR_CHEAT, NULL);
 	r_lightmap = ri.Cvar_Get ("r_lightmap", "0", CVAR_CHEAT, NULL);
 	r_testnotexture = ri.Cvar_Get ("r_testnotexture", "0", CVAR_CHEAT, NULL);

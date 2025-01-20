@@ -42,7 +42,6 @@ qboolean	scr_initialized;		// ready to draw
 int			scr_draw_loading;
 
 
-cvar_t		*scr_viewsize;
 cvar_t		*scr_conspeed;
 cvar_t		*scr_centertime;
 cvar_t		*scr_showturtle;
@@ -325,7 +324,6 @@ Keybinding command
 */
 void SCR_SizeUp_f (void)
 {
-	Cvar_SetValue ("viewsize", scr_viewsize->value + 10);
 }
 
 
@@ -338,7 +336,6 @@ Keybinding command
 */
 void SCR_SizeDown_f (void)
 {
-	Cvar_SetValue ("viewsize", scr_viewsize->value - 10);
 }
 
 /*
@@ -440,7 +437,6 @@ SCR_Init
 */
 void SCR_Init (void)
 {
-	scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE, NULL);
 	scr_conspeed = Cvar_Get ("scr_conspeed", "3", 0, NULL);
 	scr_showturtle = Cvar_Get ("scr_showturtle", "0", 0, NULL);
 	scr_showpause = Cvar_Get ("scr_showpause", "1", 0, NULL);

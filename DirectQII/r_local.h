@@ -206,7 +206,7 @@ extern	vec3_t	vright;
 //
 extern	refdef_t	r_newrefdef;
 
-extern	cvar_t	*scr_viewsize;
+extern	cvar_t	*scr_conscale;
 extern	cvar_t	*r_testnullmodels;
 extern	cvar_t	*r_lightmap;
 extern	cvar_t	*r_testnotexture;

@@ -817,42 +817,19 @@ qboolean GLimp_InitGL (int modenum)
 
 static void GLimp_GetGUIScale (void)
 {
-	// viewsize is a percentage scaleup from 640x480 (which will be aspect-adjusted) to the full current resolution
-	// and which is applied to the ortho matrix for 2D GUI views
-	int scale = (int) scr_viewsize->value;
-
-	if (scale < 0) scale = 0;
-	if (scale > 100) scale = 100;
-
-	if (vid.width > 640 && vid.height > 480)
+	// we're not being pretty here, just scaling up and if it's an error the player will need to correct it themselves
+	if (scr_conscale->value > 1 && vid.width > 640 && vid.height > 480)
 	{
-		if (vid.width > vid.height)
-		{
-			int virtual_height = (((vid.height - 480) * scale) / 100) + 480;
-
-			if (vid.height > virtual_height)
-			{
-				vid.conwidth = (virtual_height * vid.width) / vid.height;
-				vid.conheight = virtual_height;
-				return;
-			}
-		}
-		else
-		{
-			int virtual_width = (((vid.width - 640) * scale) / 100) + 640;
-
-			if (vid.width > virtual_width)
-			{
-				vid.conwidth = virtual_width;
-				vid.conheight = (virtual_width * vid.height) / vid.width;
-				return;
-			}
-		}
+		// scaled
+		vid.conwidth = (int) ((float) vid.width / scr_conscale->value);
+		vid.conheight = (int) ((float) vid.height / scr_conscale->value);
 	}
-
-	// default scale
-	vid.conwidth = vid.width;
-	vid.conheight = vid.height;
+	else
+	{
+		// default scale
+		vid.conwidth = vid.width;
+		vid.conheight = vid.height;
+	}
 }
 
 

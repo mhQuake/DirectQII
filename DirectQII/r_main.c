@@ -130,8 +130,8 @@ vec3_t	vright;
 // screen size info
 refdef_t	r_newrefdef;
 
-cvar_t	*scr_viewsize;
 cvar_t	*r_testnullmodels;
+cvar_t	*scr_conscale;
 cvar_t	*r_lightmap;
 cvar_t	*r_testnotexture;
 cvar_t	*r_lightmodel;

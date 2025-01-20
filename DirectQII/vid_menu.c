@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_gamma;
-extern cvar_t *scr_viewsize;
 
 static cvar_t *vid_mode;
 static cvar_t *vid_width;
@@ -52,7 +51,6 @@ static int				s_current_menu_index;
 static menulist_s		s_mode_list;
 static menunumberlist_s	s_width_list;
 static menunumberlist_s	s_height_list;
-static menuslider_s		s_screensize_slider;
 static menuslider_s		s_brightness_slider;
 static menuslider_s		s_desat_slider;
 static menulist_s  		s_fs_box;
@@ -74,18 +72,6 @@ void VIDMenu_GetCvars (void)
 	if (!vid_width) vid_width = Cvar_Get ("vid_width", "640", CVAR_ARCHIVE | CVAR_VIDEO, NULL);
 	if (!vid_height) vid_height = Cvar_Get ("vid_height", "480", CVAR_ARCHIVE | CVAR_VIDEO, NULL);
 	if (!vid_vsync) vid_vsync = Cvar_Get ("vid_vsync", "0", CVAR_ARCHIVE, NULL);
-	if (!scr_viewsize) scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE, NULL);
-}
-
-
-static void ScreenSizeCallback (void *s)
-{
-	menuslider_s *slider = (menuslider_s *) s;
-	Cvar_SetValue ("viewsize", slider->curvalue * 10);
-
-	// get the new values updated and re-init the menu for to lay it out properly
-	re.BeginFrame (&viddef, SCR_DEFAULT);
-	VID_MenuInit ();
 }
 
 
@@ -168,8 +154,6 @@ void VID_MenuInit (void)
 	}
 	else s_mode_list.curvalue = vid_mode->value;
 
-	s_screensize_slider.curvalue = scr_viewsize->value / 10;
-
 	if (vid_fullscreen->value)
 		s_current_menu_index = FULLSCREEN_MENU;
 	else s_current_menu_index = WINDOWED_MENU;
@@ -227,17 +211,9 @@ void VID_MenuInit (void)
 	s_height_list.values = modedata->heights;
 	s_height_list.numvalues = modedata->numheights;
 
-	s_screensize_slider.generic.type = MTYPE_SLIDER;
-	s_screensize_slider.generic.x = 0;
-	s_screensize_slider.generic.y = 50;
-	s_screensize_slider.generic.name = "screen size";
-	s_screensize_slider.minvalue = 0;
-	s_screensize_slider.maxvalue = 10;
-	s_screensize_slider.generic.callback = ScreenSizeCallback;
-
 	s_brightness_slider.generic.type = MTYPE_SLIDER;
 	s_brightness_slider.generic.x = 0;
-	s_brightness_slider.generic.y = 60;
+	s_brightness_slider.generic.y = 50;
 	s_brightness_slider.generic.name = "gamma";
 	s_brightness_slider.generic.callback = BrightnessCallback;
 	s_brightness_slider.minvalue = 5;
@@ -246,7 +222,7 @@ void VID_MenuInit (void)
 
 	s_desat_slider.generic.type = MTYPE_SLIDER;
 	s_desat_slider.generic.x = 0;
-	s_desat_slider.generic.y = 70;
+	s_desat_slider.generic.y = 60;
 	s_desat_slider.generic.name = "saturation";
 	s_desat_slider.generic.callback = SaturationCallback;
 	s_desat_slider.minvalue = 0;
@@ -255,7 +231,7 @@ void VID_MenuInit (void)
 
 	s_vsync_box.generic.type = MTYPE_SPINCONTROL;
 	s_vsync_box.generic.x = 0;
-	s_vsync_box.generic.y = 80;
+	s_vsync_box.generic.y = 70;
 	s_vsync_box.generic.name = "vertical sync";
 	s_vsync_box.curvalue = vid_vsync->value;
 	s_vsync_box.itemnames = yesno_names;
@@ -263,25 +239,24 @@ void VID_MenuInit (void)
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset";
 	s_defaults_action.generic.x = 0;
-	s_defaults_action.generic.y = 100;
+	s_defaults_action.generic.y = 90;
 	s_defaults_action.generic.callback = ResetDefaults;
 
 	s_cancel_action.generic.type = MTYPE_ACTION;
 	s_cancel_action.generic.name = "cancel";
 	s_cancel_action.generic.x = 0;
-	s_cancel_action.generic.y = 110;
+	s_cancel_action.generic.y = 100;
 	s_cancel_action.generic.callback = CancelChanges;
 
 	s_apply_action.generic.type = MTYPE_ACTION;
 	s_apply_action.generic.name = "apply changes";
 	s_apply_action.generic.x = 0;
-	s_apply_action.generic.y = 120;
+	s_apply_action.generic.y = 110;
 	s_apply_action.generic.callback = ApplyChanges;
 
 	Menu_AddItem (&s_windowed_menu, (void *) &s_fs_box);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_width_list);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_height_list);
-	Menu_AddItem (&s_windowed_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_brightness_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_desat_slider);
 	Menu_AddItem (&s_windowed_menu, (void *) &s_vsync_box);
@@ -292,7 +267,6 @@ void VID_MenuInit (void)
 
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_fs_box);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_mode_list);
-	Menu_AddItem (&s_fullscreen_menu, (void *) &s_screensize_slider);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_brightness_slider);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_desat_slider);
 	Menu_AddItem (&s_fullscreen_menu, (void *) &s_vsync_box);
