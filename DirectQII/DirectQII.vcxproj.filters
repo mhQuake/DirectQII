@@ -302,6 +302,9 @@
     <ClCompile Include="x86.c">
       <Filter>System</Filter>
     </ClCompile>
+    <ClCompile Include="mod_mesh.c">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="qmenu.h">
@@ -368,6 +371,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -139,6 +139,7 @@
     <ClCompile Include="cl_tent.c" />
     <ClCompile Include="cl_view.c" />
     <ClCompile Include="cmd.c" />
+    <ClCompile Include="mod_mesh.c" />
     <ClCompile Include="sv_cmodel.c" />
     <ClCompile Include="common.c" />
     <ClCompile Include="console.c" />
@@ -223,6 +224,7 @@
     <ClInclude Include="input.h" />
     <ClInclude Include="keys.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="mesh.h" />
     <ClInclude Include="qcommon.h" />
     <ClInclude Include="qfiles.h" />
     <ClInclude Include="qmenu.h" />

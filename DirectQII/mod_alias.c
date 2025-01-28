@@ -20,9 +20,242 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // models.c -- model loading and caching
 
 #include "r_local.h"
+#include "mesh.h"
+
 
 extern model_t	*loadmodel;
 extern int		modfilelen;
+
+
+/*
+==============================================================================
+
+VERTEX BUFFER BUILDING
+
+==============================================================================
+*/
+
+void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
+{
+	meshpolyvert_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (meshpolyvert_t));
+
+	D3D11_BUFFER_DESC vbDesc = {
+		hdr->num_verts * hdr->num_frames * sizeof (meshpolyvert_t),
+		D3D11_USAGE_IMMUTABLE,
+		D3D11_BIND_VERTEX_BUFFER,
+		0,
+		0,
+		0
+	};
+
+	// alloc a buffer to write the verts to and create the VB from
+	D3D11_SUBRESOURCE_DATA srd = { polyverts, 0, 0 };
+
+	for (int framenum = 0; framenum < hdr->num_frames; framenum++)
+	{
+		daliasframe_t *inframe = (daliasframe_t *) ((byte *) src + src->ofs_frames + framenum * src->framesize);
+
+		for (int i = 0; i < hdr->num_verts; i++, polyverts++)
+		{
+			dtrivertx_t *tv = &inframe->verts[dedupe[i].index_xyz];
+
+			polyverts->position[0] = tv->v[0] * inframe->scale[0] + inframe->translate[0];
+			polyverts->position[1] = tv->v[1] * inframe->scale[1] + inframe->translate[1];
+			polyverts->position[2] = tv->v[2] * inframe->scale[2] + inframe->translate[2];
+
+			R_GetVertexNormal (polyverts->normal, tv->lightnormalindex);
+		}
+	}
+
+	// create the new vertex buffer
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
+
+	// per-frame offset into the buffer
+	set->framevertexstride = hdr->num_verts * sizeof (meshpolyvert_t);
+}
+
+
+void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
+{
+	float *texcoords = ri.Load_AllocMemory (hdr->num_verts * sizeof (float) * 2);
+
+	D3D11_BUFFER_DESC vbDesc = {
+		hdr->num_verts * sizeof (float) * 2,
+		D3D11_USAGE_IMMUTABLE,
+		D3D11_BIND_VERTEX_BUFFER,
+		0,
+		0,
+		0
+	};
+
+	// alloc a buffer to write the verts to and create the VB from
+	D3D11_SUBRESOURCE_DATA srd = { texcoords, 0, 0 };
+
+	// access source stverts
+	dstvert_t *stverts = (dstvert_t *) ((byte *) src + src->ofs_st);
+
+	for (int i = 0; i < hdr->num_verts; i++, texcoords += 2)
+	{
+		dstvert_t *stvert = &stverts[dedupe[i].index_st];
+
+		texcoords[0] = ((float) stvert->s + 0.5f) / hdr->skinwidth;
+		texcoords[1] = ((float) stvert->t + 0.5f) / hdr->skinheight;
+	}
+
+	// create the new vertex buffer
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->TexCoords);
+}
+
+
+void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *indexes)
+{
+	D3D11_BUFFER_DESC ibDesc = {
+		hdr->num_indexes * sizeof (unsigned short),
+		D3D11_USAGE_IMMUTABLE,
+		D3D11_BIND_INDEX_BUFFER,
+		0,
+		0,
+		0
+	};
+
+	// alloc a buffer to write the verts to and create the VB from
+	D3D11_SUBRESOURCE_DATA srd = { indexes, 0, 0 };
+
+	// create the new vertex buffer
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &set->Indexes);
+
+	// copy off number of indexes to the set so that we can draw independent of model format
+	set->numindexes = hdr->num_indexes;
+}
+
+
+void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
+{
+	aliasbuffers_t *set = R_GetBufferSetForIndex (mod->bufferset);
+
+	aliasmesh_t *dedupe = (aliasmesh_t *) ri.Load_AllocMemory (hdr->num_verts * sizeof (aliasmesh_t));
+	unsigned short *indexes = (unsigned short *) ri.Load_AllocMemory (hdr->num_indexes * sizeof (unsigned short));
+	unsigned short *optimized = (unsigned short *) ri.Load_AllocMemory (hdr->num_indexes * sizeof (unsigned short));
+
+	int num_verts = 0;
+	int num_indexes = 0;
+
+	// set up source data
+	dtriangle_t *triangles = (dtriangle_t *) ((byte *) src + src->ofs_tris);
+
+	for (int i = 0; i < hdr->num_tris; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			int v;
+
+			for (v = 0; v < num_verts; v++)
+			{
+				if (triangles[i].index_xyz[j] != dedupe[v].index_xyz) continue;
+				if (triangles[i].index_st[j] != dedupe[v].index_st) continue;
+
+				// exists; emit an index for it
+				indexes[num_indexes] = v;
+
+				// no need to check any more
+				break;
+			}
+
+			if (v == num_verts)
+			{
+				// doesn't exist; emit a new index...
+				indexes[num_indexes] = num_verts;
+
+				// ...and a new vert
+				dedupe[num_verts].index_xyz = triangles[i].index_xyz[j];
+				dedupe[num_verts].index_st = triangles[i].index_st[j];
+
+				// go to the next vert
+				num_verts++;
+			}
+
+			// go to the next index
+			num_indexes++;
+		}
+	}
+
+	// ri.Con_Printf (PRINT_ALL, "%s has %i verts from %i\n", mod->name, num_verts, hdr->num_verts);
+
+	// store off the counts
+	hdr->num_verts = num_verts;		// this is expected to be significantly lower (one-third or less)
+	hdr->num_indexes = num_indexes; // this is expected to be unchanged (it's an error if it is
+
+	// optimize index order for vertex cache
+	if (VCache_ReorderIndices (mod->name, optimized, indexes, hdr->num_tris, hdr->num_verts))
+	{
+		// if it optimized we must re-order and remap the indices so that the vertex buffer can be accessed linearly
+		// https://tomforsyth1000.github.io/papers/fast_vert_cache_opt.html
+		aliasmesh_t *newverts = (aliasmesh_t *) ri.Load_AllocMemory (hdr->num_verts * sizeof (aliasmesh_t));
+		int *inBuffer = (int *) ri.Load_AllocMemory (hdr->num_verts * sizeof (int)); // this can't be an unsigned short because we use -1 to indicate that it's not yet in the buffer
+		int vertnum = 0;
+
+		// because 0 is a valid index we must use -1 to indicate a vertex that's not yet in it's final, optimized, buffer position
+		for (int i = 0; i < hdr->num_verts; i++)
+			inBuffer[i] = -1;
+
+		// build the remap table
+		for (int i = 0; i < hdr->num_indexes; i++)
+		{
+			// is the referenced vertex in the buffer yet???
+			if (inBuffer[optimized[i]] == -1)
+			{
+				// this is now an extra buffer entry
+				newverts[vertnum].index_xyz = dedupe[optimized[i]].index_xyz;
+				newverts[vertnum].index_st = dedupe[optimized[i]].index_st;
+
+				// mark it as in the buffer and go to the next vert
+				inBuffer[optimized[i]] = vertnum;
+				vertnum++;
+			}
+
+			// add it to the indexes remap
+			indexes[i] = inBuffer[optimized[i]];
+		}
+
+		// finally swap the pointers so that the loading routines will use the remapped vertices and indices
+		dedupe = newverts;
+		optimized = indexes;
+	}
+
+	// and build them all
+	D_CreateAliasPolyVerts (hdr, src, set, dedupe);
+	D_CreateAliasTexCoords (hdr, src, set, dedupe);
+	D_CreateAliasIndexes (hdr, set, optimized);
+
+	// release memory used for loading and building
+	ri.Load_FreeMemory ();
+}
+
+
+void D_MakeAliasBuffers (model_t *mod, dmdl_t *src)
+{
+	// see do we already have it
+	if ((mod->bufferset = D_FindAliasBuffers (mod)) != -1) return;
+
+	if ((mod->bufferset = D_GetFreeBufferSet ()) != -1)
+	{
+		aliasbuffers_t *set = R_GetBufferSetForIndex (mod->bufferset);
+
+		// cache the name so that we'll find it next time too
+		strcpy (set->Name, mod->name);
+
+		// mark it as active
+		set->registration_sequence = r_registration_sequence;
+
+		// now build everything from the model data
+		D_CreateAliasBufferSet (mod, mod->md2header, src);
+
+		// and done
+		return;
+	}
+
+	ri.Sys_Error (ERR_DROP, "D_MakeAliasBuffers : not enough free buffers!");
+}
 
 
 /*
