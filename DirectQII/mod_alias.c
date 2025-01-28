@@ -35,7 +35,7 @@ VERTEX BUFFER BUILDING
 ==============================================================================
 */
 
-void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
+void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe, unsigned short *indexes)
 {
 	meshpolyvert_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (meshpolyvert_t));
 
@@ -51,20 +51,27 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	// alloc a buffer to write the verts to and create the VB from
 	D3D11_SUBRESOURCE_DATA srd = { polyverts, 0, 0 };
 
+	// allocate memory for normals
+	vertexnormals_t *vnorms = (vertexnormals_t *) ri.Load_AllocMemory (sizeof (vertexnormals_t) * hdr->num_verts);
+
 	for (int framenum = 0; framenum < hdr->num_frames; framenum++)
 	{
 		daliasframe_t *inframe = (daliasframe_t *) ((byte *) src + src->ofs_frames + framenum * src->framesize);
 
-		for (int i = 0; i < hdr->num_verts; i++, polyverts++)
+		for (int i = 0; i < hdr->num_verts; i++)
 		{
 			dtrivertx_t *tv = &inframe->verts[dedupe[i].index_xyz];
 
-			polyverts->position[0] = tv->v[0] * inframe->scale[0] + inframe->translate[0];
-			polyverts->position[1] = tv->v[1] * inframe->scale[1] + inframe->translate[1];
-			polyverts->position[2] = tv->v[2] * inframe->scale[2] + inframe->translate[2];
-
-			R_GetVertexNormal (polyverts->normal, tv->lightnormalindex);
+			polyverts[i].position[0] = tv->v[0] * inframe->scale[0] + inframe->translate[0];
+			polyverts[i].position[1] = tv->v[1] * inframe->scale[1] + inframe->translate[1];
+			polyverts[i].position[2] = tv->v[2] * inframe->scale[2] + inframe->translate[2];
 		}
+
+		// calc the normals for this frame
+		Mesh_BuildFrameNormals (polyverts, hdr->num_verts, (mesh_triangle_t *) indexes, hdr->num_tris, vnorms);
+
+		// go to the next frame
+		polyverts += hdr->num_verts;
 	}
 
 	// create the new vertex buffer
@@ -223,7 +230,7 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 	}
 
 	// and build them all
-	D_CreateAliasPolyVerts (hdr, src, set, dedupe);
+	D_CreateAliasPolyVerts (hdr, src, set, dedupe, optimized);
 	D_CreateAliasTexCoords (hdr, src, set, dedupe);
 	D_CreateAliasIndexes (hdr, set, optimized);
 
