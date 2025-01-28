@@ -280,6 +280,15 @@ static float r_avertexnormals[NUMVERTEXNORMALS][4] = {
 #include "../DirectQII/anorms.h"
 };
 
+
+void R_GetVertexNormal (float *normal, int index)
+{
+	normal[0] = r_avertexnormals[index][0];
+	normal[1] = r_avertexnormals[index][1];
+	normal[2] = r_avertexnormals[index][2];
+}
+
+
 void R_InitLight (void)
 {
 	D3D11_BUFFER_DESC cbDLightDesc = {

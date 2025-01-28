@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 qboolean VCache_ReorderIndices (char *name, unsigned short *outIndices, const unsigned short *indices, int nTriangles, int nVertices);
 void VCache_Init (void);
+void R_GetVertexNormal (float *normal, int index);
 
 // deduplication
 typedef struct aliasmesh_s {
@@ -30,6 +31,16 @@ typedef struct aliasmesh_s {
 	short index_st;
 } aliasmesh_t;
 
+// Triangle
+typedef struct mesh_triangle_s {
+	unsigned short index[3];
+} mesh_triangle_t;
+
+// vertex normals calculation
+typedef struct vertexnormals_s {
+	int numnormals;
+	float normal[3];
+} vertexnormals_t;
 
 typedef struct aliasbuffers_s {
 	ID3D11Buffer *PolyVerts;
@@ -38,6 +49,10 @@ typedef struct aliasbuffers_s {
 
 	char Name[256];
 	int registration_sequence;
+
+	// for drawing from
+	int framevertexstride;
+	int numindexes;
 } aliasbuffers_t;
 
 __declspec(align(16)) typedef struct meshconstants_s {
@@ -64,9 +79,11 @@ static ID3D11Buffer *d3d_MeshConstants = NULL;
 void R_InitMesh (void)
 {
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		VDECL ("PREVTRIVERTX", 0, DXGI_FORMAT_R8G8B8A8_UINT, 1, 0),
-		VDECL ("CURRTRIVERTX", 0, DXGI_FORMAT_R8G8B8A8_UINT, 2, 0),
-		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 3, 0)
+		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0),
+		VDECL ("NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0),
+		VDECL ("POSITION", 1, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0),
+		VDECL ("NORMAL",   1, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0),
+		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    3, 0)
 	};
 
 	D3D11_BUFFER_DESC cbPerMeshDesc = {
@@ -124,12 +141,85 @@ void R_FreeUnusedAliasBuffers (void)
 }
 
 
+/*
+==================
+Mesh_BuildFrameNormals
+
+==================
+*/
+void Mesh_BuildFrameNormals (meshpolyvert_t *verts, int numverts, const mesh_triangle_t *triangles, int numtris, vertexnormals_t *vnorms)
+{
+	int i, j;
+
+	// no normals initially - we can't do dst++ here as we need to preserve the pointer for the next step
+	for (i = 0; i < numverts; i++)
+	{
+		// now initialize it
+		vnorms[i].normal[0] = vnorms[i].normal[1] = vnorms[i].normal[2] = 0;
+		vnorms[i].numnormals = 0;
+	}
+
+	// accumulate triangle normals to vnorms
+	for (i = 0; i < numtris; i++)
+	{
+		float triverts[3][3];
+		float vtemp1[3], vtemp2[3], normal[3];
+
+		// undo the vertex rotation from modelgen.c here (consistent with modelgen.c)
+		for (j = 0; j < 3; j++)
+		{
+			triverts[j][0] = verts[triangles[i].index[j]].position[1];
+			triverts[j][1] = -verts[triangles[i].index[j]].position[0];
+			triverts[j][2] = verts[triangles[i].index[j]].position[2];
+		}
+
+		// calc the per-triangle normal
+		Vector3Subtract (vtemp1, triverts[0], triverts[1]);
+		Vector3Subtract (vtemp2, triverts[2], triverts[1]);
+		Vector3Cross (normal, vtemp1, vtemp2);
+		Vector3Normalize (normal);
+
+		// and accumulate it into the calculated normals array
+		for (j = 0; j < 3; j++)
+		{
+			// rotate the normal so the model faces down the positive x axis (consistent with modelgen.c)
+			vnorms[triangles[i].index[j]].normal[0] -= normal[1];
+			vnorms[triangles[i].index[j]].normal[1] += normal[0];
+			vnorms[triangles[i].index[j]].normal[2] += normal[2];
+
+			// count the normals for averaging
+			vnorms[triangles[i].index[j]].numnormals++;
+		}
+	}
+
+	// calculate final normals - the frame is already in the correct space so nothing further needs to be done here
+	for (i = 0; i < numverts; i++)
+	{
+		// numnormals was checked for > 0 in modelgen.c so we shouldn't need to do it again here but we do anyway just in case a rogue modder has used a bad modelling tool
+		if (vnorms[i].numnormals > 0)
+		{
+			Vector3Scalef (vnorms[i].normal, vnorms[i].normal, (float) vnorms[i].numnormals);
+			Vector3Normalize (vnorms[i].normal);
+		}
+		else
+		{
+			vnorms[i].normal[0] = vnorms[i].normal[1] = 0;
+			vnorms[i].normal[2] = 1;
+		}
+
+		verts[i].normal[0] = vnorms[i].normal[0];
+		verts[i].normal[1] = vnorms[i].normal[1];
+		verts[i].normal[2] = vnorms[i].normal[2];
+	}
+}
+
+
 void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
-	dtrivertx_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (dtrivertx_t));
+	meshpolyvert_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (meshpolyvert_t));
 
 	D3D11_BUFFER_DESC vbDesc = {
-		hdr->num_verts * hdr->num_frames * sizeof (dtrivertx_t),
+		hdr->num_verts * hdr->num_frames * sizeof (meshpolyvert_t),
 		D3D11_USAGE_IMMUTABLE,
 		D3D11_BIND_VERTEX_BUFFER,
 		0,
@@ -148,15 +238,19 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 		{
 			dtrivertx_t *tv = &inframe->verts[dedupe[i].index_xyz];
 
-			polyverts->v[0] = tv->v[0];
-			polyverts->v[1] = tv->v[1];
-			polyverts->v[2] = tv->v[2];
-			polyverts->lightnormalindex = tv->lightnormalindex;
+			polyverts->position[0] = tv->v[0] * inframe->scale[0] + inframe->translate[0];
+			polyverts->position[1] = tv->v[1] * inframe->scale[1] + inframe->translate[1];
+			polyverts->position[2] = tv->v[2] * inframe->scale[2] + inframe->translate[2];
+
+			R_GetVertexNormal (polyverts->normal, tv->lightnormalindex);
 		}
 	}
 
 	// create the new vertex buffer
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
+
+	// per-frame offset into the buffer
+	set->framevertexstride = hdr->num_verts * sizeof (meshpolyvert_t);
 }
 
 
@@ -208,6 +302,9 @@ void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *ind
 
 	// create the new vertex buffer
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &set->Indexes);
+
+	// copy off number of indexes to the set so that we can draw independent of model format
+	set->numindexes = hdr->num_indexes;
 }
 
 
@@ -425,36 +522,28 @@ void R_SelectAliasShader (int eflags)
 void R_DrawAliasPolySet (model_t *mod)
 {
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
-	mmdl_t *hdr = mod->md2header;
-
-	d3d_Context->lpVtbl->DrawIndexed (d3d_Context, hdr->num_indexes, 0, 0);
+	d3d_Context->lpVtbl->DrawIndexed (d3d_Context, set->numindexes, 0, 0);
 }
 
 
 void R_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
 	// sets up stuff that's going to be valid for both the main pass and the dynamic lighting pass(es)
-	mmdl_t *hdr = mod->md2header;
-
 	R_BindTexture (R_SelectAliasTexture (e, mod)->SRV);
 
-	D_BindVertexBuffer (1, set->PolyVerts, sizeof (dtrivertx_t), e->prevframe * sizeof (dtrivertx_t) * hdr->num_verts);
-	D_BindVertexBuffer (2, set->PolyVerts, sizeof (dtrivertx_t), e->currframe * sizeof (dtrivertx_t) * hdr->num_verts);
+	D_BindVertexBuffer (1, set->PolyVerts, sizeof (meshpolyvert_t), e->prevframe * set->framevertexstride);
+	D_BindVertexBuffer (2, set->PolyVerts, sizeof (meshpolyvert_t), e->currframe * set->framevertexstride);
 	D_BindVertexBuffer (3, set->TexCoords, sizeof (float) * 2, 0);
 
 	D_BindIndexBuffer (set->Indexes, DXGI_FORMAT_R16_UINT);
 }
 
 
-void R_TransformAliasModel (entity_t *e, mmdl_t *hdr, meshconstants_t *consts, QMATRIX *localmatrix)
+void R_TransformAliasModel (entity_t *e, meshconstants_t *consts, QMATRIX *localmatrix)
 {
 	// set up the lerp transform
 	float move[3], delta[3];
 	float frontlerp = 1.0 - e->backlerp;
-
-	// get current and previous frames
-	maliasframe_t *currframe = &hdr->frames[e->currframe];
-	maliasframe_t *prevframe = &hdr->frames[e->prevframe];
 
 	// move should be the delta back to the previous frame * backlerp
 	Vector3Subtract (delta, e->prevorigin, e->currorigin);
@@ -464,25 +553,11 @@ void R_TransformAliasModel (entity_t *e, mmdl_t *hdr, meshconstants_t *consts, Q
 	move[1] = Vector3Dot (delta, localmatrix->m4x4[1]);	// left
 	move[2] = Vector3Dot (delta, localmatrix->m4x4[2]);	// up
 
-	Vector3Add (move, move, prevframe->translate);
-
-	Vector3Set (consts->move,
-		e->backlerp * move[0] + frontlerp * currframe->translate[0],
-		e->backlerp * move[1] + frontlerp * currframe->translate[1],
-		e->backlerp * move[2] + frontlerp * currframe->translate[2]
-	);
-
-	Vector3Set (consts->frontv,
-		frontlerp * currframe->scale[0],
-		frontlerp * currframe->scale[1],
-		frontlerp * currframe->scale[2]
-	);
-
-	Vector3Set (consts->backv,
-		e->backlerp * prevframe->scale[0],
-		e->backlerp * prevframe->scale[1],
-		e->backlerp * prevframe->scale[2]
-	);
+	// translate and scale factors were baked into the vertex buffer data so set these to identity
+	// we can't modify the frame data as it's still used for bboxes
+	Vector3Set (consts->move, e->backlerp * move[0], e->backlerp * move[1], e->backlerp * move[2]);
+	Vector3Set (consts->frontv, frontlerp, frontlerp, frontlerp);
+	Vector3Set (consts->backv, e->backlerp, e->backlerp, e->backlerp);
 
 	if (!(e->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
 		consts->suitscale = 0;
@@ -733,7 +808,7 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 
 	// set up our mesh constants
 	R_LightAliasModel (e, &consts, localmatrix);
-	R_TransformAliasModel (e, hdr, &consts, localmatrix);
+	R_TransformAliasModel (e, &consts, localmatrix);
 
 	// the new lighting is slightly darker than the old so scale it up to compensate; this is a good working range
 	Vector3Scalef (consts.shadelight, consts.shadelight, 1.28f);

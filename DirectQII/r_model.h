@@ -151,6 +151,12 @@ typedef struct dbsp_s {
 } dbsp_t;
 
 
+typedef struct meshpolyvert_s {
+	float position[3];
+	float normal[3];
+} meshpolyvert_t;
+
+
 typedef struct maliasframe_s {
 	float		scale[3];	// multiply byte verts by this
 	float		translate[3];	// then add this

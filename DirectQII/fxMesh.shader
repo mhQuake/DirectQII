@@ -1,8 +1,10 @@
 
 
 struct VS_MESH {
-	uint4 PrevTriVertx: PREVTRIVERTX;
-	uint4 CurrTriVertx: CURRTRIVERTX;
+	float3 PrevPosition : POSITION0;
+	float3 PrevNormal : NORMAL0;
+	float3 CurrPosition : POSITION1;
+	float3 CurrNormal : NORMAL1;
 	float2 TexCoord: TEXCOORD;
 };
 
@@ -15,16 +17,14 @@ struct PS_MESH {
 #ifdef VERTEXSHADER
 float4 MeshLerpPosition (VS_MESH vs_in)
 {
-	return float4 (Move + vs_in.CurrTriVertx.xyz * FrontV + vs_in.PrevTriVertx.xyz * BackV, 1.0f);
+	return float4 (Move + vs_in.CurrPosition * FrontV + vs_in.PrevPosition * BackV, 1.0f);
 }
 
 float3 MeshLerpNormal (VS_MESH vs_in)
 {
 	// note: this is the correct order for normals; check the light on the hyperblaster v_ model, for example;
 	// with the opposite order it flickers pretty badly as the model animates; with this order it's nice and solid
-	float3 n1 = LightNormals.Load (vs_in.CurrTriVertx.w).xyz;
-	float3 n2 = LightNormals.Load (vs_in.PrevTriVertx.w).xyz;
-	return normalize (lerp (n1, n2, BackLerp));
+	return normalize (lerp (vs_in.CurrNormal, vs_in.PrevNormal, BackLerp));
 }
 
 PS_MESH MeshLightmapVS (VS_MESH vs_in)
