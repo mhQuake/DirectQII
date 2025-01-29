@@ -332,14 +332,14 @@ void R_CheckInitLightmapData (int lightmaptexturenum, int ch)
 	// create the channel if needed first time it's seen
 	if (!lm_data[ch])
 	{
-		lm_data[ch] = (lighttexel_t **) ri.Load_AllocMemory (MAX_LIGHTMAPS * sizeof (lm_data[ch]));
+		lm_data[ch] = (lighttexel_t **) ri.Hunk_Alloc (MAX_LIGHTMAPS * sizeof (lm_data[ch]));
 		memset (lm_data[ch], 0, MAX_LIGHTMAPS * sizeof (lm_data[ch]));
 	}
 
 	// create the texture if needed first time it's seen
 	if (!lm_data[ch][lightmaptexturenum])
 	{
-		lm_data[ch][lightmaptexturenum] = (lighttexel_t *) ri.Load_AllocMemory (LIGHTMAP_SIZE * LIGHTMAP_SIZE * sizeof (lighttexel_t));
+		lm_data[ch][lightmaptexturenum] = (lighttexel_t *) ri.Hunk_Alloc (LIGHTMAP_SIZE * LIGHTMAP_SIZE * sizeof (lighttexel_t));
 		memset (lm_data[ch][lightmaptexturenum], 0, LIGHTMAP_SIZE * LIGHTMAP_SIZE * sizeof (lighttexel_t));
 	}
 }
@@ -489,7 +489,7 @@ void R_BeginBuildingLightmaps (model_t *m)
 void R_CreateLightmapTexture (int ch)
 {
 	int i;
-	D3D11_SUBRESOURCE_DATA *srd = ri.Load_AllocMemory (sizeof (D3D11_SUBRESOURCE_DATA) * r_currentlightmap);
+	D3D11_SUBRESOURCE_DATA *srd = ri.Hunk_Alloc (sizeof (D3D11_SUBRESOURCE_DATA) * r_currentlightmap);
 
 	// set up the SRDs
 	for (i = 0; i < r_currentlightmap; i++)
@@ -524,7 +524,7 @@ void R_EndBuildingLightmaps (void)
 	memset (lm_allocated, 0, sizeof (lm_allocated));
 
 	// hand back memory
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 }
 
 

@@ -59,7 +59,7 @@ SCR_LoadPCX
 */
 void SCR_LoadPCX (char *filename)
 {
-	void Load_FreeMemory (void);
+	void Hunk_FreeAll (void);
 	byte *load_pic = NULL;
 	byte *load_pal = NULL;
 
@@ -88,7 +88,7 @@ void SCR_LoadPCX (char *filename)
 	}
 
 	// free temp memory for loading
-	Load_FreeMemory ();
+	Hunk_FreeAll ();
 }
 
 

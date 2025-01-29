@@ -35,9 +35,12 @@ VERTEX BUFFER BUILDING
 ==============================================================================
 */
 
-void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe, unsigned short *indexes)
+void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, bufferset_t *set, aliasmesh_t *dedupe, unsigned short *indexes)
 {
-	meshpolyvert_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (meshpolyvert_t));
+	// all memory allocated here is temp and will be thrown away when finished building everything
+	int mark = ri.Hunk_LowMark ();
+
+	meshpolyvert_t *polyverts = ri.Hunk_Alloc (hdr->num_verts * hdr->num_frames * sizeof (meshpolyvert_t));
 
 	D3D11_BUFFER_DESC vbDesc = {
 		hdr->num_verts * hdr->num_frames * sizeof (meshpolyvert_t),
@@ -52,7 +55,7 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	D3D11_SUBRESOURCE_DATA srd = { polyverts, 0, 0 };
 
 	// allocate memory for normals
-	vertexnormals_t *vnorms = (vertexnormals_t *) ri.Load_AllocMemory (sizeof (vertexnormals_t) * hdr->num_verts);
+	vertexnormals_t *vnorms = (vertexnormals_t *) ri.Hunk_Alloc (sizeof (vertexnormals_t) * hdr->num_verts);
 
 	for (int framenum = 0; framenum < hdr->num_frames; framenum++)
 	{
@@ -75,16 +78,22 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	}
 
 	// create the new vertex buffer
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PositionsBuffer);
 
 	// per-frame offset into the buffer
 	set->framevertexstride = hdr->num_verts * sizeof (meshpolyvert_t);
+
+	// free all memory used in loading
+	ri.Hunk_FreeToLowMark (mark);
 }
 
 
-void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
+void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, bufferset_t *set, aliasmesh_t *dedupe)
 {
-	float *texcoords = ri.Load_AllocMemory (hdr->num_verts * sizeof (float) * 2);
+	// all memory allocated here is temp and will be thrown away when finished building everything
+	int mark = ri.Hunk_LowMark ();
+
+	float *texcoords = ri.Hunk_Alloc (hdr->num_verts * sizeof (float) * 2);
 
 	D3D11_BUFFER_DESC vbDesc = {
 		hdr->num_verts * sizeof (float) * 2,
@@ -110,11 +119,14 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	}
 
 	// create the new vertex buffer
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->TexCoords);
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->TexCoordsBuffer);
+
+	// free all memory used in loading
+	ri.Hunk_FreeToLowMark (mark);
 }
 
 
-void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *indexes)
+void D_CreateAliasIndexes (mmdl_t *hdr, bufferset_t *set, unsigned short *indexes)
 {
 	D3D11_BUFFER_DESC ibDesc = {
 		hdr->num_indexes * sizeof (unsigned short),
@@ -129,7 +141,7 @@ void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *ind
 	D3D11_SUBRESOURCE_DATA srd = { indexes, 0, 0 };
 
 	// create the new vertex buffer
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &set->Indexes);
+	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &set->IndexBuffer);
 
 	// copy off number of indexes to the set so that we can draw independent of model format
 	set->numindexes = hdr->num_indexes;
@@ -138,11 +150,11 @@ void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *ind
 
 void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 {
-	aliasbuffers_t *set = R_GetBufferSetForIndex (mod->bufferset);
+	bufferset_t *set = R_GetBufferSetForIndex (mod->bufferset);
 
-	aliasmesh_t *dedupe = (aliasmesh_t *) ri.Load_AllocMemory (hdr->num_verts * sizeof (aliasmesh_t));
-	unsigned short *indexes = (unsigned short *) ri.Load_AllocMemory (hdr->num_indexes * sizeof (unsigned short));
-	unsigned short *optimized = (unsigned short *) ri.Load_AllocMemory (hdr->num_indexes * sizeof (unsigned short));
+	aliasmesh_t *dedupe = (aliasmesh_t *) ri.Hunk_Alloc (hdr->num_verts * sizeof (aliasmesh_t));
+	unsigned short *indexes = (unsigned short *) ri.Hunk_Alloc (hdr->num_indexes * sizeof (unsigned short));
+	unsigned short *optimized = (unsigned short *) ri.Hunk_Alloc (hdr->num_indexes * sizeof (unsigned short));
 
 	int num_verts = 0;
 	int num_indexes = 0;
@@ -197,8 +209,8 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 	{
 		// if it optimized we must re-order and remap the indices so that the vertex buffer can be accessed linearly
 		// https://tomforsyth1000.github.io/papers/fast_vert_cache_opt.html
-		aliasmesh_t *newverts = (aliasmesh_t *) ri.Load_AllocMemory (hdr->num_verts * sizeof (aliasmesh_t));
-		int *inBuffer = (int *) ri.Load_AllocMemory (hdr->num_verts * sizeof (int)); // this can't be an unsigned short because we use -1 to indicate that it's not yet in the buffer
+		aliasmesh_t *newverts = (aliasmesh_t *) ri.Hunk_Alloc (hdr->num_verts * sizeof (aliasmesh_t));
+		int *inBuffer = (int *) ri.Hunk_Alloc (hdr->num_verts * sizeof (int)); // this can't be an unsigned short because we use -1 to indicate that it's not yet in the buffer
 		int vertnum = 0;
 
 		// because 0 is a valid index we must use -1 to indicate a vertex that's not yet in it's final, optimized, buffer position
@@ -235,7 +247,7 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 	D_CreateAliasIndexes (hdr, set, optimized);
 
 	// release memory used for loading and building
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 }
 
 
@@ -246,7 +258,7 @@ void D_MakeAliasBuffers (model_t *mod, dmdl_t *src)
 
 	if ((mod->bufferset = D_GetFreeBufferSet ()) != -1)
 	{
-		aliasbuffers_t *set = R_GetBufferSetForIndex (mod->bufferset);
+		bufferset_t *set = R_GetBufferSetForIndex (mod->bufferset);
 
 		// cache the name so that we'll find it next time too
 		strcpy (set->Name, mod->name);
@@ -378,6 +390,7 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 	mmdl_t *pheader = (mmdl_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (mmdl_t));
 
 	mod->sprheader = NULL;
+	mod->md5header = NULL;
 	mod->md2header = pheader;
 
 	// load and set up the header

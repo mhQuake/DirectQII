@@ -88,7 +88,7 @@ int D_TryEnumerateModes (IDXGIOutput *output, DXGI_MODE_DESC **ModeList, DXGI_FO
 	// get modes on this adapter (note this is called twice per design) - note that the first time ModeList must be NULL or it will return 0 modes
 	if (SUCCEEDED (output->lpVtbl->GetDisplayModeList (output, fmt, EnumFlags, &NumModes, NULL)))
 	{
-		*ModeList = (DXGI_MODE_DESC *) ri.Load_AllocMemory (sizeof (DXGI_MODE_DESC) * NumModes);
+		*ModeList = (DXGI_MODE_DESC *) ri.Hunk_Alloc (sizeof (DXGI_MODE_DESC) * NumModes);
 
 		if (SUCCEEDED (output->lpVtbl->GetDisplayModeList (output, fmt, EnumFlags, &NumModes, *ModeList)))
 			return NumModes;
@@ -317,7 +317,7 @@ void D_EnumerateVideoModes (void)
 		vid_modedata.fsmodes[i + 1] = NULL;
 	}
 
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 }
 
 
@@ -881,7 +881,7 @@ function and instead do a call to GLimp_SwapBuffers.
 void GLimp_EndFrame (int scrflags)
 {
 	// free any loading memory that may have been used during the frame
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 
 	if (scrflags & SCR_SYNC_PIPELINE)
 		R_SyncPipeline ();

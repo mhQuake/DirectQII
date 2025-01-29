@@ -305,6 +305,9 @@
     <ClCompile Include="mod_mesh.c">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="mod_md5.c">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="qmenu.h">
@@ -375,6 +378,9 @@
     </ClInclude>
     <ClInclude Include="mesh.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

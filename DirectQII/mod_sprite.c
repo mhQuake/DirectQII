@@ -45,6 +45,7 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer)
 	dsprite_t *sprout = HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, modfilelen);
 
 	mod->md2header = NULL;
+	mod->md5header = NULL;
 	mod->sprheader = sprout;
 
 	sprout->ident = LittleLong (sprin->ident);

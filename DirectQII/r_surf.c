@@ -742,7 +742,7 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 	};
 
 	// alloc a buffer to write the verts to and create the VB from
-	brushpolyvert_t *verts = (brushpolyvert_t *) ri.Load_AllocMemory (sizeof (brushpolyvert_t) * r_NumSurfVertexes);
+	brushpolyvert_t *verts = (brushpolyvert_t *) ri.Hunk_Alloc (sizeof (brushpolyvert_t) * r_NumSurfVertexes);
 	D3D11_SUBRESOURCE_DATA srd = {verts, 0, 0};
 
 	// fill in the verts
@@ -756,7 +756,7 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &d3d_SurfVertexes);
 
 	// for the next map
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 
 	r_NumSurfVertexes = 0;
 	r_FirstSurfIndex = 0; // force a buffer discard on the first draw call to flush all indexes from the previous map

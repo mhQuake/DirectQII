@@ -55,7 +55,7 @@ static void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 {
 	int i;
 	spritebuffers_t *set = &d3d_SpriteBuffers[mod->bufferset];
-	spritepolyvert_t *verts = (spritepolyvert_t *) ri.Load_AllocMemory (sizeof (spritepolyvert_t) * 4 * psprite->numframes);
+	spritepolyvert_t *verts = (spritepolyvert_t *) ri.Hunk_Alloc (sizeof (spritepolyvert_t) * 4 * psprite->numframes);
 
 	D3D11_BUFFER_DESC vbDesc = {
 		sizeof (spritepolyvert_t) * 4 * psprite->numframes,
@@ -89,7 +89,7 @@ static void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 
 	// create the new vertex buffer
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 }
 
 

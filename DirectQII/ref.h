@@ -228,8 +228,10 @@ typedef struct refimport_s {
 	void (*Mkdir) (char *path);
 
 	// loading temp allocations
-	void (*Load_FreeMemory) (void);
-	void *(*Load_AllocMemory) (int size);
+	void (*Hunk_FreeAll) (void);
+	void *(*Hunk_Alloc) (int size);
+	int (*Hunk_LowMark) (void);
+	void (*Hunk_FreeToLowMark) (int);
 
 	void (*Cmd_AddCommand) (char *name, void (*cmd) (void));
 	void (*Cmd_RemoveCommand) (char *name);

@@ -161,7 +161,7 @@ byte load_buffer[LOAD_BUFFER_SIZE];
 int load_buffer_mark = 0;
 
 
-void Load_FreeMemory (void)
+void Hunk_FreeAll (void)
 {
 	if (load_buffer_mark > 0)
 	{
@@ -172,7 +172,7 @@ void Load_FreeMemory (void)
 }
 
 
-void *Load_AllocMemory (int size)
+void *Hunk_Alloc (int size)
 {
 	// 16-align all allocations
 	size = (size + 15) & ~15;
@@ -192,11 +192,29 @@ void *Load_AllocMemory (int size)
 }
 
 
+int	Hunk_LowMark (void)
+{
+	return load_buffer_mark;
+}
+
+
+void Hunk_FreeToLowMark (int mark)
+{
+	if (mark < 0 || mark > load_buffer_mark)
+		Sys_Error ("Hunk_FreeToLowMark: bad mark %i", mark);
+
+	memset (&load_buffer[mark], 0, load_buffer_mark - mark);
+	load_buffer_mark = mark;
+}
+
+
 void Sys_SetupMemoryRefImports (refimport_t	*ri)
 {
 	// so that we don't have namespace pollution with externing the Hunk_* funcs we register the OS-specific memory allocation functions separately here
-	ri->Load_FreeMemory = Load_FreeMemory;
-	ri->Load_AllocMemory = Load_AllocMemory;
+	ri->Hunk_FreeAll = Hunk_FreeAll;
+	ri->Hunk_Alloc = Hunk_Alloc;
+	ri->Hunk_FreeToLowMark = Hunk_FreeToLowMark;
+	ri->Hunk_LowMark = Hunk_LowMark;
 }
 
 

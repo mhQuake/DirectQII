@@ -634,6 +634,11 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 	// regular and alternate animation
 	mod->numframes = 2;
 
+	// NULL all the headers
+	mod->md5header = NULL;
+	mod->md2header = NULL;
+	mod->sprheader = NULL;
+
 	Mod_SetupSubmodels (mod);
 }
 

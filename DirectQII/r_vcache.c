@@ -136,16 +136,16 @@ static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsi
 {
 	int i, j, sum, bestTriangle, bestScore, outPos, scanPos;
 	int cache[VERTEX_CACHE_SIZE + 3];
-	byte *numActiveTris = (byte *) ri.Load_AllocMemory (sizeof (byte) * nVertices);
+	byte *numActiveTris = (byte *) ri.Hunk_Alloc (sizeof (byte) * nVertices);
 
-	int *offsets = (int *) ri.Load_AllocMemory (sizeof (int) * nVertices);
-	unsigned short *lastScore = (unsigned short *) ri.Load_AllocMemory (sizeof (unsigned short) * nVertices);
-	char *cacheTag = (char *) ri.Load_AllocMemory (sizeof (char) * nVertices);
+	int *offsets = (int *) ri.Hunk_Alloc (sizeof (int) * nVertices);
+	unsigned short *lastScore = (unsigned short *) ri.Hunk_Alloc (sizeof (unsigned short) * nVertices);
+	char *cacheTag = (char *) ri.Hunk_Alloc (sizeof (char) * nVertices);
 
-	byte *triangleAdded = (byte *) ri.Load_AllocMemory ((nTriangles + 7) >> 3);
+	byte *triangleAdded = (byte *) ri.Hunk_Alloc ((nTriangles + 7) >> 3);
 	//byte *triangleAdded = (byte *) ri.Load_AllocMemory (nTriangles);
-	unsigned short *triangleScore = (unsigned short *) ri.Load_AllocMemory (sizeof (unsigned short) * nTriangles);
-	int *triangleIndices = (int *) ri.Load_AllocMemory (sizeof (int) * 3 * nTriangles);
+	unsigned short *triangleScore = (unsigned short *) ri.Hunk_Alloc (sizeof (unsigned short) * nTriangles);
+	int *triangleIndices = (int *) ri.Hunk_Alloc (sizeof (int) * 3 * nTriangles);
 
 	int *outTriangles = NULL;
 
@@ -211,7 +211,7 @@ static int VCache_ActuallyReorderIndices (unsigned short *outIndices, const unsi
 	}
 
 	// Allocate the output array
-	outTriangles = (int *) ri.Load_AllocMemory (sizeof (int) * nTriangles);
+	outTriangles = (int *) ri.Hunk_Alloc (sizeof (int) * nTriangles);
 	outPos = 0;
 
 	// Initialize the cache

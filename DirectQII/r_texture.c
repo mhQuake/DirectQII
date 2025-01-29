@@ -169,7 +169,7 @@ void R_TexSubImage8 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h
 {
 	unsigned *trans = GL_Image8To32 (data, w, h, palette);
 	R_TexSubImage32 (tex, level, x, y, w, h, trans);
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 }
 
 
@@ -284,7 +284,7 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	}
 
 	// free memory used for loading the image
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 
 	return image;
 }
@@ -397,7 +397,7 @@ image_t *GL_LoadWal (char *name, int flags)
 
 	// free any memory used for loading
 	ri.FS_FreeFile ((void *) mt);
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 
 	// store out the flags used for matching
 	image->texinfoflags = flags;
@@ -455,6 +455,12 @@ image_t *GL_FindImage (char *name, imagetype_t type)
 			return NULL;
 		else image = GL_LoadPic (name, pic, width, height, type, 32, NULL);
 	}
+	else if (!strcmp (name + len - 4, ".png"))
+	{
+		if ((pic = Image_LoadPNG (name, &width, &height)) == NULL)
+			return NULL;
+		else image = GL_LoadPic (name, pic, width, height, type, 32, NULL);
+	}
 	else
 	{
 		ri.Sys_Error (ERR_DROP, "GL_FindImage : %s is unsupported file type\n", name);
@@ -462,7 +468,7 @@ image_t *GL_FindImage (char *name, imagetype_t type)
 	}
 
 	// free any memory used for loading
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 
 	// store out the flags used for matching
 	image->texinfoflags = 0;
@@ -599,7 +605,7 @@ image_t *R_LoadTexArray (char *base)
 	image->RTV = NULL;
 
 	// free memory used for loading the image
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 
 	return image;
 }

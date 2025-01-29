@@ -95,7 +95,7 @@ void Draw_CreateBuffers (void)
 	};
 
 	int i;
-	unsigned short *ndx = ri.Load_AllocMemory (sizeof (unsigned short) * MAX_DRAW_INDEXES);
+	unsigned short *ndx = ri.Hunk_Alloc (sizeof (unsigned short) * MAX_DRAW_INDEXES);
 	D3D11_SUBRESOURCE_DATA srd = {ndx, 0, 0};
 
 	for (i = 0; i < MAX_DRAW_VERTS; i += 4, ndx += 6)
@@ -115,7 +115,7 @@ void Draw_CreateBuffers (void)
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_DrawIndexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawVertexes, "d3d_DrawVertexes");
 
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 }
 
 
@@ -566,7 +566,7 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 	}
 
 	// free any memory we may have used for loading it
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 
 	R_BindTexture (r_CinematicPic.SRV);
 

@@ -22,19 +22,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 #include "mesh.h"
 
-aliasbuffers_t d3d_AliasBuffers[MAX_MOD_KNOWN];
+bufferset_t d3d_AliasBuffers[MAX_MOD_KNOWN];
 
 void R_ShutdownMesh (void)
 {
 	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
-		aliasbuffers_t *set = &d3d_AliasBuffers[i];
+		bufferset_t *set = &d3d_AliasBuffers[i];
 
-		SAFE_RELEASE (set->PolyVerts);
-		SAFE_RELEASE (set->TexCoords);
-		SAFE_RELEASE (set->Indexes);
+		SAFE_RELEASE (set->PositionsBuffer);
+		SAFE_RELEASE (set->TexCoordsBuffer);
+		SAFE_RELEASE (set->IndexBuffer);
 
-		memset (set, 0, sizeof (aliasbuffers_t));
+		memset (set, 0, sizeof (bufferset_t));
 	}
 }
 
@@ -43,21 +43,21 @@ void R_FreeUnusedAliasBuffers (void)
 {
 	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
-		aliasbuffers_t *set = &d3d_AliasBuffers[i];
+		bufferset_t *set = &d3d_AliasBuffers[i];
 
 		if (set->registration_sequence != r_registration_sequence)
 		{
-			SAFE_RELEASE (set->PolyVerts);
-			SAFE_RELEASE (set->TexCoords);
-			SAFE_RELEASE (set->Indexes);
+			SAFE_RELEASE (set->PositionsBuffer);
+			SAFE_RELEASE (set->TexCoordsBuffer);
+			SAFE_RELEASE (set->IndexBuffer);
 
-			memset (set, 0, sizeof (aliasbuffers_t));
+			memset (set, 0, sizeof (bufferset_t));
 		}
 	}
 }
 
 
-aliasbuffers_t *R_GetBufferSetForIndex (int index)
+bufferset_t *R_GetBufferSetForIndex (int index)
 {
 	return &d3d_AliasBuffers[index];
 }
@@ -68,11 +68,11 @@ int D_FindAliasBuffers (model_t *mod)
 	// see do we already have it
 	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
-		aliasbuffers_t *set = &d3d_AliasBuffers[i];
+		bufferset_t *set = &d3d_AliasBuffers[i];
 
-		if (!set->PolyVerts) continue;
-		if (!set->TexCoords) continue;
-		if (!set->Indexes) continue;
+		if (!set->PositionsBuffer) continue;
+		if (!set->TexCoordsBuffer) continue;
+		if (!set->IndexBuffer) continue;
 
 		if (strcmp (set->Name, mod->name)) continue;
 
@@ -100,12 +100,12 @@ int D_GetFreeBufferSet (void)
 	// find the first free buffer
 	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
-		aliasbuffers_t *set = &d3d_AliasBuffers[i];
+		bufferset_t *set = &d3d_AliasBuffers[i];
 
 		// already allocated
-		if (set->PolyVerts) continue;
-		if (set->TexCoords) continue;
-		if (set->Indexes) continue;
+		if (set->PositionsBuffer) continue;
+		if (set->TexCoordsBuffer) continue;
+		if (set->IndexBuffer) continue;
 
 		// found a free one
 		return i;

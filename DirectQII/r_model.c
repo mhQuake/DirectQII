@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // models.c -- model loading and caching
 
 #include "r_local.h"
+#include "mesh.h"
 
 model_t	*loadmodel;
 int		modfilelen;
@@ -27,6 +28,7 @@ int		modfilelen;
 void Mod_LoadSpriteModel (model_t *mod, void *buffer);
 void Mod_LoadBrushModel (model_t *mod, void *buffer);
 void Mod_LoadAliasModel (model_t *mod, void *buffer);
+qboolean Mod_LoadMD5Model (model_t *mod, void *buffer);
 model_t *Mod_LoadModel (model_t *mod, qboolean crash);
 
 byte	mod_novis[MAX_MAP_LEAFS / 8];
@@ -257,7 +259,9 @@ model_t *Mod_ForName (char *name, qboolean crash)
 	switch (LittleLong (*(unsigned *) buf))
 	{
 	case IDALIASHEADER:
-		Mod_LoadAliasModel (mod, buf);
+		// attempt to load an MD5 first, falling back on MD2 if it fails
+		if (!Mod_LoadMD5Model (mod, buf))
+			Mod_LoadAliasModel (mod, buf);
 		break;
 
 	case IDSPRITEHEADER:
@@ -363,6 +367,18 @@ struct model_s *R_RegisterModel (char *name)
 
 			for (i = 0; i < sprout->numframes; i++)
 				mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite);
+		}
+		else if (mod->type == mod_md5)
+		{
+			md5header_t *hdr = mod->md5header;
+
+			for (i = 0; i < hdr->numskins; i++)
+				mod->skins[i] = GL_FindImage (hdr->skinnames[i], it_skin);
+
+			mod->numframes = hdr->anim.num_frames;
+
+			// register vertex and index buffers
+			D_RegisterAliasBuffers (mod);
 		}
 		else if (mod->type == mod_alias)
 		{

@@ -116,7 +116,7 @@ image_t *R_SelectMeshTexture (entity_t *e, model_t *mod)
 
 void R_DrawMeshPolySet (model_t *mod)
 {
-	aliasbuffers_t *set = R_GetBufferSetForIndex (mod->bufferset);
+	bufferset_t *set = R_GetBufferSetForIndex (mod->bufferset);
 	d3d_Context->lpVtbl->DrawIndexed (d3d_Context, set->numindexes, 0, 0);
 }
 
@@ -159,16 +159,16 @@ void R_MeshDlights (entity_t *e, model_t *mod, QMATRIX *localMatrix)
 }
 
 
-void R_SetupMeshFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
+void R_SetupMeshFrameLerp (entity_t *e, model_t *mod, bufferset_t *set)
 {
 	// sets up stuff that's going to be valid for both the main pass and the dynamic lighting pass(es)
 	R_BindTexture (R_SelectMeshTexture (e, mod)->SRV);
 
-	D_BindVertexBuffer (1, set->PolyVerts, sizeof (meshpolyvert_t), e->prevframe * set->framevertexstride);
-	D_BindVertexBuffer (2, set->PolyVerts, sizeof (meshpolyvert_t), e->currframe * set->framevertexstride);
-	D_BindVertexBuffer (3, set->TexCoords, sizeof (float) * 2, 0);
+	D_BindVertexBuffer (1, set->PositionsBuffer, sizeof (meshpolyvert_t), e->prevframe * set->framevertexstride);
+	D_BindVertexBuffer (2, set->PositionsBuffer, sizeof (meshpolyvert_t), e->currframe * set->framevertexstride);
+	D_BindVertexBuffer (3, set->TexCoordsBuffer, sizeof (float) * 2, 0);
 
-	D_BindIndexBuffer (set->Indexes, DXGI_FORMAT_R16_UINT);
+	D_BindIndexBuffer (set->IndexBuffer, DXGI_FORMAT_R16_UINT);
 }
 
 
@@ -338,33 +338,55 @@ void R_LightMeshEntity (entity_t *e, meshconstants_t *consts, QMATRIX *localmatr
 }
 
 
-static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
+static qboolean R_CullMeshEntity (entity_t *e, QMATRIX *localmatrix)
 {
 	model_t *mod = e->model;
-	mmdl_t *hdr = mod->md2header;
 
-	// the frames were fixed-up in R_PrepareAliasModel so we don't need to do so here
-	maliasframe_t *currframe = &hdr->frames[e->currframe];
-	maliasframe_t *prevframe = &hdr->frames[e->prevframe];
-
-	// compute axially aligned mins and maxs
-	if (currframe == prevframe)
+	if (mod->type == mod_alias)
 	{
-		for (int i = 0; i < 3; i++)
+		mmdl_t *hdr = mod->md2header;
+
+		// the frames were fixed-up in R_PrepareAliasModel so we don't need to do so here
+		maliasframe_t *currframe = &hdr->frames[e->currframe];
+		maliasframe_t *prevframe = &hdr->frames[e->prevframe];
+
+		// compute axially aligned mins and maxs
+		if (currframe == prevframe)
 		{
-			mod->mins[i] = currframe->translate[i];
-			mod->maxs[i] = mod->mins[i] + currframe->scale[i] * 255;
+			for (int i = 0; i < 3; i++)
+			{
+				mod->mins[i] = currframe->translate[i];
+				mod->maxs[i] = mod->mins[i] + currframe->scale[i] * 255;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				float currmins = currframe->translate[i];
+				float currmaxs = currmins + currframe->scale[i] * 255;
+
+				float prevmins = prevframe->translate[i];
+				float prevmaxs = prevmins + prevframe->scale[i] * 255;
+
+				if (currmins < prevmins) mod->mins[i] = currmins; else mod->mins[i] = prevmins;
+				if (currmaxs > prevmaxs) mod->maxs[i] = currmaxs; else mod->maxs[i] = prevmaxs;
+			}
 		}
 	}
-	else
+	else if (mod->type == mod_md5)
 	{
+		md5header_t *hdr = mod->md5header;
+		md5_anim_t *anim = &hdr->anim;
+
+		// compute axially aligned mins and maxs
 		for (int i = 0; i < 3; i++)
 		{
-			float currmins = currframe->translate[i];
-			float currmaxs = currmins + currframe->scale[i] * 255;
+			float currmins = anim->bboxes[e->currframe].mins[i];
+			float currmaxs = anim->bboxes[e->currframe].maxs[i];
 
-			float prevmins = prevframe->translate[i];
-			float prevmaxs = prevmins + prevframe->scale[i] * 255;
+			float prevmins = anim->bboxes[e->prevframe].mins[i];
+			float prevmaxs = anim->bboxes[e->prevframe].maxs[i];
 
 			if (currmins < prevmins) mod->mins[i] = currmins; else mod->mins[i] = prevmins;
 			if (currmaxs > prevmaxs) mod->maxs[i] = currmaxs; else mod->maxs[i] = prevmaxs;
@@ -379,7 +401,7 @@ static qboolean R_CullAliasModel (entity_t *e, QMATRIX *localmatrix)
 }
 
 
-void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
+void R_DrawMeshEntity (entity_t *e, QMATRIX *localmatrix)
 {
 	model_t		*mod = e->model;
 
@@ -388,7 +410,7 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 
 	if (!(e->flags & RF_WEAPONMODEL))
 	{
-		if (R_CullAliasModel (e, localmatrix))
+		if (R_CullMeshEntity (e, localmatrix))
 			return;
 	}
 	else
@@ -441,14 +463,41 @@ void R_PrepareAliasModel (entity_t *e, QMATRIX *localmatrix)
 	// fix up the frames in advance of culling because it needs them
 	if ((e->currframe >= hdr->num_frames) || (e->currframe < 0))
 	{
-		ri.Con_Printf (PRINT_ALL, "R_DrawAliasModel %s: no such currframe %d\n", mod->name, e->currframe);
+		ri.Con_Printf (PRINT_ALL, "R_PrepareAliasModel %s: no such currframe %d\n", mod->name, e->currframe);
 		e->currframe = 0;
 		e->prevframe = 0;
 	}
 
 	if ((e->prevframe >= hdr->num_frames) || (e->prevframe < 0))
 	{
-		ri.Con_Printf (PRINT_ALL, "R_DrawAliasModel %s: no such prevframe %d\n", mod->name, e->prevframe);
+		ri.Con_Printf (PRINT_ALL, "R_PrepareAliasModel %s: no such prevframe %d\n", mod->name, e->prevframe);
+		e->currframe = 0;
+		e->prevframe = 0;
+	}
+
+	// get the transform in local space so that we can correctly handle dlights
+	R_MatrixIdentity (localmatrix);
+	R_MatrixTranslate (localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
+	R_MatrixRotate (localmatrix, e->angles[0], e->angles[1], -e->angles[2]);
+}
+
+
+void R_PrepareMD5Model (entity_t *e, QMATRIX *localmatrix)
+{
+	model_t *mod = e->model;
+	md5header_t *hdr = mod->md5header;
+
+	// fix up the frames in advance of culling because it needs them
+	if ((e->currframe >= hdr->anim.num_frames) || (e->currframe < 0))
+	{
+		ri.Con_Printf (PRINT_ALL, "R_PrepareMD5Model %s: no such currframe %d\n", mod->name, e->currframe);
+		e->currframe = 0;
+		e->prevframe = 0;
+	}
+
+	if ((e->prevframe >= hdr->anim.num_frames) || (e->prevframe < 0))
+	{
+		ri.Con_Printf (PRINT_ALL, "R_PrepareMD5Model %s: no such prevframe %d\n", mod->name, e->prevframe);
 		e->currframe = 0;
 		e->prevframe = 0;
 	}

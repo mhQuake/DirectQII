@@ -101,7 +101,7 @@ int AverageMipGC (int _1, int _2, int _3, int _4)
 
 byte *Image_Upscale8 (byte *in, int inwidth, int inheight)
 {
-	byte *out = (byte *) ri.Load_AllocMemory (inwidth * inheight * 4);
+	byte *out = (byte *) ri.Hunk_Alloc (inwidth * inheight * 4);
 	int outwidth = inwidth << 1;
 	int outheight = inheight << 1;
 	int outx, outy, inx, iny;
@@ -122,7 +122,7 @@ byte *Image_Upscale8 (byte *in, int inwidth, int inheight)
 
 unsigned *Image_Upscale32 (unsigned *in, int inwidth, int inheight)
 {
-	unsigned *out = (unsigned *) ri.Load_AllocMemory (inwidth * inheight * 4 * sizeof (unsigned));
+	unsigned *out = (unsigned *) ri.Hunk_Alloc (inwidth * inheight * 4 * sizeof (unsigned));
 	int outwidth = inwidth << 1;
 	int outheight = inheight << 1;
 	int outx, outy, inx, iny;
@@ -195,14 +195,14 @@ void Image_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int 
 		return;
 	}
 
-	out = ri.Load_AllocMemory ((pcx->ymax + 1) * (pcx->xmax + 1));
+	out = ri.Hunk_Alloc ((pcx->ymax + 1) * (pcx->xmax + 1));
 
 	*pic = out;
 	pix = out;
 
 	if (palette)
 	{
-		*palette = ri.Load_AllocMemory (768);
+		*palette = ri.Hunk_Alloc (768);
 		memcpy (*palette, (byte *) pcx + len - 768, 768);
 	}
 
@@ -313,7 +313,7 @@ byte *Image_LoadTGA (char *name, int *width, int *height)
 	if (width) *width = columns;
 	if (height) *height = rows;
 
-	targa_rgba = ri.Load_AllocMemory (numPixels * 4);
+	targa_rgba = ri.Hunk_Alloc (numPixels * 4);
 	pic = targa_rgba;
 
 	if (targa_header->id_length != 0)
@@ -506,7 +506,7 @@ typedef struct floodfill_s {
 void R_FloodFillSkin (byte *skin, int skinwidth, int skinheight)
 {
 	byte				fillcolor = *skin; // assume this is the pixel to fill
-	floodfill_t			*fifo = (floodfill_t *) ri.Load_AllocMemory (FLOODFILL_FIFO_SIZE * sizeof (floodfill_t));
+	floodfill_t			*fifo = (floodfill_t *) ri.Hunk_Alloc (FLOODFILL_FIFO_SIZE * sizeof (floodfill_t));
 	int					inpt = 0, outpt = 0;
 	int					filledcolor = -1;
 	int					i;
@@ -564,9 +564,9 @@ unsigned *Image_ResampleToSize (unsigned *in, int inwidth, int inheight, int out
 	{
 		int i, j;
 
-		unsigned *out = (unsigned *) ri.Load_AllocMemory (outwidth * outheight * 4);
-		unsigned *p1 = (unsigned *) ri.Load_AllocMemory (outwidth * 4);
-		unsigned *p2 = (unsigned *) ri.Load_AllocMemory (outwidth * 4);
+		unsigned *out = (unsigned *) ri.Hunk_Alloc (outwidth * outheight * 4);
+		unsigned *p1 = (unsigned *) ri.Hunk_Alloc (outwidth * 4);
+		unsigned *p2 = (unsigned *) ri.Hunk_Alloc (outwidth * 4);
 
 		unsigned fracstep = inwidth * 0x10000 / outwidth;
 		unsigned frac = fracstep >> 2;
@@ -625,7 +625,7 @@ unsigned *Image_MipReduceLinearFilter (unsigned *in, int inwidth, int inheight)
 unsigned *Image_MipReduceBoxFilter (unsigned *data, int width, int height)
 {
 	// because each SRD must have it's own data we can't mipmap in-place otherwise we'll corrupt the previous miplevel
-	unsigned *trans = (unsigned *) ri.Load_AllocMemory ((width >> 1) * (height >> 1) * 4);
+	unsigned *trans = (unsigned *) ri.Hunk_Alloc ((width >> 1) * (height >> 1) * 4);
 	byte *in = (byte *) data;
 	byte *out = (byte *) trans;
 	int i, j;
@@ -693,7 +693,7 @@ int Draw_GetPalette (void)
 	Image_QuakePalFromPCXPal (d_8to24table_alpha, pal, TEX_ALPHA);
 	Image_QuakePalFromPCXPal (d_8to24table_trans33, pal, TEX_TRANS33);
 	Image_QuakePalFromPCXPal (d_8to24table_trans66, pal, TEX_TRANS66);
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 
 	// gamma-correct to 16-bit precision, average, then mix back down to 8-bit precision so that we don't lose ultra-darks in the correction process
 	for (i = 0; i < 256; i++) image_mipgammatable[i] = Image_GammaVal8to16 (i, 2.2f);
@@ -705,7 +705,7 @@ int Draw_GetPalette (void)
 
 unsigned *GL_Image8To32 (byte *data, int width, int height, unsigned *palette)
 {
-	unsigned	*trans = (unsigned *) ri.Load_AllocMemory (width * height * sizeof (unsigned));
+	unsigned	*trans = (unsigned *) ri.Hunk_Alloc (width * height * sizeof (unsigned));
 	int			i, s = width * height;
 
 	for (i = 0; i < s; i++)
@@ -838,4 +838,68 @@ void Image_ApplyTranslationRGB (byte *rgb, int size, byte *table)
 	}
 }
 
+
+// ==============================================================================
+//
+//  STB - handles TGA/PNG/BMP/JPG loading
+//
+// ==============================================================================
+
+void *IMG_Alloc (int size)
+{
+	return ri.Hunk_Alloc (size);
+}
+
+// our free implementation is just a stub and our realloc doesn't free the old allocation
+void IMG_Free (void *ptr) {}
+
+// we can't support a custom realloc with our current hunk implementation as we don't track allocation sizes, so we implement STBI_REALLOC_SIZED instead
+void *IMG_Realloc (void *p, int oldsz, int newsz)
+{
+	void *q = (void *) ri.Hunk_Alloc (newsz);
+	memcpy (q, p, oldsz);
+	return q;
+}
+
+// hostile takeover!
+#define STBI_MALLOC IMG_Alloc
+#define STBI_REALLOC_SIZED IMG_Realloc
+#define STBI_FREE IMG_Free
+
+
+// needs to be defined before including stb_image.h
+#define STB_IMAGE_IMPLEMENTATION
+
+// these are the only types we want to have code for
+#define STBI_ONLY_PNG
+
+// !!!!! a 2048x2048 skybox is 100mb !!!!!
+#define STBI_MAX_DIMENSIONS	2048
+
+// and now we can include it
+#include "stb_image.h"
+
+
+byte *Image_LoadPNG (char *name, int *width, int *height)
+{
+	// take it all in one go
+	byte *buf = NULL;
+	int len = 0;
+
+	if ((len = ri.FS_LoadFile (name, (void **) &buf)) != -1)
+	{
+		// attempt to load as 4-component RGBA
+		int channels = 0;
+		byte *data = stbi_load_from_memory (buf, len, width, height, &channels, 4);
+
+		// free it
+		ri.FS_FreeFile (buf);
+
+		// and now we can return whatever we got
+		return data;
+	}
+
+	// always fails
+	return NULL;
+}
 

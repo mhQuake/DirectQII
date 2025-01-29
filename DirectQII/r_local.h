@@ -63,6 +63,7 @@ extern QMATRIX	r_mvp_matrix;
 extern QMATRIX	r_local_matrix[MAX_ENTITIES];
 
 void R_PrepareAliasModel (entity_t *e, QMATRIX *localmatrix);
+void R_PrepareMD5Model (entity_t *e, QMATRIX *localmatrix);
 void R_PrepareBrushModel (entity_t *e, QMATRIX *localmatrix);
 void R_PrepareSpriteModel (entity_t *e, QMATRIX *localmatrix);
 void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix);
@@ -258,7 +259,7 @@ extern	int		r_registration_sequence;
 int R_Init (void *hinstance, void *wndproc);
 void R_Shutdown (void);
 
-void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix);
+void R_DrawMeshEntity (entity_t *e, QMATRIX *localmatrix);
 void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix);
 void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix);
 void R_DrawBeam (entity_t *e, QMATRIX *localmatrix);
@@ -440,6 +441,7 @@ typedef struct _TargaHeader {
 byte *Image_LoadTGA (char *name, int *width, int *height);
 void Image_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
 byte *Image_LoadPCX32 (char *name, int *width, int *height);
+byte *Image_LoadPNG (char *name, int *width, int *height);
 
 unsigned *Image_ResampleToSize (unsigned *in, int inwidth, int inheight, int outwidth, int outheight);
 unsigned *Image_MipReduceLinearFilter (unsigned *in, int inwidth, int inheight);

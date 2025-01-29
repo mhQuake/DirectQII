@@ -166,7 +166,7 @@ static char *D_LoadShaderSource (int resourceID)
 	int shaderlength = LoadResourceData (resourceID, (void **) &shadersource);
 
 	// alloc sufficient memory for both
-	char *fullsource = (char *) ri.Load_AllocMemory (includelength + shaderlength + 2);
+	char *fullsource = (char *) ri.Hunk_Alloc (includelength + shaderlength + 2);
 
 	// and combine them
 	strncpy (fullsource, includesource, includelength);
@@ -270,7 +270,7 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 	}
 
 	// throw away memory
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 
 	d3d_NumShaders++;
 

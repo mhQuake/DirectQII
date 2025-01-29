@@ -351,7 +351,7 @@ void R_DrawEntitiesOnList (qboolean trans)
 			switch (e->model->type)
 			{
 			case mod_alias:
-				R_DrawAliasModel (e, &r_local_matrix[i]);
+				R_DrawMeshEntity (e, &r_local_matrix[i]);
 				break;
 
 			case mod_brush:
@@ -360,6 +360,10 @@ void R_DrawEntitiesOnList (qboolean trans)
 
 			case mod_sprite:
 				R_DrawSpriteModel (e, &r_local_matrix[i]);
+				break;
+
+			case mod_md5:
+				R_DrawMeshEntity (e, &r_local_matrix[i]);
 				break;
 
 			default:
@@ -642,6 +646,10 @@ void R_PrepareEntities (void)
 
 			case mod_sprite:
 				R_PrepareSpriteModel (e, &r_local_matrix[i]);
+				break;
+
+			case mod_md5:
+				R_PrepareMD5Model (e, &r_local_matrix[i]);
 				break;
 
 			default:

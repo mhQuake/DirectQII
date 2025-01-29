@@ -139,6 +139,7 @@
     <ClCompile Include="cl_tent.c" />
     <ClCompile Include="cl_view.c" />
     <ClCompile Include="cmd.c" />
+    <ClCompile Include="mod_md5.c" />
     <ClCompile Include="mod_mesh.c" />
     <ClCompile Include="sv_cmodel.c" />
     <ClCompile Include="common.c" />
@@ -237,6 +238,7 @@
     <ClInclude Include="server.h" />
     <ClInclude Include="snd_loc.h" />
     <ClInclude Include="sound.h" />
+    <ClInclude Include="stb_image.h" />
     <ClInclude Include="vid.h" />
   </ItemGroup>
   <ItemGroup>

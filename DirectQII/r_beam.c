@@ -60,7 +60,7 @@ void R_CreateBeamIndexBuffer (void)
 		0
 	};
 
-	unsigned short *indexes = (unsigned short *) ri.Load_AllocMemory (r_numbeamindexes * sizeof (unsigned short));
+	unsigned short *indexes = (unsigned short *) ri.Hunk_Alloc (r_numbeamindexes * sizeof (unsigned short));
 	unsigned short *ndx = indexes;
 
 	D3D11_SUBRESOURCE_DATA srd = {indexes, 0, 0};
@@ -90,7 +90,7 @@ void R_CreateBeamVertexes (int slices)
 
 	r_numbeamverts = (slices + 1) * 2;
 	r_numbeamindexes = (r_numbeamverts - 2) * 3;
-	verts = (beampolyvert_t *) ri.Load_AllocMemory (r_numbeamverts * sizeof (beampolyvert_t));
+	verts = (beampolyvert_t *) ri.Hunk_Alloc (r_numbeamverts * sizeof (beampolyvert_t));
 
 	srd.pSysMem = verts;
 	srd.SysMemPitch = 0;
@@ -109,7 +109,7 @@ void R_CreateBeamVertexes (int slices)
 	R_CreateBeamIndexBuffer ();
 
 	// throw away memory used for loading
-	ri.Load_FreeMemory ();
+	ri.Hunk_FreeAll ();
 }
 
 

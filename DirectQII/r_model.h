@@ -140,7 +140,7 @@ typedef struct mleaf_s {
 // Whole model
 //
 
-typedef enum { mod_bad, mod_brush, mod_sprite, mod_alias } modtype_t;
+typedef enum { mod_bad, mod_brush, mod_sprite, mod_alias, mod_md5 } modtype_t;
 
 
 typedef struct dbsp_s {
@@ -238,6 +238,7 @@ typedef struct model_s {
 	// these were a union but we want it to be more explicit and make it an error if the wrong header type is accessed for a model
 	mmdl_t *md2header;
 	dsprite_t *sprheader;
+	struct md5header_s *md5header;
 } model_t;
 
 
