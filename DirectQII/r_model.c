@@ -378,7 +378,7 @@ struct model_s *R_RegisterModel (char *name)
 			mod->numframes = hdr->anim.num_frames;
 
 			// register vertex and index buffers
-			D_RegisterAliasBuffers (mod);
+			R_RegisterBufferSet (mod);
 		}
 		else if (mod->type == mod_alias)
 		{
@@ -390,7 +390,7 @@ struct model_s *R_RegisterModel (char *name)
 			mod->numframes = pheader->num_frames;
 
 			// register vertex and index buffers
-			D_RegisterAliasBuffers (mod);
+			R_RegisterBufferSet (mod);
 		}
 		else if (mod->type == mod_brush)
 		{
@@ -427,7 +427,7 @@ void R_EndRegistration (void)
 	}
 
 	// free any GPU objects not touched in this reg sequence
-	R_FreeUnusedAliasBuffers ();
+	R_FreeUnusedBufferSets ();
 	R_FreeUnusedSpriteBuffers ();
 	R_FreeUnusedImages ();
 }

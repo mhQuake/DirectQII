@@ -86,7 +86,7 @@ void R_InitSky (void);
 void R_ShutdownWarp (void);
 void R_ShutdownSky (void);
 void R_InitMesh (void);
-void R_ShutdownMesh (void);
+void R_ShutdownBufferSets (void);
 void R_InitBeam (void);
 void R_ShutdownBeam (void);
 void R_InitNull (void);
@@ -496,9 +496,9 @@ void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // mesh
-void R_FreeUnusedAliasBuffers (void);
+void R_FreeUnusedBufferSets (void);
 void D_MakeAliasBuffers (model_t *mod, dmdl_t *src);
-void D_RegisterAliasBuffers (model_t *mod);
+void R_RegisterBufferSet (model_t *mod);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------

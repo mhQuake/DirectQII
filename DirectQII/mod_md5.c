@@ -945,9 +945,9 @@ qboolean Mod_LoadMD5Model (model_t *mod, void *buffer)
 	MD5_LoadSkins (mod, hdr, pinmodel);
 
 	// see do we already have it
-	if ((mod->bufferset = D_FindAliasBuffers (mod)) != -1)
+	if ((mod->bufferset = R_GetBufferSetForModel (mod)) != -1)
 		;	// already loaded
-	else if ((mod->bufferset = D_GetFreeBufferSet ()) == -1)
+	else if ((mod->bufferset = R_GetFreeBufferSet ()) == -1)
 		ri.Sys_Error (ERR_DROP, "Mod_LoadMD5Model : not enough free buffers!");
 	else
 	{

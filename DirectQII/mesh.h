@@ -65,9 +65,9 @@ __declspec(align(16)) typedef struct meshconstants_s {
 
 
 bufferset_t *R_GetBufferSetForIndex (int index);
-void D_RegisterAliasBuffers (model_t *mod);
-int D_FindAliasBuffers (model_t *mod);
-int D_GetFreeBufferSet (void);
+void R_RegisterBufferSet (model_t *mod);
+int R_GetBufferSetForModel (model_t *mod);
+int R_GetFreeBufferSet (void);
 
 void Mesh_BuildFrameNormals (meshpolyvert_t *verts, int numverts, const mesh_triangle_t *triangles, int numtris, vertexnormals_t *vnorms);
 
