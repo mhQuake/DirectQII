@@ -246,8 +246,8 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 	D_CreateAliasTexCoords (hdr, src, set, dedupe);
 	D_CreateAliasIndexes (hdr, set, optimized);
 
-	// release memory used for loading and building
-	ri.Hunk_FreeAll ();
+	// release all memory used for loading and building
+	ri.Hunk_FreeToLowMark (0);
 }
 
 

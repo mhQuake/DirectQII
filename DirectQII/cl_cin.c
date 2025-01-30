@@ -59,12 +59,16 @@ SCR_LoadPCX
 */
 void SCR_LoadPCX (char *filename)
 {
-	void Hunk_FreeAll (void);
+	int	Hunk_LowMark (void);
+	void Hunk_FreeToLowMark (int mark);
+
 	byte *load_pic = NULL;
 	byte *load_pal = NULL;
 
+	int mark = Hunk_LowMark ();
+
 	// clear out
-	cin.pic = NULL;
+	SCR_StopCinematic ();
 	cin.width = 0;
 	cin.height = 0;
 
@@ -87,8 +91,7 @@ void SCR_LoadPCX (char *filename)
 		cin.height = 0;
 	}
 
-	// free temp memory for loading
-	Hunk_FreeAll ();
+	Hunk_FreeToLowMark (mark);
 }
 
 

@@ -29,7 +29,7 @@ texture_t r_WaterWarpRT;
 void D_CreateNoiseTexture (void)
 {
 #define NOISESIZE	16
-	unsigned *data = ri.Hunk_Alloc (NOISESIZE * NOISESIZE * 4);
+	unsigned data[NOISESIZE * NOISESIZE] = { 0 };
 	unsigned *dst = data; // preserve the original pointer so that we can use it for an SRD
 	D3D11_SUBRESOURCE_DATA srd;
 
@@ -53,7 +53,6 @@ void D_CreateNoiseTexture (void)
 
 	// and create it
 	R_CreateTexture (&r_WarpNoise, &srd, NOISESIZE, NOISESIZE, 1, TEX_R16G16);
-	ri.Hunk_FreeAll ();
 }
 
 

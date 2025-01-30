@@ -524,7 +524,7 @@ void R_EndBuildingLightmaps (void)
 	memset (lm_allocated, 0, sizeof (lm_allocated));
 
 	// hand back memory
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (0);
 }
 
 

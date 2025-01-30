@@ -683,6 +683,8 @@ int Draw_GetPalette (void)
 	byte	*pic, *pal;
 	int		width, height;
 
+	int mark = ri.Hunk_LowMark ();
+
 	// get the palette
 	Image_LoadPCX ("pics/colormap.pcx", &pic, &pal, &width, &height);
 
@@ -693,7 +695,8 @@ int Draw_GetPalette (void)
 	Image_QuakePalFromPCXPal (d_8to24table_alpha, pal, TEX_ALPHA);
 	Image_QuakePalFromPCXPal (d_8to24table_trans33, pal, TEX_TRANS33);
 	Image_QuakePalFromPCXPal (d_8to24table_trans66, pal, TEX_TRANS66);
-	ri.Hunk_FreeAll ();
+
+	ri.Hunk_FreeToLowMark (mark);
 
 	// gamma-correct to 16-bit precision, average, then mix back down to 8-bit precision so that we don't lose ultra-darks in the correction process
 	for (i = 0; i < 256; i++) image_mipgammatable[i] = Image_GammaVal8to16 (i, 2.2f);

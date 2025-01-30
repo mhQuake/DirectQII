@@ -756,7 +756,7 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &d3d_SurfVertexes);
 
 	// for the next map
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (0);
 
 	r_NumSurfVertexes = 0;
 	r_FirstSurfIndex = 0; // force a buffer discard on the first draw call to flush all indexes from the previous map

@@ -743,6 +743,9 @@ void MD5_LoadSkins (model_t *mod, md5header_t *hdr, dmdl_t *pinmodel)
 		// ...and free memory
 		ri.Hunk_FreeToLowMark (mark);
 	}
+
+	// save off number of skins for registration
+	hdr->numskins = num_skins;
 }
 
 
@@ -982,7 +985,7 @@ qboolean Mod_LoadMD5Model (model_t *mod, void *buffer)
 		MD5_BuildIndexBuffer (set, &mesh.meshes[0]);
 	}
 
-	// load the skins (moved to after the buffer data because it does a Hunk_FreeAll in the texture loader)
+	// load the skins
 	MD5_LoadSkins (mod, hdr, pinmodel);
 
 	// set the type and other data correctly
@@ -994,7 +997,7 @@ qboolean Mod_LoadMD5Model (model_t *mod, void *buffer)
 	mod->md2header = NULL;
 
 	// free loading memory
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (0);
 
 	// these will be replaced by the correct per-frame bboxes at runtime
 	Vector3Set (mod->mins, -32, -32, -32);
@@ -1006,16 +1009,16 @@ qboolean Mod_LoadMD5Model (model_t *mod, void *buffer)
 	// jump-out point for a bad/mismatched replacement
 md5_bad:;
 	// failed; free all memory and returns false
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (0);
 
-	// this should never happen unless we fail to call Mod_Free properly
+	// also destroy and recreate the model heap so any allocations on it are invalidated
 	if (mod->hHeap)
 	{
 		HeapDestroy (mod->hHeap);
 		mod->hHeap = NULL;
 	}
 
-	// create the memory heap used by this model
+	// recreate the memory heap used by this model
 	mod->hHeap = HeapCreate (0, 0, 0);
 
 	// didn't load it

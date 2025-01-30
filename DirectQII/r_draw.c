@@ -95,6 +95,7 @@ void Draw_CreateBuffers (void)
 	};
 
 	int i;
+	int mark = ri.Hunk_LowMark ();
 	unsigned short *ndx = ri.Hunk_Alloc (sizeof (unsigned short) * MAX_DRAW_INDEXES);
 	D3D11_SUBRESOURCE_DATA srd = {ndx, 0, 0};
 
@@ -115,7 +116,7 @@ void Draw_CreateBuffers (void)
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_DrawIndexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawVertexes, "d3d_DrawVertexes");
 
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 }
 
 
@@ -534,6 +535,8 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 	// we only need to refresh the texture if the frame changes
 	static int r_rawframe = -1;
 
+	int mark = ri.Hunk_LowMark ();
+
 	// if the dimensions change the texture needs to be recreated
 	if (r_CinematicPic.Desc.Width != cols || r_CinematicPic.Desc.Height != rows)
 		Draw_ShutdownRawImage ();
@@ -566,7 +569,7 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 	}
 
 	// free any memory we may have used for loading it
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 
 	R_BindTexture (r_CinematicPic.SRV);
 

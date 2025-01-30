@@ -54,6 +54,7 @@ void R_FreeUnusedSpriteBuffers (void)
 static void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 {
 	int i;
+	int mark = ri.Hunk_LowMark ();
 	spritebuffers_t *set = &d3d_SpriteBuffers[mod->bufferset];
 	spritepolyvert_t *verts = (spritepolyvert_t *) ri.Hunk_Alloc (sizeof (spritepolyvert_t) * 4 * psprite->numframes);
 
@@ -89,7 +90,9 @@ static void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 
 	// create the new vertex buffer
 	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
-	ri.Hunk_FreeAll ();
+
+	// and free memory
+	ri.Hunk_FreeToLowMark (mark);
 }
 
 

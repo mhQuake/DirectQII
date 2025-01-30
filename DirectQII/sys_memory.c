@@ -161,17 +161,6 @@ byte load_buffer[LOAD_BUFFER_SIZE];
 int load_buffer_mark = 0;
 
 
-void Hunk_FreeAll (void)
-{
-	if (load_buffer_mark > 0)
-	{
-		// future attempts to access the contents of the buffer should be errors
-		memset (load_buffer, 0, load_buffer_mark);
-		load_buffer_mark = 0;
-	}
-}
-
-
 void *Hunk_Alloc (int size)
 {
 	// 16-align all allocations
@@ -200,9 +189,9 @@ int	Hunk_LowMark (void)
 
 void Hunk_FreeToLowMark (int mark)
 {
-	// this can happen if something between a Hunk_LowMark and Hunk_FreeToLowMark pair calls Hunk_FreeAll
+	// this can happen if something between a Hunk_LowMark and Hunk_FreeToLowMark pair frees to 0
 	if (mark < 0) return;
-	if (mark > load_buffer_mark) return;
+	if (mark >= load_buffer_mark) return;
 
 	memset (&load_buffer[mark], 0, load_buffer_mark - mark);
 	load_buffer_mark = mark;
@@ -212,7 +201,6 @@ void Hunk_FreeToLowMark (int mark)
 void Sys_SetupMemoryRefImports (refimport_t	*ri)
 {
 	// so that we don't have namespace pollution with externing the Hunk_* funcs we register the OS-specific memory allocation functions separately here
-	ri->Hunk_FreeAll = Hunk_FreeAll;
 	ri->Hunk_Alloc = Hunk_Alloc;
 	ri->Hunk_FreeToLowMark = Hunk_FreeToLowMark;
 	ri->Hunk_LowMark = Hunk_LowMark;

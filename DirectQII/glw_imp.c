@@ -171,6 +171,8 @@ char *M_VideoGetScaling (DXGI_MODE_DESC *mode)
 
 void D_EnumerateVideoModes (void)
 {
+	int mark = ri.Hunk_LowMark ();
+
 	int i, j, biggest;
 	IDXGIFactory *pFactory = NULL;
 	IDXGIOutput *d3d_Output = NULL;
@@ -317,7 +319,7 @@ void D_EnumerateVideoModes (void)
 		vid_modedata.fsmodes[i + 1] = NULL;
 	}
 
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 }
 
 
@@ -881,7 +883,7 @@ function and instead do a call to GLimp_SwapBuffers.
 void GLimp_EndFrame (int scrflags)
 {
 	// free any loading memory that may have been used during the frame
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (0);
 
 	if (scrflags & SCR_SYNC_PIPELINE)
 		R_SyncPipeline ();

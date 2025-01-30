@@ -100,6 +100,8 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 
 	D3D11_SUBRESOURCE_DATA srd[6];
 
+	int mark = ri.Hunk_LowMark ();
+
 	// shutdown the old sky
 	R_ShutdownSky ();
 
@@ -159,6 +161,6 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 	R_CreateTexture (&r_SkyCubemap, srd, max_size, max_size, 1, TEX_RGBA8 | TEX_CUBEMAP);
 
 	// throw away memory used for loading
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 }
 

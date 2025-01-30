@@ -80,6 +80,7 @@ void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int a
 void R_CreateTexture32 (image_t *image, unsigned *data)
 {
 	D3D11_TEXTURE2D_DESC Desc;
+	int mark = ri.Hunk_LowMark ();
 
 	if (image->flags & TEX_CHARSET)
 	{
@@ -148,6 +149,9 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
 
 	// no RTV on this one
 	image->RTV = NULL;
+
+	// free loading memory
+	ri.Hunk_FreeToLowMark (mark);
 }
 
 
@@ -167,9 +171,10 @@ void R_TexSubImage32 (ID3D11Texture2D *tex, int level, int x, int y, int w, int 
 
 void R_TexSubImage8 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h, byte *data, unsigned *palette)
 {
+	int mark = ri.Hunk_LowMark ();
 	unsigned *trans = GL_Image8To32 (data, w, h, palette);
 	R_TexSubImage32 (tex, level, x, y, w, h, trans);
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 }
 
 
@@ -252,23 +257,13 @@ This is also used as an entry point for the generated r_notexture
 */
 image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, unsigned *palette)
 {
+	int mark = ri.Hunk_LowMark ();
+
 	image_t *image = GL_FindFreeImage (name, width, height, type);
 
 	// floodfill 8-bit alias skins (32-bit are assumed to be already filled)
 	if (type == it_skin && bits == 8)
 		R_FloodFillSkin (pic, width, height);
-
-	// problem - if we use linear filtering, we lose all of the fine pixel art detail in the original 8-bit textures.
-	// if we use nearest filtering we can't do anisotropic and we get noise at minification levels.
-	// so what we do is upscale the texture by a simple 2x nearest-neighbour upscale, which gives us magnification-nearest
-	// quality but not with the same degree of discontinuous noise, but let's us minify and anisotropically filter them properly.
-	if ((type == it_wall || type == it_skin) && bits == 8)
-	{
-		pic = Image_Upscale8 (pic, image->width, image->height);
-		image->width <<= 1;
-		image->height <<= 1;
-		image->flags |= TEX_UPSCALE;
-	}
 
 	// it's 2018 and we have non-power-of-two textures nowadays so don't bother with scraps
 	if (bits == 8)
@@ -276,15 +271,8 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	else
 		R_CreateTexture32 (image, (unsigned *) pic);
 
-	// if the image was upscaled, bring it back down again so that texcoord calculation will work as expected
-	if (image->flags & TEX_UPSCALE)
-	{
-		image->width >>= 1;
-		image->height >>= 1;
-	}
-
 	// free memory used for loading the image
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 
 	return image;
 }
@@ -346,6 +334,8 @@ image_t *GL_LoadWal (char *name, int flags)
 	byte		*texels;
 	float		scale;
 
+	int			mark = ri.Hunk_LowMark ();
+
 	// look for it
 	if ((image = GL_HaveImage (name, flags)) != NULL)
 		return image;
@@ -397,7 +387,7 @@ image_t *GL_LoadWal (char *name, int flags)
 
 	// free any memory used for loading
 	ri.FS_FreeFile ((void *) mt);
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 
 	// store out the flags used for matching
 	image->texinfoflags = flags;
@@ -419,6 +409,8 @@ image_t *GL_FindImage (char *name, imagetype_t type)
 	int		len;
 	byte	*pic, *palette;
 	int		width, height;
+
+	int		mark = ri.Hunk_LowMark ();
 
 	// validate the name
 	if (!name) return NULL;
@@ -468,7 +460,7 @@ image_t *GL_FindImage (char *name, imagetype_t type)
 	}
 
 	// free any memory used for loading
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 
 	// store out the flags used for matching
 	image->texinfoflags = 0;
@@ -522,6 +514,8 @@ void R_FreeUnusedImages (void)
 			SAFE_RELEASE (image->Texture);
 			SAFE_RELEASE (image->SRV);
 			SAFE_RELEASE (image->RTV);
+
+			ri.Con_Printf (PRINT_ALL, "Freeing %s\n", image->name);
 
 			memset (image, 0, sizeof (*image));
 		}
@@ -578,6 +572,8 @@ image_t *R_LoadTexArray (char *base)
 	D3D11_SUBRESOURCE_DATA srd[11];
 	D3D11_TEXTURE2D_DESC Desc;
 
+	int mark = ri.Hunk_LowMark ();
+
 	for (i = 0; i < 11; i++)
 	{
 		Image_LoadPCX (va ("pics/%s%s.pcx", base, sb_nums[i]), &sb_pic[i], &sb_palette[i], &sb_width[i], &sb_height[i]);
@@ -605,7 +601,7 @@ image_t *R_LoadTexArray (char *base)
 	image->RTV = NULL;
 
 	// free memory used for loading the image
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 
 	return image;
 }

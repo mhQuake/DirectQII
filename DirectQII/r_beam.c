@@ -84,6 +84,8 @@ void R_CreateBeamVertexes (int slices)
 	beampolyvert_t *verts = NULL;
 	D3D11_SUBRESOURCE_DATA srd;
 
+	int mark = ri.Hunk_LowMark ();
+
 	// clamp sensibly
 	if (slices < 3) slices = 3;
 	if (slices > 360) slices = 360;
@@ -109,7 +111,7 @@ void R_CreateBeamVertexes (int slices)
 	R_CreateBeamIndexBuffer ();
 
 	// throw away memory used for loading
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (mark);
 }
 
 

@@ -270,7 +270,7 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 	}
 
 	// throw away memory
-	ri.Hunk_FreeAll ();
+	ri.Hunk_FreeToLowMark (0);
 
 	d3d_NumShaders++;
 
