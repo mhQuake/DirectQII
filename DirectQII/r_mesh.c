@@ -159,8 +159,11 @@ void R_MeshDlights (entity_t *e, model_t *mod, QMATRIX *localMatrix)
 }
 
 
-void R_SetupMeshFrameLerp (entity_t *e, model_t *mod, bufferset_t *set)
+void R_SetupMeshFrameLerp (entity_t *e, model_t *mod)
 {
+	// get the buffer set used by this model
+	bufferset_t *set = R_GetBufferSetForIndex (mod->bufferset);
+
 	// sets up stuff that's going to be valid for both the main pass and the dynamic lighting pass(es)
 	R_BindTexture (R_SelectMeshTexture (e, mod)->SRV);
 
@@ -432,7 +435,7 @@ void R_DrawMeshEntity (entity_t *e, QMATRIX *localmatrix)
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MeshConstants, 0, NULL, &consts, 0, 0);
 
 	// set up the frame interpolation
-	R_SetupMeshFrameLerp (e, mod, R_GetBufferSetForIndex (mod->bufferset));
+	R_SetupMeshFrameLerp (e, mod);
 
 	// select the correct shader to use for the main pass
 	R_SelectMeshShader (e->flags);

@@ -637,7 +637,7 @@ void GLimp_Shutdown (void)
 	R_ShutdownLight ();
 	R_ShutdownWarp ();
 	R_ShutdownSky ();
-	R_ShutdownMesh ();
+	R_ShutdownBufferSets ();
 	R_ShutdownBeam ();
 	R_ShutdownSprites ();
 

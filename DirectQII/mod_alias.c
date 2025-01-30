@@ -254,9 +254,9 @@ void D_CreateAliasBufferSet (model_t *mod, mmdl_t *hdr, dmdl_t *src)
 void D_MakeAliasBuffers (model_t *mod, dmdl_t *src)
 {
 	// see do we already have it
-	if ((mod->bufferset = D_FindAliasBuffers (mod)) != -1) return;
+	if ((mod->bufferset = R_GetBufferSetForModel (mod)) != -1) return;
 
-	if ((mod->bufferset = D_GetFreeBufferSet ()) != -1)
+	if ((mod->bufferset = R_GetFreeBufferSet ()) != -1)
 	{
 		bufferset_t *set = R_GetBufferSetForIndex (mod->bufferset);
 

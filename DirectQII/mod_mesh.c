@@ -22,13 +22,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 #include "mesh.h"
 
-bufferset_t d3d_AliasBuffers[MAX_MOD_KNOWN];
+static bufferset_t d3d_BufferSets[MAX_MOD_KNOWN];
 
-void R_ShutdownMesh (void)
+void R_ShutdownBufferSets (void)
 {
 	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
-		bufferset_t *set = &d3d_AliasBuffers[i];
+		bufferset_t *set = &d3d_BufferSets[i];
 
 		SAFE_RELEASE (set->PositionsBuffer);
 		SAFE_RELEASE (set->TexCoordsBuffer);
@@ -39,11 +39,11 @@ void R_ShutdownMesh (void)
 }
 
 
-void R_FreeUnusedAliasBuffers (void)
+void R_FreeUnusedBufferSets (void)
 {
 	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
-		bufferset_t *set = &d3d_AliasBuffers[i];
+		bufferset_t *set = &d3d_BufferSets[i];
 
 		if (set->registration_sequence != r_registration_sequence)
 		{
@@ -59,16 +59,16 @@ void R_FreeUnusedAliasBuffers (void)
 
 bufferset_t *R_GetBufferSetForIndex (int index)
 {
-	return &d3d_AliasBuffers[index];
+	return &d3d_BufferSets[index];
 }
 
 
-int D_FindAliasBuffers (model_t *mod)
+int R_GetBufferSetForModel (model_t *mod)
 {
 	// see do we already have it
 	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
-		bufferset_t *set = &d3d_AliasBuffers[i];
+		bufferset_t *set = &d3d_BufferSets[i];
 
 		if (!set->PositionsBuffer) continue;
 		if (!set->TexCoordsBuffer) continue;
@@ -87,20 +87,20 @@ int D_FindAliasBuffers (model_t *mod)
 }
 
 
-void D_RegisterAliasBuffers (model_t *mod)
+void R_RegisterBufferSet (model_t *mod)
 {
 	// see do we already have it
-	if ((mod->bufferset = D_FindAliasBuffers (mod)) != -1) return;
+	if ((mod->bufferset = R_GetBufferSetForModel (mod)) != -1) return;
 	ri.Sys_Error (ERR_DROP, "D_RegisterAliasBuffers : buffer set for %s was not created", mod->name);
 }
 
 
-int D_GetFreeBufferSet (void)
+int R_GetFreeBufferSet (void)
 {
 	// find the first free buffer
 	for (int i = 0; i < MAX_MOD_KNOWN; i++)
 	{
-		bufferset_t *set = &d3d_AliasBuffers[i];
+		bufferset_t *set = &d3d_BufferSets[i];
 
 		// already allocated
 		if (set->PositionsBuffer) continue;
