@@ -200,8 +200,9 @@ int	Hunk_LowMark (void)
 
 void Hunk_FreeToLowMark (int mark)
 {
-	if (mark < 0 || mark > load_buffer_mark)
-		Sys_Error ("Hunk_FreeToLowMark: bad mark %i", mark);
+	// this can happen if something between a Hunk_LowMark and Hunk_FreeToLowMark pair calls Hunk_FreeAll
+	if (mark < 0) return;
+	if (mark > load_buffer_mark) return;
 
 	memset (&load_buffer[mark], 0, load_buffer_mark - mark);
 	load_buffer_mark = mark;

@@ -375,7 +375,7 @@ struct model_s *R_RegisterModel (char *name)
 			for (i = 0; i < hdr->numskins; i++)
 				mod->skins[i] = GL_FindImage (hdr->skinnames[i], it_skin);
 
-			mod->numframes = hdr->anim.num_frames;
+			mod->numframes = hdr->num_frames;
 
 			// register vertex and index buffers
 			D_RegisterAliasBuffers (mod);

@@ -377,16 +377,15 @@ static qboolean R_CullMeshEntity (entity_t *e, QMATRIX *localmatrix)
 	else if (mod->type == mod_md5)
 	{
 		md5header_t *hdr = mod->md5header;
-		md5_anim_t *anim = &hdr->anim;
 
 		// compute axially aligned mins and maxs
 		for (int i = 0; i < 3; i++)
 		{
-			float currmins = anim->bboxes[e->currframe].mins[i];
-			float currmaxs = anim->bboxes[e->currframe].maxs[i];
+			float currmins = hdr->bboxes[e->currframe].mins[i];
+			float currmaxs = hdr->bboxes[e->currframe].maxs[i];
 
-			float prevmins = anim->bboxes[e->prevframe].mins[i];
-			float prevmaxs = anim->bboxes[e->prevframe].maxs[i];
+			float prevmins = hdr->bboxes[e->prevframe].mins[i];
+			float prevmaxs = hdr->bboxes[e->prevframe].maxs[i];
 
 			if (currmins < prevmins) mod->mins[i] = currmins; else mod->mins[i] = prevmins;
 			if (currmaxs > prevmaxs) mod->maxs[i] = currmaxs; else mod->maxs[i] = prevmaxs;
@@ -488,14 +487,14 @@ void R_PrepareMD5Model (entity_t *e, QMATRIX *localmatrix)
 	md5header_t *hdr = mod->md5header;
 
 	// fix up the frames in advance of culling because it needs them
-	if ((e->currframe >= hdr->anim.num_frames) || (e->currframe < 0))
+	if ((e->currframe >= hdr->num_frames) || (e->currframe < 0))
 	{
 		ri.Con_Printf (PRINT_ALL, "R_PrepareMD5Model %s: no such currframe %d\n", mod->name, e->currframe);
 		e->currframe = 0;
 		e->prevframe = 0;
 	}
 
-	if ((e->prevframe >= hdr->anim.num_frames) || (e->prevframe < 0))
+	if ((e->prevframe >= hdr->num_frames) || (e->prevframe < 0))
 	{
 		ri.Con_Printf (PRINT_ALL, "R_PrepareMD5Model %s: no such prevframe %d\n", mod->name, e->prevframe);
 		e->currframe = 0;

@@ -165,8 +165,9 @@ typedef struct baseframe_joint_s {
 
 // !!!!! if this struct is changed, the value of MD5_BINARY_VERSION should be bumped !!!!!
 typedef struct md5header_s {
-	md5_model_t model;
-	md5_anim_t anim;
+	// stuff from the mesh and anim that's needed after loading
+	int num_frames;
+	md5_bbox_t *bboxes;
 
 	// full cullbox for use by efrags and other functions where we need a box but don't know the frames yet
 	float fullmins[3];

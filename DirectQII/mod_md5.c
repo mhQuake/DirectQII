@@ -315,6 +315,8 @@ static int MD5_ParseAnimFile (char *filename, char *data, md5_anim_t *anim)
 			// Allocate memory for bounding boxes
 			if (anim->num_frames > 0)
 			{
+				// we're going to keep the bboxes so put them in the heap and we can just copy the pointer instead of needing to
+				// alloc again and memcpy the data
 				anim->bboxes = (md5_bbox_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (md5_bbox_t) * anim->num_frames);
 			}
 		}
@@ -323,11 +325,11 @@ static int MD5_ParseAnimFile (char *filename, char *data, md5_anim_t *anim)
 			if (anim->num_joints > 0)
 			{
 				// allocate memory for the joints of each frame
-				anim->skeletonframes = (md5_joint_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (md5_joint_t) * anim->num_joints * anim->num_frames);
+				anim->skeletonframes = (md5_joint_t *) ri.Hunk_Alloc (sizeof (md5_joint_t) * anim->num_joints * anim->num_frames);
 
 				// Allocate temporary memory for building skeleton frames
-				jointInfos = (joint_info_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (joint_info_t) * anim->num_joints);
-				baseFrame = (baseframe_joint_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (baseframe_joint_t) * anim->num_joints);
+				jointInfos = (joint_info_t *) ri.Hunk_Alloc (sizeof (joint_info_t) * anim->num_joints);
+				baseFrame = (baseframe_joint_t *) ri.Hunk_Alloc (sizeof (baseframe_joint_t) * anim->num_joints);
 			}
 		}
 		else if (sscanf (md5_token, " frameRate %d", &anim->frameRate) == 1)
@@ -337,7 +339,7 @@ static int MD5_ParseAnimFile (char *filename, char *data, md5_anim_t *anim)
 			if (numAnimatedComponents > 0)
 			{
 				// Allocate memory for animation frame data
-				animFrameData = (float *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (float) * numAnimatedComponents);
+				animFrameData = (float *) ri.Hunk_Alloc (sizeof (float) * numAnimatedComponents);
 			}
 		}
 		else if (strncmp (md5_token, "hierarchy {", 11) == 0)
@@ -456,7 +458,7 @@ static int MD5_ParseMeshFile (char *filename, char *data, md5_model_t *mdl)
 			if (mdl->num_joints > 0)
 			{
 				// Allocate memory for base skeleton joints
-				mdl->baseSkel = (md5_joint_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, mdl->num_joints * sizeof (md5_joint_t));
+				mdl->baseSkel = (md5_joint_t *) ri.Hunk_Alloc (mdl->num_joints * sizeof (md5_joint_t));
 			}
 		}
 		else if (sscanf (md5_token, " numMeshes %d", &mdl->num_meshes) == 1)
@@ -464,7 +466,7 @@ static int MD5_ParseMeshFile (char *filename, char *data, md5_model_t *mdl)
 			if (mdl->num_meshes > 0)
 			{
 				// Allocate memory for meshes
-				mdl->meshes = (md5_mesh_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, mdl->num_meshes * sizeof (md5_mesh_t));
+				mdl->meshes = (md5_mesh_t *) ri.Hunk_Alloc (mdl->num_meshes * sizeof (md5_mesh_t));
 			}
 		}
 		else if (strncmp (md5_token, "joints {", 8) == 0)
@@ -520,7 +522,7 @@ static int MD5_ParseMeshFile (char *filename, char *data, md5_model_t *mdl)
 					if (mesh->num_verts > 0)
 					{
 						// Allocate memory for vertices
-						mesh->vertices = (md5_vertex_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (md5_vertex_t) * mesh->num_verts);
+						mesh->vertices = (md5_vertex_t *) ri.Hunk_Alloc (sizeof (md5_vertex_t) * mesh->num_verts);
 					}
 				}
 				else if (sscanf (md5_token, " numtris %d", &mesh->num_tris) == 1)
@@ -528,7 +530,7 @@ static int MD5_ParseMeshFile (char *filename, char *data, md5_model_t *mdl)
 					if (mesh->num_tris > 0)
 					{
 						// Allocate memory for triangles
-						mesh->triangles = (mesh_triangle_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (mesh_triangle_t) * mesh->num_tris);
+						mesh->triangles = (mesh_triangle_t *) ri.Hunk_Alloc (sizeof (mesh_triangle_t) * mesh->num_tris);
 					}
 				}
 				else if (sscanf (md5_token, " numweights %d", &mesh->num_weights) == 1)
@@ -536,7 +538,7 @@ static int MD5_ParseMeshFile (char *filename, char *data, md5_model_t *mdl)
 					if (mesh->num_weights > 0)
 					{
 						// Allocate memory for vertex weights
-						mesh->weights = (md5_weight_t *) HeapAlloc (loadmodel->hHeap, HEAP_ZERO_MEMORY, sizeof (md5_weight_t) * mesh->num_weights);
+						mesh->weights = (md5_weight_t *) ri.Hunk_Alloc (sizeof (md5_weight_t) * mesh->num_weights);
 					}
 				}
 				else if (sscanf (md5_token, " vert %d ( %f %f ) %d %d", &vert_index, &fdata[0], &fdata[1], &idata[0], &idata[1]) == 5)
@@ -704,6 +706,9 @@ void MD5_LoadSkins (model_t *mod, md5header_t *hdr, dmdl_t *pinmodel)
 		char dstskin[MAX_SKINNAME + 10];
 		char *name = NULL, *ext = NULL;
 
+		// we're going to be allocating...
+		int mark = ri.Hunk_LowMark ();
+
 		// copy it off as the base model data is inviolate
 		strcpy (dstskin, srcskin);
 
@@ -734,6 +739,9 @@ void MD5_LoadSkins (model_t *mod, md5header_t *hdr, dmdl_t *pinmodel)
 		strcpy (hdr->skinnames[i], dstskin);
 
 		mod->skins[i] = GL_FindImage (hdr->skinnames[i], it_skin);
+
+		// ...and free memory
+		ri.Hunk_FreeToLowMark (mark);
 	}
 }
 
@@ -918,31 +926,39 @@ qboolean Mod_LoadMD5Model (model_t *mod, void *buffer)
 	// alloc header space
 	md5header_t *hdr = (md5header_t *) HeapAlloc (mod->hHeap, HEAP_ZERO_MEMORY, sizeof (md5header_t));
 
+	// load into these but they're not needed post-loading
+	md5_model_t mesh = { 0 };
+	md5_anim_t anim = { 0 };
+
 	// ...should be already set but just making sure...
 	loadmodel = mod;
 
 	// look for a mesh
-	if (!MD5_LoadMeshFile (MD5_GetFileName (mod->name, "md5mesh"), &hdr->model)) goto md5_bad;
+	if (!MD5_LoadMeshFile (MD5_GetFileName (mod->name, "md5mesh"), &mesh)) goto md5_bad;
 
 	// look for an animation
-	if (!MD5_LoadAnimFile (MD5_GetFileName (mod->name, "md5anim"), &hdr->anim)) goto md5_bad;
+	if (!MD5_LoadAnimFile (MD5_GetFileName (mod->name, "md5anim"), &anim)) goto md5_bad;
 
 	// validate the frames (these are part of the network protocol so they should match, but sometimes the MD5 has more)
-	if (hdr->anim.num_frames < mdlframes)
+	if (anim.num_frames < mdlframes)
 		goto md5_bad; // frames don't match so it can't be used as a drop-in replacement
-	else if (hdr->anim.num_frames > 65536)
+	else if (anim.num_frames > 65536)
 		goto md5_bad; // exceeds protocol maximum
 
 	// the MD5 spec allows for more than 1 mesh but we don't need to support it for Quake21 content
-	if (hdr->model.num_meshes > 1)
+	if (mesh.num_meshes > 1)
 		goto md5_bad;
+
+	// the MD5s have additional frames that were not used in the base MD2s; chop them off so that we're not generating buffer data for them.
+	anim.num_frames = mdlframes;
+
+	// copy over stuff that's needed post-loading
+	hdr->num_frames = anim.num_frames;
+	hdr->bboxes = anim.bboxes;
 
 	// load the cullboxes
 	// some of the source MD5s were exported with bad cullboxes, so we must regenerate them correctly
-	MD5_MakeCullboxes (hdr, hdr->model.meshes, &hdr->anim);
-
-	// load the skins
-	MD5_LoadSkins (mod, hdr, pinmodel);
+	MD5_MakeCullboxes (hdr, mesh.meshes, &anim);
 
 	// see do we already have it
 	if ((mod->bufferset = D_FindAliasBuffers (mod)) != -1)
@@ -961,10 +977,13 @@ qboolean Mod_LoadMD5Model (model_t *mod, void *buffer)
 		set->registration_sequence = r_registration_sequence;
 
 		// now build everything from the model data
-		MD5_BuildPositionsBuffer (set, &hdr->model.meshes[0], &hdr->anim);
-		MD5_BuildTexCoordsBuffer (set, &hdr->model.meshes[0]);
-		MD5_BuildIndexBuffer (set, &hdr->model.meshes[0]);
+		MD5_BuildPositionsBuffer (set, &mesh.meshes[0], &anim);
+		MD5_BuildTexCoordsBuffer (set, &mesh.meshes[0]);
+		MD5_BuildIndexBuffer (set, &mesh.meshes[0]);
 	}
+
+	// load the skins (moved to after the buffer data because it does a Hunk_FreeAll in the texture loader)
+	MD5_LoadSkins (mod, hdr, pinmodel);
 
 	// set the type and other data correctly
 	mod->type = mod_md5;
