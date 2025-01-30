@@ -515,8 +515,6 @@ void R_FreeUnusedImages (void)
 			SAFE_RELEASE (image->SRV);
 			SAFE_RELEASE (image->RTV);
 
-			ri.Con_Printf (PRINT_ALL, "Freeing %s\n", image->name);
-
 			memset (image, 0, sizeof (*image));
 		}
 	}
