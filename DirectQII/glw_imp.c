@@ -638,7 +638,6 @@ void GLimp_Shutdown (void)
 	R_ShutdownWarp ();
 	R_ShutdownSky ();
 	R_ShutdownBufferSets ();
-	R_ShutdownBeam ();
 	R_ShutdownSprites ();
 
 	// handle cacheable objects

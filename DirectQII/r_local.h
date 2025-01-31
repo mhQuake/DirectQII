@@ -88,7 +88,6 @@ void R_ShutdownSky (void);
 void R_InitMesh (void);
 void R_ShutdownBufferSets (void);
 void R_InitBeam (void);
-void R_ShutdownBeam (void);
 void R_InitNull (void);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -267,9 +266,6 @@ void R_DrawWorld (void);
 void R_DrawAlphaSurfaces (void);
 void R_CreateSpecialTextures (void);
 void Draw_InitLocal (void);
-
-// called once per-frame to check for modifications and rebuild anything that needs rebuilding
-void R_BeamFrame (void);
 
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 qboolean R_CullBoxClipflags (vec3_t mins, vec3_t maxs, int clipflags);

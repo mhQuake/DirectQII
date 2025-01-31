@@ -34,7 +34,8 @@ cbuffer cbMainPerFrame : register(b1) {
 	float4 frustum2 : packoffset(c17);
 	float4 frustum3 : packoffset(c18);
 
-	float desaturation : packoffset(c19.x);	
+	float desaturation : packoffset(c19.x);
+	float beamdetail : packoffset(c19.y);
 };
 
 cbuffer cbPerObject : register(b2) {

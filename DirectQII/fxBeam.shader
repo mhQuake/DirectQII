@@ -1,7 +1,10 @@
 
 #ifdef VERTEXSHADER
-float4 BeamVS (float4 Position: POSITION) : SV_POSITION
+float4 BeamVS (uint vertexId : SV_VertexID) : SV_POSITION
 {
+	float angle = 2.0f * M_PI * (float) (vertexId / 2) / (float) beamdetail;
+	float4 Position = float4 (sin (angle) * 0.5f, cos (angle) * 0.5f, (vertexId + 1) % 2, 1);
+
 	return mul (LocalMatrix, Position);
 }
 #endif

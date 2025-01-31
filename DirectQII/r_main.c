@@ -46,7 +46,8 @@ __declspec(align(16)) typedef struct mainconstants_s {
 	float frustum2[4];
 	float frustum3[4];
 	float desaturation;
-	float junk[3];
+	float beamdetail;
+	float junk[2];
 } mainconstants_t;
 
 __declspec(align(16)) typedef struct entityconstants_s {
@@ -534,6 +535,13 @@ void R_SetupGL (void)
 		consts.desaturation = 1;
 	else consts.desaturation = r_lightsaturation->value;
 
+	// this should match the detail setup in R_CreateBeamVertexes
+	if (r_beamdetail->value < 3)
+		consts.beamdetail = 3;
+	else if (r_beamdetail->value > 360)
+		consts.beamdetail = 360;
+	else consts.beamdetail = r_beamdetail->value;
+
 	// and update to the cbuffer
 	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MainConstants, 0, NULL, &consts, 0, 0);
 
@@ -700,7 +708,6 @@ void R_RenderFrame (refdef_t *fd)
 
 	// check and recreate everything that needs to be done once per frame
 	R_LightFrame ();
-	R_BeamFrame ();
 
 	// set up to draw
 	if (gl_finish->value)
