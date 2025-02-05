@@ -44,6 +44,7 @@ byte	*mod_base;
 /*
 =================
 Mod_LoadLighting
+
 =================
 */
 void Mod_LoadLighting (lump_t *l, dbsp_t *bsp)
@@ -62,6 +63,7 @@ void Mod_LoadLighting (lump_t *l, dbsp_t *bsp)
 /*
 =================
 Mod_LoadVisibility
+
 =================
 */
 void Mod_LoadVisibility (lump_t *l, dbsp_t *bsp)
@@ -90,6 +92,7 @@ void Mod_LoadVisibility (lump_t *l, dbsp_t *bsp)
 /*
 =================
 Mod_LoadVertexes
+
 =================
 */
 void Mod_LoadVertexes (lump_t *l, dbsp_t *bsp)
@@ -115,6 +118,7 @@ void Mod_LoadVertexes (lump_t *l, dbsp_t *bsp)
 /*
 =================
 Mod_LoadSubmodels
+
 =================
 */
 void Mod_LoadSubmodels (lump_t *l, dbsp_t *bsp)
@@ -152,6 +156,7 @@ void Mod_LoadSubmodels (lump_t *l, dbsp_t *bsp)
 /*
 =================
 Mod_LoadEdges
+
 =================
 */
 void Mod_LoadEdges (lump_t *l, dbsp_t *bsp)
@@ -175,6 +180,7 @@ void Mod_LoadEdges (lump_t *l, dbsp_t *bsp)
 /*
 =================
 Mod_LoadTexinfo
+
 =================
 */
 void Mod_LoadTexinfo (lump_t *l, dbsp_t *bsp)
@@ -213,6 +219,10 @@ void Mod_LoadTexinfo (lump_t *l, dbsp_t *bsp)
 			ri.Con_Printf (PRINT_ALL, "Couldn't load %s\n", name);
 			out->image = r_notexture;
 		}
+
+		// ...and clear the texture chain
+		out->image->texturechain = NULL;
+		out->image->texturechain_tail = &out->image->texturechain;
 	}
 
 	// count animation frames

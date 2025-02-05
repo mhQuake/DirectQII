@@ -274,9 +274,12 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 			surf->dlightframe = r_dlightframecount;
 		}
 
-		// and done - draw the batch and clear the texture chain
+		// and done - draw the batch...
 		R_EndSurfaceBatch ();
+
+		// ...and clear the texture chain
 		ti->image->texturechain = NULL;
+		ti->image->texturechain_tail = &ti->image->texturechain;
 	}
 
 	// draw sky if present
@@ -319,8 +322,12 @@ void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix)
 		for (; surf; surf = surf->texturechain)
 			R_AddSurfaceToBatch (surf);
 
+		// and done - draw the batch...
 		R_EndSurfaceBatch ();
+
+		// ...and clear the texture chain
 		ti->image->texturechain = NULL;
+		ti->image->texturechain_tail = &ti->image->texturechain;
 	}
 }
 
@@ -391,8 +398,9 @@ void R_ChainSurface (msurface_t *surf)
 	else
 	{
 		// normal texture chain
-		surf->texturechain = surf->texinfo->image->texturechain;
-		surf->texinfo->image->texturechain = surf;
+		*surf->texinfo->image->texturechain_tail = surf;
+		surf->texinfo->image->texturechain_tail = &surf->texturechain;
+		surf->texturechain = NULL;
 	}
 }
 
@@ -400,6 +408,7 @@ void R_ChainSurface (msurface_t *surf)
 /*
 =================
 R_DrawBrushModel
+
 =================
 */
 void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix)

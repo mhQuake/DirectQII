@@ -147,6 +147,7 @@ typedef struct image_s {
 	// chained surfaces for drawing
 	// the same image_t may be used by multiple texinfo, so by storing the chain here we can get larger batches == fewer draw calls
 	struct msurface_s	*texturechain;
+	struct	msurface_s **texturechain_tail;
 
 	// D3D texture object
 	ID3D11Texture2D *Texture;
