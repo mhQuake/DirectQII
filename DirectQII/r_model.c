@@ -367,8 +367,8 @@ struct model_s *R_RegisterModel (char *name)
 
 			for (i = 0; i < sprout->numframes; i++)
 			{
-				mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite);
-				mod->skins[i]->registration_sequence = r_registration_sequence;
+				if ((mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite)) != NULL)
+					mod->skins[i]->registration_sequence = r_registration_sequence;
 			}
 		}
 		else if (mod->type == mod_md5)
@@ -377,8 +377,8 @@ struct model_s *R_RegisterModel (char *name)
 
 			for (i = 0; i < hdr->numskins; i++)
 			{
-				mod->skins[i] = GL_FindImage (hdr->skinnames[i], it_skin);
-				mod->skins[i]->registration_sequence = r_registration_sequence;
+				if ((mod->skins[i] = GL_FindImage (hdr->skinnames[i], it_skin)) != NULL)
+					mod->skins[i]->registration_sequence = r_registration_sequence;
 			}
 
 			mod->numframes = hdr->num_frames;
@@ -392,8 +392,8 @@ struct model_s *R_RegisterModel (char *name)
 
 			for (i = 0; i < pheader->num_skins; i++)
 			{
-				mod->skins[i] = GL_FindImage (pheader->skinnames[i], it_skin);
-				mod->skins[i]->registration_sequence = r_registration_sequence;
+				if ((mod->skins[i] = GL_FindImage (pheader->skinnames[i], it_skin)) != NULL)
+					mod->skins[i]->registration_sequence = r_registration_sequence;
 			}
 
 			mod->numframes = pheader->num_frames;
