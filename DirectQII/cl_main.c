@@ -1620,7 +1620,9 @@ void CL_FixCvarCheats (void)
 		if (!cheatvar->var)
 			cheatvar->var = Cvar_Get (cheatvar->name, cheatvar->value, 0, NULL);
 
-		if (strcmp (cheatvar->var->string, cheatvar->value))
+		if (!cheatvar->var)
+			; // still didn't get it
+		else if (strcmp (cheatvar->var->string, cheatvar->value))
 		{
 			Com_Printf ("Resetting cheat cvar \"%s\" to default value of \"%s\"\n", cheatvar->name, cheatvar->value);
 			Cvar_Set (cheatvar->name, cheatvar->value);
