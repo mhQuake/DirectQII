@@ -57,6 +57,7 @@ static image_t	*draw_chars;
 static image_t	*sb_nums[2];
 
 static int d3d_DrawTexturedShader;
+static int d3d_DrawConbackShader;
 static int d3d_DrawCinematicShader;
 static int d3d_DrawColouredShader;
 static int d3d_DrawTexArrayShader;
@@ -162,6 +163,7 @@ void Draw_InitLocal (void)
 
 	// shaders
 	d3d_DrawTexturedShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
+	d3d_DrawConbackShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawConbackPS", DEFINE_LAYOUT (layout_standard));
 	d3d_DrawColouredShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
 	d3d_DrawTexArrayShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
 	d3d_DrawCinematicShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", DEFINE_LAYOUT (layout_standard));
@@ -467,10 +469,25 @@ void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha)
 		return;
 	}
 
+	// select the correct shader
 	if (alpha >= 255)
-		Draw_TexturedQuad (gl, x, y, w, h, 0xffffffff);
+		D_BindShaderBundle (d3d_DrawTexturedShader);
 	else if (alpha > 0)
-		Draw_TexturedQuad (gl, x, y, w, h, (alpha << 24) | 0xffffff);
+		D_BindShaderBundle (d3d_DrawConbackShader);
+	else return;
+
+	R_BindTexture (gl->SRV);
+	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
+
+	if (Draw_EnsureBufferSpace ())
+	{
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y, 0xffffffff, 0, 0);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y, 0xffffffff, 1, 0);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, 0xffffffff, 1, 1);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y + h, 0xffffffff, 0, 1);
+
+		Draw_Flush ();
+	}
 }
 
 

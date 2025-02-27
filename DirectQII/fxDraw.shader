@@ -90,6 +90,22 @@ float4 DrawTexturedPS (PS_DRAWTEXTURED ps_in) : SV_TARGET0
 	return float4 (diff.rgb * diff.a, diff.a);
 }
 
+float4 DrawConbackPS (PS_DRAWTEXTURED ps_in) : SV_TARGET0
+{
+	// adjust for pre-multiplied alpha
+	float4 diff = GetGamma (mainTexture.Sample (drawSampler, ps_in.TexCoord)) * ps_in.Color;
+
+	// this is the same calculation as Software Quake's conback
+	int2 xy = int2 (ps_in.Position.xy);
+	int t = (xy.y & 1) << 1;
+
+	// no gamma because it's black
+	if ((xy.x & 3) != t)
+		return float4 (diff.rgb * diff.a, diff.a);
+	else return float4 (0, 0, 0, 0);
+}
+
+
 float4 DrawCinematicPS (PS_DRAWTEXTURED ps_in) : SV_TARGET0
 {
 	return GetGamma (mainTexture.Sample (cineSampler, ps_in.TexCoord));
