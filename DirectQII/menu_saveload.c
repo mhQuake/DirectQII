@@ -247,11 +247,10 @@ void SaveGameCallback (void *self)
 {
 	menuaction_s *a = (menuaction_s *) self;
 
-	// ensuring that the dir exists to take the mapshot
+	// ensuring that the dir exists
 	Sys_Mkdir (va ("%s/save/current", FS_Gamedir ()));
 
 	// and do it all
-	re.Mapshot (va ("%s/save/current/mapshot.tga", FS_Gamedir ()));
 	Cbuf_AddText (va ("save save%i\n", a->generic.localdata[0]));
 	M_ForceMenuOff ();
 }
