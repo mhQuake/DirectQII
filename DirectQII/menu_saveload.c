@@ -35,6 +35,10 @@ COMMON STUFF
 char		m_savestrings[MAX_SAVEGAMES][32];
 qboolean	m_savevalid[MAX_SAVEGAMES];
 
+// track if any savegame is valid so we know how to handle the load menu
+qboolean	m_saveanyvalid;
+
+
 void MakeGreen (char *str)
 {
 	for (int i = 0;; i++)
@@ -50,6 +54,8 @@ void Create_Savestrings (void)
 	int		i;
 	FILE	*f;
 	char	name[MAX_OSPATH];
+
+	m_saveanyvalid = false;
 
 	for (i = 0; i < MAX_SAVEGAMES; i++)
 	{
@@ -72,6 +78,7 @@ void Create_Savestrings (void)
 
 			fclose (f);
 			m_savevalid[i] = true;
+			m_saveanyvalid = true;
 		}
 	}
 }
@@ -168,6 +175,28 @@ void LoadGame_MenuDraw (void)
 	M_DisplaySave (m_savestrings[1]);
 }
 
+const char *LoadGame_MenuNavigate (int dir)
+{
+	// no valid saves were found so don't navigate
+	if (!m_saveanyvalid)
+		return NULL;
+
+	while (1)
+	{
+		// attempt to navigate in the desired direction
+		s_loadgame_menu.cursor += dir;
+		Menu_AdjustCursor (&s_loadgame_menu, dir);
+
+		// check for a valid spot
+		if (m_savevalid[s_loadgame_menu.cursor])
+			break;
+	}
+
+	// done
+	return menu_move_sound;
+}
+
+
 const char *LoadGame_MenuKey (int key)
 {
 	if (key == K_ESCAPE || key == K_ENTER)
@@ -177,6 +206,22 @@ const char *LoadGame_MenuKey (int key)
 			s_savegame_menu.cursor = 0;
 	}
 
+	// navigate to a valid save
+	switch (key)
+	{
+	case K_KP_UPARROW:
+	case K_UPARROW:
+		return LoadGame_MenuNavigate (-1);
+		break;
+
+	case K_TAB:
+	case K_KP_DOWNARROW:
+	case K_DOWNARROW:
+		return LoadGame_MenuNavigate (1);
+		break;
+	}
+
+	// other key
 	return Default_MenuKey (&s_loadgame_menu, key);
 }
 

@@ -144,14 +144,6 @@ const char *Default_MenuKey (menuframework_s *m, int key)
 		break;
 
 	case K_TAB:
-		if (m)
-		{
-			m->cursor++;
-			Menu_AdjustCursor (m, 1);
-			sound = menu_move_sound;
-		}
-		break;
-
 	case K_KP_DOWNARROW:
 	case K_DOWNARROW:
 		if (m)
