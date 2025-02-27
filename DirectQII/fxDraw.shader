@@ -115,8 +115,14 @@ float4 DrawPolyblendPS (float4 Position : SV_POSITION) : SV_TARGET0
 
 float4 DrawFadescreenPS (float4 Position : SV_POSITION) : SV_TARGET0
 {
-	// no gamma needed because rgb is black
-	return float4 (0, 0, 0, 0.666f);
+	// this is the same calculation as Software Quake's fadescreen
+	int2 xy = int2 (Position.xy);
+	int t = (xy.y & 1) << 1;
+
+	// no gamma because it's black
+	if ((xy.x & 3) != t)
+		return float4 (0, 0, 0, 1);
+	else return float4 (0, 0, 0, 0);
 }
 #endif
 
