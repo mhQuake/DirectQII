@@ -522,13 +522,36 @@ void CMod_LoadVisibility (lump_t *l)
 CMod_LoadEntityString
 =================
 */
-void CMod_LoadEntityString (lump_t *l)
+void CMod_LoadEntityString (lump_t *l, char *name)
 {
-	numentitychars = l->filelen;
-	if (l->filelen > MAX_MAP_ENTSTRING)
-		Com_Error (ERR_DROP, "Map has too large entity lump");
+	char entfile[256];
+	char *ext = NULL;
 
-	memcpy (map_entitystring, cmod_base + l->fileofs, l->filelen);
+	strcpy (entfile, name);
+
+	if ((ext = strstr (entfile, ".bsp")) != NULL)
+	{
+		char *entdata = NULL;
+
+		strcpy (ext, ".ent");
+
+		if ((numentitychars = FS_LoadFile (entfile, (void **) &entdata)) != -1)
+		{
+			if (numentitychars > MAX_MAP_ENTSTRING)
+				FS_FreeFile (entdata);
+			else
+			{
+				// this is good now
+				memcpy (map_entitystring, entdata, numentitychars);
+				FS_FreeFile (entdata);
+				return;
+			}
+		}
+	}
+
+	if ((numentitychars = l->filelen) > MAX_MAP_ENTSTRING)
+		Com_Error (ERR_DROP, "Map has too large entity lump");
+	else memcpy (map_entitystring, cmod_base + l->fileofs, l->filelen);
 }
 
 
@@ -609,7 +632,9 @@ cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 	CMod_LoadAreas (&header.lumps[LUMP_AREAS]);
 	CMod_LoadAreaPortals (&header.lumps[LUMP_AREAPORTALS]);
 	CMod_LoadVisibility (&header.lumps[LUMP_VISIBILITY]);
-	CMod_LoadEntityString (&header.lumps[LUMP_ENTITIES]);
+
+	// add the name so we can check for a .ent file
+	CMod_LoadEntityString (&header.lumps[LUMP_ENTITIES], name);
 
 	FS_FreeFile (buf);
 
