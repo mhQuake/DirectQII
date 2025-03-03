@@ -436,7 +436,7 @@ void SV_GameMap_f (void)
 
 	if (Cmd_Argc () != 2)
 	{
-		Com_Printf ("USAGE: gamemap <map>\n");
+		Com_Printf ("USAGE: %s <map>\n", Cmd_Argv (0));
 		return;
 	}
 
@@ -974,6 +974,7 @@ void SV_InitOperatorCommands (void)
 	Cmd_AddCommand ("map", SV_Map_f);
 	Cmd_AddCommand ("demomap", SV_DemoMap_f);
 	Cmd_AddCommand ("gamemap", SV_GameMap_f);
+	Cmd_AddCommand ("changelevel", SV_GameMap_f);
 	Cmd_AddCommand ("setmaster", SV_SetMaster_f);
 
 	Cmd_AddCommand ("serverrecord", SV_ServerRecord_f);
