@@ -516,11 +516,14 @@ void R_RecursiveWorldNode (mnode_t *node, int clipflags)
 		mleaf_t *pleaf = (mleaf_t *) node;
 
 		// check for door connected areas
+		// removed this because it's no longer a critical optimization, and causes occasional issues where a portal doesn't open fast enough
+#if 0
 		if (r_newrefdef.areabits)
 		{
 			if (!(r_newrefdef.areabits[pleaf->area >> 3] & (1 << (pleaf->area & 7))))
 				return;		// not visible
 		}
+#endif
 
 		mark = pleaf->firstmarksurface;
 		c = pleaf->nummarksurfaces;

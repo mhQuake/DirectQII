@@ -326,7 +326,7 @@ void R_LightMeshEntity (entity_t *e, meshconstants_t *consts, QMATRIX *localmatr
 	if (e->flags & RF_GLOW)
 	{
 		// bonus items will pulse with time
-		float scale = 0.1f * sinf (r_newrefdef.time * 7.0f);
+		float scale = 0.05f + 0.05f * sinf (r_newrefdef.time * 7.0f);
 
 		for (int i = 0; i < 3; i++)
 		{

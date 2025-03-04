@@ -299,7 +299,7 @@ void SV_WriteServerFile (qboolean autosave)
 	{
 		time (&aclock);
 		newtime = localtime (&aclock);
-		Com_sprintf (comment, sizeof (comment), "%2i:%i%i %2i/%2i  ", newtime->tm_hour, newtime->tm_min / 10, newtime->tm_min % 10, newtime->tm_mon + 1, newtime->tm_mday);
+		Com_sprintf (comment, sizeof (comment), "%02i:%i%i %02i/%02i  ", newtime->tm_hour, newtime->tm_min / 10, newtime->tm_min % 10, newtime->tm_mday, newtime->tm_mon + 1);
 		strncat (comment, sv.configstrings[CS_NAME], sizeof (comment) - 1 - strlen (comment));
 	}
 	else
