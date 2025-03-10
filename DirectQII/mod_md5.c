@@ -709,29 +709,37 @@ void MD5_LoadSkins (model_t *mod, md5header_t *hdr, dmdl_t *pinmodel)
 		// we're going to be allocating...
 		int mark = ri.Hunk_LowMark ();
 
-		// copy it off as the base model data is inviolate
-		strcpy (dstskin, srcskin);
-
-		// now chop it at the last / which should separate the path from the filename
-		for (int j = strlen (dstskin); j; j--)
+		// here we fixup tank skins which have a ".." embedded in them in the PAK filesystem
+		if (!strcmp (srcskin, "models/monsters/tank/../ctank/skin.pcx"))
+			strcpy (dstskin, "models/monsters/tank/md5/cskin.png");
+		else if (!strcmp (srcskin, "models/monsters/tank/../ctank/pain.pcx"))
+			strcpy (dstskin, "models/monsters/tank/md5/cpain.png");
+		else
 		{
-			if (dstskin[j] == '/' || dstskin[j] == '\\')
+			// regular skin - copy it off as the base model data is inviolate
+			strcpy (dstskin, srcskin);
+
+			// now chop it at the last / which should separate the path from the filename
+			for (int j = strlen (dstskin); j; j--)
 			{
-				// chop it off here
-				dstskin[j] = 0;
+				if (dstskin[j] == '/' || dstskin[j] == '\\')
+				{
+					// chop it off here
+					dstskin[j] = 0;
 
-				// take the name from the srcskin so we can safely overwrite dstskin without stomping it
-				name = &srcskin[j + 1];
+					// take the name from the srcskin so we can safely overwrite dstskin without stomping it
+					name = &srcskin[j + 1];
 
-				// append the MD5 path and the filename
-				strcat (dstskin, va ("/md5/%s", name));
+					// append the MD5 path and the filename
+					strcat (dstskin, va ("/md5/%s", name));
 
-				// replace the extension with PNG
-				if ((ext = strstr (dstskin, ".pcx")) != NULL)
-					strcpy (ext, ".png");
+					// replace the extension with PNG
+					if ((ext = strstr (dstskin, ".pcx")) != NULL)
+						strcpy (ext, ".png");
 
-				// and done
-				break;
+					// and done
+					break;
+				}
 			}
 		}
 

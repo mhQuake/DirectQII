@@ -388,15 +388,15 @@ struct model_s *R_RegisterModel (char *name)
 		}
 		else if (mod->type == mod_alias)
 		{
-			mmdl_t *pheader = mod->md2header;
+			mmdl_t *hdr = mod->md2header;
 
-			for (i = 0; i < pheader->num_skins; i++)
+			for (i = 0; i < hdr->num_skins; i++)
 			{
-				if ((mod->skins[i] = GL_FindImage (pheader->skinnames[i], it_skin)) != NULL)
+				if ((mod->skins[i] = GL_FindImage (hdr->skinnames[i], it_skin)) != NULL)
 					mod->skins[i]->registration_sequence = r_registration_sequence;
 			}
 
-			mod->numframes = pheader->num_frames;
+			mod->numframes = hdr->num_frames;
 
 			// register vertex and index buffers
 			R_RegisterBufferSet (mod);
