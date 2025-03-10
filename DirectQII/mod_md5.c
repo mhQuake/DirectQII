@@ -36,7 +36,7 @@ MD5_ParseLine
 parse a full line out of a text stream
 ==============
 */
-char *MD5_ParseLine (char *data)
+static char *MD5_ParseLine (char *data)
 {
 	int i = 0;
 
@@ -96,7 +96,7 @@ MD5_Parse
 Parse a token out of a string
 ==============
 */
-char *MD5_Parse (char *data)
+static char *MD5_Parse (char *data)
 {
 	int             c;
 	int             len;
@@ -412,7 +412,7 @@ static int MD5_LoadAnimFile (char *filename, md5_anim_t *anim)
 
 	if ((len = ri.FS_LoadFile (filename, (void **) &data)) == -1)
 	{
-		ri.Con_Printf (PRINT_DEVELOPER, "MD5_LoadMeshFile : couldn't open \"%s\"!\n", filename);
+		ri.Con_Printf (PRINT_DEVELOPER, "MD5_LoadAnimFile : couldn't open \"%s\"!\n", filename);
 		return 0;
 	}
 
@@ -607,6 +607,37 @@ static int MD5_LoadMeshFile (char *filename, md5_model_t *mdl)
 
 /*
 ==================
+MD5_MakeFinalVertex
+
+==================
+*/
+static void MD5_MakeFinalVertex (float *position, const md5_mesh_t *mesh, const md5_joint_t *skeleton, int vnum)
+{
+	// initialize the position vertex
+	position[0] = position[1] = position[2] = 0.0f;
+
+	// Calculate final vertex to draw with weights
+	for (int j = 0; j < mesh->vertices[vnum].count; j++)
+	{
+		const md5_weight_t *weight = &mesh->weights[mesh->vertices[vnum].start + j];
+		const md5_joint_t *joint = &skeleton[weight->joint];
+
+		// Calculate transformed vertex for this weight
+		vec3_t wv;
+		Quat_rotatePoint (joint->orient, weight->pos, wv);
+
+		// The sum of all weight->bias should be 1.0
+		position[0] += (joint->pos[0] + wv[0]) * weight->bias;
+		position[1] += (joint->pos[1] + wv[1]) * weight->bias;
+		position[2] += (joint->pos[2] + wv[2]) * weight->bias;
+	}
+
+	// apply the final scaling
+}
+
+
+/*
+==================
 MD5_CullboxForFrame
 
 ==================
@@ -622,23 +653,11 @@ static void MD5_CullboxForFrame (const md5_mesh_t *mesh, const md5_joint_t *skel
 	// Setup vertices
 	for (i = 0; i < mesh->num_verts; i++)
 	{
+		// initialize the vertex
 		vec3_t finalVertex = { 0.0f, 0.0f, 0.0f };
 
 		// Calculate final vertex to draw with weights
-		for (j = 0; j < mesh->vertices[i].count; j++)
-		{
-			const md5_weight_t *weight = &mesh->weights[mesh->vertices[i].start + j];
-			const md5_joint_t *joint = &skeleton[weight->joint];
-
-			// Calculate transformed vertex for this weight
-			vec3_t wv;
-			Quat_rotatePoint (joint->orient, weight->pos, wv);
-
-			// The sum of all weight->bias should be 1.0
-			finalVertex[0] += (joint->pos[0] + wv[0]) * weight->bias;
-			finalVertex[1] += (joint->pos[1] + wv[1]) * weight->bias;
-			finalVertex[2] += (joint->pos[2] + wv[2]) * weight->bias;
-		}
+		MD5_MakeFinalVertex (finalVertex, mesh, skeleton, i);
 
 		// accumulate to the cullbox
 		for (j = 0; j < 3; j++)
@@ -693,7 +712,7 @@ MD5_LoadSkins
 skin numbers are part of the network protocol so they must match between the base MD2 and it's replacement
 ==================
 */
-void MD5_LoadSkins (model_t *mod, md5header_t *hdr, dmdl_t *pinmodel)
+static void MD5_LoadSkins (model_t *mod, md5header_t *hdr, dmdl_t *pinmodel)
 {
 	int num_skins = LittleLong (pinmodel->num_skins);
 	int ofs_skins = LittleLong (pinmodel->ofs_skins);
@@ -763,7 +782,7 @@ MD5_BuildFrameVertexes
 
 ==================
 */
-void MD5_BuildFrameVertexes (meshpolyvert_t *dst, const md5_mesh_t *mesh, const md5_joint_t *skeleton)
+static void MD5_BuildFrameVertexes (meshpolyvert_t *dst, const md5_mesh_t *mesh, const md5_joint_t *skeleton)
 {
 	// Setup vertices
 	for (int i = 0; i < mesh->num_verts; i++, dst++)
@@ -772,20 +791,7 @@ void MD5_BuildFrameVertexes (meshpolyvert_t *dst, const md5_mesh_t *mesh, const 
 		dst->position[0] = dst->position[1] = dst->position[2] = 0.0f;
 
 		// Calculate final vertex to draw with weights
-		for (int j = 0; j < mesh->vertices[i].count; j++)
-		{
-			const md5_weight_t *weight = &mesh->weights[mesh->vertices[i].start + j];
-			const md5_joint_t *joint = &skeleton[weight->joint];
-
-			// Calculate transformed vertex for this weight
-			vec3_t wv;
-			Quat_rotatePoint (joint->orient, weight->pos, wv);
-
-			// The sum of all weight->bias should be 1.0
-			dst->position[0] += (joint->pos[0] + wv[0]) * weight->bias;
-			dst->position[1] += (joint->pos[1] + wv[1]) * weight->bias;
-			dst->position[2] += (joint->pos[2] + wv[2]) * weight->bias;
-		}
+		MD5_MakeFinalVertex (dst->position, mesh, skeleton, i);
 
 		// placeholder
 		dst->normal[0] = 1;
@@ -801,7 +807,7 @@ MD5_BuildPositionsBuffer
 
 ==================
 */
-void MD5_BuildPositionsBuffer (bufferset_t *set, const md5_mesh_t *mesh, const md5_anim_t *anim)
+static void MD5_BuildPositionsBuffer (bufferset_t *set, const md5_mesh_t *mesh, const md5_anim_t *anim)
 {
 	// describe the new vertex buffer
 	D3D11_BUFFER_DESC vbDesc = {
@@ -855,7 +861,7 @@ MD5_BuildTexCoordsBuffer
 
 ==================
 */
-void MD5_BuildTexCoordsBuffer (bufferset_t *set, const md5_mesh_t *mesh)
+static void MD5_BuildTexCoordsBuffer (bufferset_t *set, const md5_mesh_t *mesh)
 {
 	// describe the new vertex buffer
 	D3D11_BUFFER_DESC vbDesc = {
@@ -897,7 +903,7 @@ MD5_BuildIndexBuffer
 
 ==================
 */
-void MD5_BuildIndexBuffer (bufferset_t *set, const md5_mesh_t *mesh)
+static void MD5_BuildIndexBuffer (bufferset_t *set, const md5_mesh_t *mesh)
 {
 	// describe the new vertex buffer
 	D3D11_BUFFER_DESC ibDesc = {
@@ -917,6 +923,17 @@ void MD5_BuildIndexBuffer (bufferset_t *set, const md5_mesh_t *mesh)
 
 	// copy off the index count for drawing
 	set->numindexes = mesh->num_tris * 3;
+}
+
+
+/*
+==================
+MD5_LoadScaleFile
+
+==================
+*/
+static void MD5_LoadScaleFile (char *filename, md5_model_t *mdl, md5_anim_t *anim)
+{
 }
 
 
@@ -966,6 +983,9 @@ qboolean Mod_LoadMD5Model (model_t *mod, void *buffer)
 	// copy over stuff that's needed post-loading
 	hdr->num_frames = anim.num_frames;
 	hdr->bboxes = anim.bboxes;
+
+	// load the scale file, before generating cullboxes or vertices so that everything can be scaled
+	MD5_LoadScaleFile (MD5_GetFileName (mod->name, "md5scale"), &mesh, &anim);
 
 	// load the cullboxes
 	// some of the source MD5s were exported with bad cullboxes, so we must regenerate them correctly
