@@ -928,12 +928,37 @@ static void MD5_BuildIndexBuffer (bufferset_t *set, const md5_mesh_t *mesh)
 
 /*
 ==================
+MD5_ParseScaleFile
+
+==================
+*/
+static int MD5_ParseScaleFile (char *filename, char *data, md5_model_t *mdl, md5_anim_t *anim)
+{
+	return 0;
+}
+
+
+/*
+==================
 MD5_LoadScaleFile
 
 ==================
 */
 static void MD5_LoadScaleFile (char *filename, md5_model_t *mdl, md5_anim_t *anim)
 {
+	char *data = NULL;
+	int len;
+
+	// this is allowed silently fail as some MD5s don't have scale files
+	if ((len = ri.FS_LoadFile (filename, (void **) &data)) == -1)
+		return;
+
+	// this is also allowed silently fail
+	if (MD5_ParseScaleFile (filename, data, mdl, anim))
+		;	// do nothing
+
+	// common to both success or fail cases; just free the file and return
+	ri.FS_FreeFile (data);
 }
 
 
