@@ -75,7 +75,7 @@ void CL_ClearParticles (void)
 	for (i = 0; i < MAX_PARTICLES; i++)
 	{
 		particles[i].next = &particles[i + 1];
-		particles[i].size = 6 + (rand () & 7);
+		particles[i].size = 5 + (rand () & 3);
 	}
 
 	particles[MAX_PARTICLES - 1].next = NULL;
