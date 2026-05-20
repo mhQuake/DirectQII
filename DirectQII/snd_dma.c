@@ -753,8 +753,7 @@ void S_ClearBuffer (void)
 
 	if (dma.samplebits == 8)
 		clear = 0x80;
-	else
-		clear = 0;
+	else clear = 0;
 
 	SNDDMA_BeginPainting ();
 	if (dma.buffer)
@@ -1071,7 +1070,7 @@ void S_Update (vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 	S_Update_ ();
 }
 
-void GetSoundtime (void)
+void GetSoundTime (void)
 {
 	int		samplepos;
 	static	int		buffers;
@@ -1116,7 +1115,7 @@ void S_Update_ (void)
 		return;
 
 	// Updates DMA time
-	GetSoundtime ();
+	GetSoundTime ();
 
 	// check to make sure that we haven't overshot
 	if (paintedtime < soundtime)

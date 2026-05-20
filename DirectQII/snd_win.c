@@ -32,30 +32,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef enum { SIS_SUCCESS, SIS_FAILURE, SIS_NOTAVAIL } sndinitstat;
 
 static qboolean	dsound_init;
-static qboolean	snd_firsttime = true, snd_isdirect, snd_iswave;
+static qboolean	snd_firsttime = true, snd_isdirect;
 
-// starts at 0 for disabled
-static int	snd_buffer_count = 0;
 static int	sample16;
 static int	snd_sent, snd_completed;
 
 extern HWND cl_hwnd;
 
-/*
- * Global variables. Must be visible to window-procedure function
- *  so it can unlock and free the data block after it has been played.
- */
-
 
 HPSTR	lpData;
-DWORD	gSndBufSize;
+DWORD	ds_SndBufSize;
 MMTIME	mmstarttime;
 
 IDirectSound8 *ds_Object;
-LPDIRECTSOUNDBUFFER ds_Buffer;
+IDirectSoundBuffer *ds_Buffer;
 
-qboolean SNDDMA_InitDirect (void);
-
+sndinitstat SNDDMA_InitDirect (void);
 void FreeSound (void);
 
 static const char *DSoundError (int error)
@@ -151,7 +143,7 @@ static qboolean DS_CreateBuffers (void)
 		"   %d bytes/sec\n",
 		dma.channels, dma.samplebits, dma.speed);
 
-	gSndBufSize = dsbcaps.dwBufferBytes;
+	ds_SndBufSize = dsbcaps.dwBufferBytes;
 
 	/* we don't want anyone to access the buffer directly w/o locking it first. */
 	lpData = NULL;
@@ -160,7 +152,7 @@ static qboolean DS_CreateBuffers (void)
 	ds_Buffer->lpVtbl->GetCurrentPosition (ds_Buffer, &mmstarttime.u.sample, &dwWrite);
 	ds_Buffer->lpVtbl->Play (ds_Buffer, 0, 0, DSBPLAY_LOOPING);
 
-	dma.samples = gSndBufSize / (dma.samplebits / 8);
+	dma.samples = ds_SndBufSize / (dma.samplebits / 8);
 	dma.samplepos = 0;
 	dma.submission_chunk = 1;
 	dma.buffer = (unsigned char *) lpData;
@@ -302,7 +294,7 @@ int SNDDMA_Init (void)
 	memset ((void *) &dma, 0, sizeof (dma));
 
 	// assume DirectSound won't initialize
-	dsound_init = 0;
+	dsound_init = false;
 	stat = SIS_FAILURE;
 
 	// Init DirectSound
@@ -325,7 +317,6 @@ int SNDDMA_Init (void)
 	}
 
 	snd_firsttime = false;
-	snd_buffer_count = 1;
 
 	if (!dsound_init)
 	{
@@ -359,6 +350,7 @@ int SNDDMA_GetDMAPos (void)
 		ds_Buffer->lpVtbl->GetCurrentPosition (ds_Buffer, &mmtime.u.sample, &dwWrite);
 		s = mmtime.u.sample - mmstarttime.u.sample;
 	}
+	else s = 0;
 
 	s >>= sample16;
 	s &= (dma.samples - 1);
@@ -400,11 +392,11 @@ void SNDDMA_BeginPainting (void)
 	reps = 0;
 	dma.buffer = NULL;
 
-	while ((hresult = ds_Buffer->lpVtbl->Lock (ds_Buffer, 0, gSndBufSize, &pbuf, &locksize, &pbuf2, &dwSize2, 0)) != DS_OK)
+	while ((hresult = ds_Buffer->lpVtbl->Lock (ds_Buffer, 0, ds_SndBufSize, &pbuf, &locksize, &pbuf2, &dwSize2, 0)) != DS_OK)
 	{
 		if (hresult != DSERR_BUFFERLOST)
 		{
-			Com_Printf ("S_TransferStereo16: Lock failed with error '%s'\n", DSoundError (hresult));
+			Com_Printf ("SNDDMA_BeginPainting: Lock failed with error '%s'\n", DSoundError (hresult));
 			S_Shutdown ();
 			return;
 		}
